@@ -13,7 +13,8 @@ The `shared/libs` module provides reusable infrastructure libraries:
 ### Core Infrastructure
 | Library | Purpose |
 |---------|---------|
-| `@ecosystem/database` | Repository pattern, Drizzle integration, caching |
+| `@ecosystem/repository` | **NEW** - Full repository pattern with Drizzle ORM, soft delete, audit trail, multi-tenant scoping |
+| `@ecosystem/database` | Database connections, basic repository utilities, caching |
 | `@ecosystem/cache` | Redis caching abstraction, cache-aside pattern |
 | `@ecosystem/messaging` | Event bus, message queue integration |
 | `@ecosystem/auth` | JWT validation, RBAC utilities |
