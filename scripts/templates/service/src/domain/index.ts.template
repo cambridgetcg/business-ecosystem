@@ -1,0 +1,9 @@
+/**
+ * Domain layer - Business logic lives here
+ * This layer is independent of infrastructure concerns
+ */
+
+export * from './base-entity.js';
+export * from './base-repository.js';
+export * from './domain-events.js';
+// Export domain-specific modules here

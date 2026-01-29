@@ -1,0 +1,29 @@
+{
+  "name": "@ecosystem/service-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@ecosystem/service-auth": "workspace:*",
+    "@ecosystem/contracts-entity": "workspace:*",
+    "@ecosystem/contracts-identity": "workspace:*",
+    "@ecosystem/contracts-financial": "workspace:*",
+    "zod": "^3.22.0",
+    "pino": "^8.19.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "tsup": "^8.0.0"
+  }
+}

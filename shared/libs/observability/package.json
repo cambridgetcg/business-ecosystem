@@ -1,0 +1,41 @@
+{
+  "name": "@ecosystem/observability",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.7.0",
+    "@opentelemetry/sdk-node": "^0.48.0",
+    "@opentelemetry/sdk-trace-node": "^1.22.0",
+    "@opentelemetry/sdk-metrics": "^1.22.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.48.0",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.48.0",
+    "@opentelemetry/exporter-prometheus": "^0.48.0",
+    "@opentelemetry/instrumentation-fastify": "^0.35.0",
+    "@opentelemetry/instrumentation-http": "^0.48.0",
+    "@opentelemetry/instrumentation-pg": "^0.40.0",
+    "@opentelemetry/resources": "^1.22.0",
+    "@opentelemetry/semantic-conventions": "^1.22.0",
+    "pino": "^8.19.0",
+    "fastify-plugin": "^4.5.0"
+  },
+  "peerDependencies": {
+    "fastify": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "tsup": "^8.0.0",
+    "fastify": "^4.0.0"
+  }
+}

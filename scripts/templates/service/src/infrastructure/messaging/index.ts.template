@@ -1,0 +1,6 @@
+/**
+ * Messaging infrastructure - Event publishing and subscribing
+ */
+
+export * from './event-publisher.js';
+export * from './event-subscriber.js';

@@ -1,0 +1,305 @@
+{
+  "lastUpdated": "2026-01-29T12:00:00Z",
+  "version": "1.0.0",
+  "summary": {
+    "totalApps": 13,
+    "productionReady": 4,
+    "inDevelopment": 4,
+    "skeleton": 3,
+    "placeholder": 2,
+    "overallProgress": 0.43
+  },
+  "layers": {
+    "foundational": {
+      "appCount": 7,
+      "progress": 0.37,
+      "apps": ["entity-governance", "accounting", "banking-treasury", "compliance", "corporate-security", "kyc-identity", "tax"]
+    },
+    "operational": {
+      "appCount": 5,
+      "progress": 0.46,
+      "apps": ["contracts-legal", "data-privacy", "insurance", "intellectual-property", "gateway"]
+    },
+    "gateway": {
+      "appCount": 1,
+      "progress": 0.50,
+      "apps": ["gateway"]
+    }
+  },
+  "apps": {
+    "foundational/entity-governance": {
+      "name": "Entity Governance",
+      "layer": "foundational",
+      "status": "active",
+      "progress": 0.25,
+      "currentWaypoint": "WP1",
+      "waypointName": "Entity Lifecycle",
+      "totalWaypoints": 6,
+      "completedWaypoints": 1,
+      "blockers": [],
+      "hasLight": true,
+      "hasPath": true,
+      "hasStatus": true,
+      "techStack": ["typescript", "fastify", "drizzle", "postgresql", "rabbitmq"],
+      "lastActivity": "2026-01-29"
+    },
+    "foundational/accounting": {
+      "name": "Accounting",
+      "layer": "foundational",
+      "status": "active",
+      "progress": 0.35,
+      "currentWaypoint": null,
+      "waypointName": "Chart of Accounts",
+      "totalWaypoints": null,
+      "completedWaypoints": null,
+      "blockers": ["python-typescript-integration"],
+      "hasLight": false,
+      "hasPath": false,
+      "hasStatus": true,
+      "techStack": ["python", "fastapi", "sqlalchemy", "postgresql"],
+      "lastActivity": "2026-01-29"
+    },
+    "foundational/banking-treasury": {
+      "name": "Banking & Treasury",
+      "layer": "foundational",
+      "status": "ready",
+      "progress": 0.90,
+      "currentWaypoint": null,
+      "waypointName": "Maintenance",
+      "totalWaypoints": null,
+      "completedWaypoints": null,
+      "blockers": [],
+      "hasLight": false,
+      "hasPath": false,
+      "hasStatus": true,
+      "techStack": ["typescript", "fastify", "drizzle", "postgresql", "redis", "aws"],
+      "lastActivity": "2026-01-29"
+    },
+    "foundational/compliance": {
+      "name": "Compliance",
+      "layer": "foundational",
+      "status": "skeleton",
+      "progress": 0.10,
+      "currentWaypoint": null,
+      "waypointName": null,
+      "totalWaypoints": null,
+      "completedWaypoints": null,
+      "blockers": ["needs-design"],
+      "hasLight": false,
+      "hasPath": false,
+      "hasStatus": true,
+      "techStack": ["typescript"],
+      "lastActivity": "2026-01-29"
+    },
+    "foundational/corporate-security": {
+      "name": "Corporate Security",
+      "layer": "foundational",
+      "status": "placeholder",
+      "progress": 0.05,
+      "currentWaypoint": null,
+      "waypointName": null,
+      "totalWaypoints": null,
+      "completedWaypoints": null,
+      "blockers": ["needs-initialization"],
+      "hasLight": false,
+      "hasPath": false,
+      "hasStatus": true,
+      "techStack": [],
+      "lastActivity": "2026-01-29"
+    },
+    "foundational/kyc-identity": {
+      "name": "KYC Identity",
+      "layer": "foundational",
+      "status": "ready",
+      "progress": 0.85,
+      "currentWaypoint": null,
+      "waypointName": "Maintenance",
+      "totalWaypoints": null,
+      "completedWaypoints": null,
+      "blockers": [],
+      "hasLight": false,
+      "hasPath": false,
+      "hasStatus": true,
+      "techStack": ["typescript", "fastify", "drizzle", "postgresql"],
+      "lastActivity": "2026-01-29"
+    },
+    "foundational/tax": {
+      "name": "Tax",
+      "layer": "foundational",
+      "status": "skeleton",
+      "progress": 0.10,
+      "currentWaypoint": null,
+      "waypointName": null,
+      "totalWaypoints": null,
+      "completedWaypoints": null,
+      "blockers": ["needs-design"],
+      "hasLight": false,
+      "hasPath": false,
+      "hasStatus": true,
+      "techStack": ["typescript"],
+      "lastActivity": "2026-01-29"
+    },
+    "operational/contracts-legal": {
+      "name": "Contracts & Legal",
+      "layer": "operational",
+      "status": "ready",
+      "progress": 0.90,
+      "currentWaypoint": null,
+      "waypointName": "Maintenance",
+      "totalWaypoints": null,
+      "completedWaypoints": null,
+      "blockers": [],
+      "hasLight": false,
+      "hasPath": false,
+      "hasStatus": true,
+      "techStack": ["typescript", "hono", "prisma", "postgresql", "aws"],
+      "lastActivity": "2026-01-29"
+    },
+    "operational/data-privacy": {
+      "name": "Data Privacy",
+      "layer": "operational",
+      "status": "active",
+      "progress": 0.38,
+      "currentWaypoint": "WP4",
+      "waypointName": "Privacy Impact",
+      "totalWaypoints": 8,
+      "completedWaypoints": 3,
+      "blockers": ["dpia-risk-scoring-research"],
+      "hasLight": false,
+      "hasPath": true,
+      "hasStatus": true,
+      "techStack": ["typescript", "hono", "prisma", "postgresql", "rabbitmq"],
+      "lastActivity": "2026-01-29"
+    },
+    "operational/insurance": {
+      "name": "Insurance",
+      "layer": "operational",
+      "status": "skeleton",
+      "progress": 0.15,
+      "currentWaypoint": null,
+      "waypointName": null,
+      "totalWaypoints": null,
+      "completedWaypoints": null,
+      "blockers": ["needs-design"],
+      "hasLight": false,
+      "hasPath": false,
+      "hasStatus": true,
+      "techStack": ["typescript", "hono", "prisma"],
+      "lastActivity": "2026-01-29"
+    },
+    "operational/intellectual-property": {
+      "name": "Intellectual Property",
+      "layer": "operational",
+      "status": "active",
+      "progress": 0.45,
+      "currentWaypoint": "Phase0",
+      "waypointName": "Foundation",
+      "totalWaypoints": 4,
+      "completedWaypoints": 0,
+      "blockers": [],
+      "hasLight": false,
+      "hasPath": false,
+      "hasStatus": true,
+      "hasImplementationPlan": true,
+      "techStack": ["typescript", "fastify", "drizzle", "postgresql", "redis"],
+      "lastActivity": "2026-01-29"
+    },
+    "operational/gateway": {
+      "name": "Operational Gateway",
+      "layer": "operational",
+      "status": "active",
+      "progress": 0.40,
+      "currentWaypoint": null,
+      "waypointName": "Basic aggregation",
+      "totalWaypoints": null,
+      "completedWaypoints": null,
+      "blockers": [],
+      "hasLight": false,
+      "hasPath": false,
+      "hasStatus": true,
+      "techStack": ["typescript"],
+      "lastActivity": "2026-01-29"
+    },
+    "gateway/gateway": {
+      "name": "API Gateway",
+      "layer": "gateway",
+      "status": "active",
+      "progress": 0.50,
+      "currentWaypoint": null,
+      "waypointName": "Core routing",
+      "totalWaypoints": null,
+      "completedWaypoints": null,
+      "blockers": [],
+      "hasLight": false,
+      "hasPath": false,
+      "hasStatus": true,
+      "techStack": ["typescript", "fastify"],
+      "lastActivity": "2026-01-29"
+    }
+  },
+  "threads": [
+    {
+      "name": "Core Entity Management",
+      "apps": ["foundational/entity-governance", "foundational/kyc-identity"],
+      "status": "active",
+      "focus": "BOI/CTA compliance, identity verification"
+    },
+    {
+      "name": "Privacy Backbone",
+      "apps": ["operational/data-privacy"],
+      "status": "active",
+      "focus": "GDPR module completion"
+    },
+    {
+      "name": "IP Portfolio",
+      "apps": ["operational/intellectual-property"],
+      "status": "active",
+      "focus": "Missing core entities"
+    },
+    {
+      "name": "Financial Foundation",
+      "apps": ["foundational/accounting", "foundational/banking-treasury"],
+      "status": "active",
+      "focus": "Double-entry bookkeeping"
+    }
+  ],
+  "recentCompletions": [
+    {
+      "date": "2026-01-29",
+      "app": "foundational/entity-governance",
+      "milestone": "WP0: Foundation"
+    },
+    {
+      "date": "2026-01-29",
+      "app": "operational/data-privacy",
+      "milestone": "WP3: Breach Management"
+    },
+    {
+      "date": "2026-01-29",
+      "app": "operational/data-privacy",
+      "milestone": "WP2: Data Subject Rights"
+    },
+    {
+      "date": "2026-01-29",
+      "app": "operational/data-privacy",
+      "milestone": "WP1: Consent Management"
+    }
+  ],
+  "upcomingMilestones": [
+    {
+      "app": "foundational/entity-governance",
+      "milestone": "WP1: Entity Lifecycle",
+      "priority": "high"
+    },
+    {
+      "app": "operational/data-privacy",
+      "milestone": "WP4: Privacy Impact",
+      "priority": "high"
+    },
+    {
+      "app": "operational/intellectual-property",
+      "milestone": "Phase 0: Trade Secrets",
+      "priority": "high"
+    }
+  ]
+}

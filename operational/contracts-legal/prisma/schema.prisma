@@ -1,0 +1,1620 @@
+// Contracts & Legal Service - Prisma Schema
+// AWS RDS PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// CORE CONTRACT MODELS
+// ============================================================================
+
+model Contract {
+  id                String           @id @default(cuid())
+  contractNumber    String           @unique
+  type              ContractType
+  status            ContractStatus   @default(DRAFT)
+  title             String
+  description       String?
+
+  // Parties
+  parties           ContractParty[]
+
+  // Dates
+  effectiveDate     DateTime?
+  expiryDate        DateTime?
+  signedDate        DateTime?
+  terminatedDate    DateTime?
+
+  // Financial
+  value             Decimal?         @db.Decimal(19, 4)
+  currency          String           @default("USD")
+  paymentTerms      String?
+
+  // Renewal
+  autoRenewal       Boolean          @default(false)
+  renewalTermDays   Int?
+  renewalNoticeDays Int?
+
+  // Dispute Resolution - Governing Law (WHICH law applies)
+  governingLaw          String?      // e.g., "New York"
+  governingLawCountry   String?      // e.g., "US"
+
+  // Dispute Resolution - Forum Selection (WHERE disputes heard)
+  forumSelection        String?      // e.g., "State and Federal Courts of Delaware"
+  forumSelectionType    ForumType    @default(PERMISSIVE)
+  venueCity             String?
+  venueState            String?
+  venueCountry          String?
+
+  // Arbitration (alternative to court)
+  arbitrationClause     Boolean      @default(false)
+  arbitrationRules      String?      // e.g., "AAA Commercial Rules", "JAMS", "ICC"
+  arbitrationSeat       String?      // e.g., "New York, NY"
+
+  // Contract Modifications
+  modifications     ContractModification[]
+
+  // Force Majeure
+  forceMajeureClause  ForceMajeureClause?
+  forceMajeureEvents  ForceMajeureEvent[]
+
+  // Performance & Breach
+  performanceIssues   PerformanceIssue[]
+  breachAllegations   BreachAllegation[]
+
+  // Revenue Recognition (ASC 606)
+  performanceObligations PerformanceObligation[]
+  revenueRecognitionMethod RevRecMethod?
+  revenueRecognitionNotes String?
+
+  // Template reference
+  templateId        String?
+  template          ContractTemplate? @relation(fields: [templateId], references: [id])
+
+  // Documents
+  documents         Document[]
+
+  // Lifecycle
+  versions          ContractVersion[]
+  activities        ContractActivity[]
+
+  // Clauses and obligations
+  clauses           ContractClause[]
+  obligations       Obligation[]
+
+  // Audit
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  createdBy         String
+  updatedBy         String?
+
+  // Soft delete
+  deletedAt         DateTime?
+
+  @@index([type, status])
+  @@index([expiryDate])
+  @@index([contractNumber])
+  @@index([createdBy])
+  @@map("contracts")
+}
+
+enum ContractType {
+  CUSTOMER
+  VENDOR
+  EMPLOYMENT
+  NDA
+  REAL_ESTATE
+  PARTNERSHIP
+  LICENSE
+  SERVICE_AGREEMENT
+  LEASE
+  OTHER
+}
+
+enum ContractStatus {
+  DRAFT
+  PENDING_REVIEW
+  IN_NEGOTIATION
+  PENDING_APPROVAL
+  PENDING_SIGNATURE
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+  TERMINATED
+  RENEWED
+  ARCHIVED
+}
+
+enum ForumType {
+  PERMISSIVE           // Confirms court MAY be used, doesn't prevent others
+  EXCLUSIVE_FIXED      // ALL disputes MUST go to specified court
+  EXCLUSIVE_FLOATING   // Forum selected based on future events (e.g., defendant's state)
+}
+
+// ============================================================================
+// FORCE MAJEURE (Contract Performance - Phase 3)
+// ============================================================================
+
+model ForceMajeureClause {
+  id                    String          @id @default(cuid())
+
+  contractId            String          @unique
+  contract              Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  // Does the contract have FM clause?
+  hasClause             Boolean
+  clauseSection         String?         // e.g., "Section 12.3"
+
+  // What's covered (extracted from clause text)
+  coveredEvents         CoveredEvent[]
+
+  // Performance standard
+  performanceStandard   PerformanceStandard @default(PREVENTED)
+
+  // Notice requirements
+  noticeRequired        Boolean         @default(true)
+  noticePeriodDays      Int?
+  noticeRecipient       String?
+
+  // Consequences available
+  allowsSuspension      Boolean         @default(true)
+  allowsTermination     Boolean         @default(false)
+  terminationThresholdDays Int?         // e.g., terminate if FM lasts > 90 days
+
+  // Full text (for reference)
+  clauseText            String?         @db.Text
+
+  // Review
+  reviewedAt            DateTime?
+  reviewedBy            String?
+
+  // Audit
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  @@map("force_majeure_clauses")
+}
+
+enum CoveredEvent {
+  ACT_OF_GOD
+  NATURAL_DISASTER
+  EARTHQUAKE
+  FLOOD
+  FIRE
+  HURRICANE
+  TORNADO
+  PANDEMIC
+  EPIDEMIC
+  DISEASE_OUTBREAK
+  WAR
+  TERRORISM
+  CIVIL_UNREST
+  RIOT
+  STRIKE
+  LABOR_DISPUTE
+  GOVERNMENT_ACTION
+  CHANGE_IN_LAW
+  EMBARGO
+  SANCTIONS
+  SUPPLY_CHAIN_DISRUPTION
+  UTILITY_FAILURE
+  CYBERATTACK
+  OTHER
+}
+
+enum PerformanceStandard {
+  PREVENTED         // Performance physically or legally impossible (highest)
+  RENDERED_UNABLE   // Same as prevented
+  HINDERED          // Performance made more difficult (lower)
+  DELAYED           // Performance postponed (lower)
+  IMPACTED          // Performance affected (broadest)
+}
+
+model ForceMajeureEvent {
+  id                  String          @id @default(cuid())
+
+  contractId          String
+  contract            Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  // The event
+  eventType           CoveredEvent
+  eventName           String          // e.g., "COVID-19 Pandemic"
+  eventDescription    String          @db.Text
+  eventStartDate      DateTime
+  eventEndDate        DateTime?
+
+  // Invocation
+  invokedAt           DateTime
+  invokedBy           String          // Which party invoked
+  noticeGiven         Boolean
+  noticeDate          DateTime?
+
+  // Claim details
+  obligationsAffected String[]
+  reliefRequested     String          // "suspension", "extension", "termination"
+
+  // Response
+  counterpartyResponse String?
+  responseDate        DateTime?
+  disputed            Boolean         @default(false)
+  disputeDetails      String?
+
+  // Resolution
+  status              FMStatus        @default(INVOKED)
+  resolutionType      FMResolution?
+  resolvedAt          DateTime?
+  performanceResumed  DateTime?
+
+  // Documentation
+  documentIds         String[]
+
+  // Audit
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  @@index([contractId])
+  @@index([status])
+  @@index([eventStartDate])
+  @@map("force_majeure_events")
+}
+
+enum FMStatus {
+  INVOKED
+  ACKNOWLEDGED
+  DISPUTED
+  SUSPENDED
+  RESUMED
+  TERMINATED
+  RESOLVED
+}
+
+enum FMResolution {
+  PERFORMANCE_RESUMED
+  OBLIGATIONS_MODIFIED
+  EXTENSION_GRANTED
+  PARTIAL_PERFORMANCE
+  CONTRACT_TERMINATED
+  CLAIM_REJECTED
+  SETTLED
+}
+
+// ============================================================================
+// MATERIAL BREACH TRACKING (Contract Performance - Phase 3)
+// ============================================================================
+
+model PerformanceIssue {
+  id                  String          @id @default(cuid())
+
+  contractId          String
+  contract            Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  // What's the issue
+  obligationId        String?
+
+  description         String          @db.Text
+  affectedSection     String?         // Contract section reference
+
+  // Classification
+  severity            IssueSeverity
+  isTimeSensitive     Boolean         @default(false)
+
+  // Who reported
+  reportedBy          String          // Party ID or name
+  reportedAt          DateTime
+
+  // Cure
+  cureDeadline        DateTime?
+  curePeriodDays      Int?
+  cureAttempts        CureAttempt[]
+
+  // Resolution
+  status              IssueStatus     @default(OPEN)
+  resolvedAt          DateTime?
+  resolution          String?
+
+  // Escalation
+  escalatedToBreach   Boolean         @default(false)
+  breachAllegationId  String?
+
+  // Audit
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  @@index([contractId])
+  @@index([status])
+  @@index([severity])
+  @@map("performance_issues")
+}
+
+enum IssueSeverity {
+  MINOR           // Administrative, easily fixable
+  MODERATE        // Affects value but not essence
+  SIGNIFICANT     // Materially affects benefits
+  CRITICAL        // Goes to root of contract
+}
+
+enum IssueStatus {
+  OPEN
+  CURE_IN_PROGRESS
+  CURED
+  ESCALATED_TO_BREACH
+  WAIVED
+  DISPUTED
+}
+
+model CureAttempt {
+  id                  String           @id @default(cuid())
+
+  performanceIssueId  String
+  performanceIssue    PerformanceIssue @relation(fields: [performanceIssueId], references: [id], onDelete: Cascade)
+
+  description         String           @db.Text
+  attemptedAt         DateTime
+  attemptedBy         String
+
+  // Outcome
+  successful          Boolean?
+  evaluatedAt         DateTime?
+  evaluatedBy         String?
+  evaluationNotes     String?          @db.Text
+
+  createdAt           DateTime         @default(now())
+
+  @@index([performanceIssueId])
+  @@map("cure_attempts")
+}
+
+model BreachAllegation {
+  id                  String          @id @default(cuid())
+
+  contractId          String
+  contract            Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  // Allegation
+  allegedBy           String          // Party ID or name
+  allegedAt           DateTime
+
+  // Nature of breach
+  breachType          BreachType
+  description         String          @db.Text
+  affectedSections    String[]
+
+  // Related performance issues
+  performanceIssueIds String[]
+
+  // Claimed impact
+  claimedMateriality  MaterialityLevel
+  claimedDamages      Decimal?        @db.Decimal(19, 4)
+  claimedDamagesDesc  String?
+
+  // Response
+  respondedAt         DateTime?
+  responseDenies      Boolean?
+  responseDetails     String?         @db.Text
+
+  // Resolution
+  status              BreachStatus    @default(ALLEGED)
+  determinedMaterial  Boolean?
+  resolvedAt          DateTime?
+  resolutionType      BreachResolution?
+  resolutionDetails   String?         @db.Text
+
+  // Legal
+  linkedToMatterId    String?
+
+  // Audit
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  @@index([contractId])
+  @@index([status])
+  @@map("breach_allegations")
+}
+
+enum BreachType {
+  NON_PERFORMANCE       // Didn't do what was promised
+  DEFECTIVE_PERFORMANCE // Did it wrong
+  LATE_PERFORMANCE      // Did it late
+  ANTICIPATORY          // Indicated won't perform
+  REPUDIATION           // Explicitly refused to perform
+}
+
+enum MaterialityLevel {
+  MINOR              // Substantial performance achieved
+  MODERATE           // Partial breach
+  MATERIAL           // Goes to essence, justifies termination
+  FUNDAMENTAL        // Total failure of consideration
+}
+
+enum BreachStatus {
+  ALLEGED
+  ACKNOWLEDGED
+  DENIED
+  UNDER_CURE
+  CURED
+  DETERMINED_MATERIAL
+  DETERMINED_IMMATERIAL
+  LITIGATED
+  SETTLED
+}
+
+enum BreachResolution {
+  CURED_BY_BREACHING_PARTY
+  DAMAGES_PAID
+  CONTRACT_TERMINATED
+  CONTRACT_MODIFIED
+  MUTUAL_RELEASE
+  WAIVED
+  COURT_JUDGMENT
+  ARBITRATION_AWARD
+  SETTLED
+}
+
+// ============================================================================
+// REVENUE RECOGNITION (ASC 606 - Phase 4)
+// ============================================================================
+
+model PerformanceObligation {
+  id                  String          @id @default(cuid())
+
+  contractId          String
+  contract            Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  // Identification
+  name                String          // "Software License", "Implementation Services"
+  description         String          @db.Text
+
+  // Classification
+  satisfactionTiming  TimingType      // POINT_IN_TIME or OVER_TIME
+
+  // Value allocation
+  standalonePrice     Decimal?        @db.Decimal(19, 4)
+  allocatedPrice      Decimal         @db.Decimal(19, 4)
+  currency            String          @default("USD")
+
+  // Progress (for over-time obligations)
+  measurementMethod   MeasurementMethod?
+  percentComplete     Decimal?        @db.Decimal(5, 2)
+
+  // Milestones (if applicable)
+  milestones          Milestone[]
+
+  // Status
+  status              POStatus        @default(NOT_STARTED)
+  satisfiedAt         DateTime?
+  revenueRecognized   Decimal?        @db.Decimal(19, 4)
+
+  // Audit
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  @@index([contractId])
+  @@index([status])
+  @@map("performance_obligations")
+}
+
+enum TimingType {
+  POINT_IN_TIME   // Recognized at a specific moment
+  OVER_TIME       // Recognized as performance occurs
+}
+
+enum MeasurementMethod {
+  OUTPUT_UNITS_DELIVERED    // Units of output delivered
+  OUTPUT_MILESTONES         // Milestones achieved
+  OUTPUT_SURVEY             // Surveys of performance
+  INPUT_COSTS_INCURRED      // Costs incurred relative to total
+  INPUT_TIME_ELAPSED        // Time elapsed relative to total
+  INPUT_RESOURCES_CONSUMED  // Resources used relative to total
+}
+
+enum POStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SATISFIED
+  CANCELLED
+}
+
+model Milestone {
+  id                      String               @id @default(cuid())
+
+  performanceObligationId String
+  performanceObligation   PerformanceObligation @relation(fields: [performanceObligationId], references: [id], onDelete: Cascade)
+
+  // Definition
+  name                    String
+  description             String               @db.Text
+  percentOfObligation     Decimal              @db.Decimal(5, 2)
+
+  // Target
+  targetDate              DateTime?
+
+  // Completion
+  status                  MilestoneStatus      @default(PENDING)
+  completedAt             DateTime?
+  completedBy             String?
+  evidenceDocumentId      String?
+
+  // Approval (for revenue purposes)
+  approvedForRevenue      Boolean              @default(false)
+  approvedBy              String?
+  approvedAt              DateTime?
+
+  // Audit
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+
+  @@index([performanceObligationId])
+  @@index([status])
+  @@map("milestones")
+}
+
+enum MilestoneStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  APPROVED
+  DISPUTED
+}
+
+enum RevRecMethod {
+  POINT_IN_TIME_DELIVERY    // Revenue on delivery
+  POINT_IN_TIME_ACCEPTANCE  // Revenue on customer acceptance
+  OVER_TIME_OUTPUT          // Revenue based on output measures
+  OVER_TIME_INPUT           // Revenue based on input measures
+  PERCENTAGE_OF_COMPLETION  // Traditional POC method
+}
+
+// ============================================================================
+// RESTRICTIVE COVENANTS (Employment - Phase 4)
+// ============================================================================
+
+model RestrictiveCovenant {
+  id                    String              @id @default(cuid())
+
+  employmentAgreementId String
+  employmentAgreement   EmploymentAgreement @relation(fields: [employmentAgreementId], references: [id], onDelete: Cascade)
+
+  // Type
+  covenantType          CovenantType
+
+  // Scope
+  durationDays          Int?                // Duration after termination
+  geographicScope       String?             // "State of California", "United States"
+  scopeDescription      String?             @db.Text
+
+  // Specific restrictions
+  competitorNames       String[]            // Specific named competitors
+  customerRestriction   Boolean             @default(false)
+  employeeRestriction   Boolean             @default(false)
+
+  // Consideration
+  consideration         String?             // What employee received in exchange
+  considerationValue    Decimal?            @db.Decimal(19, 4)
+
+  // Enforceability analysis
+  enforceabilityState   String?             // State for enforceability analysis
+  enforceabilityStatus  EnforceabilityStatus @default(NOT_ANALYZED)
+  enforceabilityNotes   String?             @db.Text
+  analyzedAt            DateTime?
+  analyzedBy            String?
+
+  // Status
+  status                CovenantStatus      @default(ACTIVE)
+  waivedAt              DateTime?
+  waivedBy              String?
+  waiverReason          String?
+
+  // Audit
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  @@index([employmentAgreementId])
+  @@index([covenantType])
+  @@index([enforceabilityStatus])
+  @@map("restrictive_covenants")
+}
+
+enum CovenantType {
+  NON_COMPETE           // Cannot work for competitors
+  NON_SOLICITATION      // Cannot solicit customers/clients
+  NON_POACHING          // Cannot recruit employees
+  CONFIDENTIALITY       // Cannot disclose confidential info
+  NON_DISPARAGEMENT     // Cannot make negative statements
+  INVENTION_ASSIGNMENT  // IP belongs to employer
+}
+
+enum EnforceabilityStatus {
+  NOT_ANALYZED
+  LIKELY_ENFORCEABLE
+  PARTIALLY_ENFORCEABLE
+  UNLIKELY_ENFORCEABLE
+  VOID_BY_LAW           // State prohibits (e.g., CA non-competes)
+  NEEDS_REVIEW
+}
+
+enum CovenantStatus {
+  ACTIVE
+  EXPIRED
+  WAIVED
+  ENFORCED
+  CHALLENGED
+}
+
+// ============================================================================
+// PARTIES
+// ============================================================================
+
+model Party {
+  id              String          @id @default(cuid())
+  type            PartyType
+
+  // Entity identification
+  entityId        String?         // Reference to external entity system
+
+  // Details
+  name            String
+  legalName       String?
+  taxId           String?
+  registrationNo  String?
+
+  // Contact
+  email           String?
+  phone           String?
+
+  // Address
+  addressLine1    String?
+  addressLine2    String?
+  city            String?
+  state           String?
+  postalCode      String?
+  country         String?
+
+  // Representatives
+  primaryContact  String?
+  primaryEmail    String?
+
+  // Contracts
+  contracts       ContractParty[]
+
+  // Audit
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([entityId])
+  @@index([name])
+  @@map("parties")
+}
+
+enum PartyType {
+  CUSTOMER
+  VENDOR
+  EMPLOYEE
+  CONTRACTOR
+  PARTNER
+  LANDLORD
+  TENANT
+  LICENSOR
+  LICENSEE
+  OTHER
+}
+
+model ContractParty {
+  id           String     @id @default(cuid())
+
+  contractId   String
+  contract     Contract   @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  partyId      String
+  party        Party      @relation(fields: [partyId], references: [id])
+
+  role         PartyRole
+  isPrimary    Boolean    @default(false)
+
+  // Signature info
+  signedAt     DateTime?
+  signedBy     String?
+  signatureRef String?    // Reference to e-signature service
+  signatureEvents SignatureEvent[]
+
+  createdAt    DateTime   @default(now())
+
+  @@unique([contractId, partyId, role])
+  @@map("contract_parties")
+}
+
+// ============================================================================
+// SIGNATURE EVENTS (E-Signature Legal Compliance)
+// ============================================================================
+
+model SignatureEvent {
+  id                String         @id @default(cuid())
+
+  contractPartyId   String
+  contractParty     ContractParty  @relation(fields: [contractPartyId], references: [id], onDelete: Cascade)
+
+  // What was signed (ESIGN: Association with Record)
+  documentHash      String         // SHA-256 of document at signing
+  documentVersion   Int
+
+  // How it was signed
+  signatureType     SignatureType
+  signatureData     String?        @db.Text  // Base64 of drawn signature if applicable
+
+  // Consent (ESIGN: Consent to Electronic Business)
+  consentGiven      Boolean
+  consentMethod     String         // "checkbox", "button", "typed_name"
+  consentText       String         @db.Text  // The exact disclosure shown
+
+  // Context (ESIGN: Intent to Sign)
+  ipAddress         String
+  userAgent         String         @db.Text
+  deviceId          String?
+  geolocation       String?
+
+  // Timestamps
+  ceremonyStarted   DateTime
+  signedAt          DateTime
+
+  // E-signature provider integration
+  providerRef       String?        // DocuSign envelope ID, etc.
+  providerName      String?        // "docusign", "adobe_sign", "internal"
+  providerData      Json?          // Full provider response
+
+  // Audit (ESIGN: Record Retention)
+  createdAt         DateTime       @default(now())
+
+  @@index([contractPartyId])
+  @@index([providerRef])
+  @@map("signature_events")
+}
+
+enum SignatureType {
+  TYPED_NAME           // Name typed as signature
+  DRAWN_SIGNATURE      // Finger/stylus drawn
+  CLICK_TO_SIGN        // Button click with intent
+  BIOMETRIC            // Fingerprint/face recognition
+  DIGITAL_CERTIFICATE  // PKI certificate-based
+}
+
+enum PartyRole {
+  BUYER
+  SELLER
+  SERVICE_PROVIDER
+  CLIENT
+  EMPLOYER
+  EMPLOYEE
+  LANDLORD
+  TENANT
+  LICENSOR
+  LICENSEE
+  GUARANTOR
+  WITNESS
+  OTHER
+}
+
+// ============================================================================
+// DOCUMENTS
+// ============================================================================
+
+model Document {
+  id            String         @id @default(cuid())
+
+  contractId    String?
+  contract      Contract?      @relation(fields: [contractId], references: [id], onDelete: SetNull)
+
+  type          DocumentType
+  name          String
+  description   String?
+
+  // Storage (S3)
+  storageKey    String         // S3 key
+  storageBucket String         // S3 bucket
+  mimeType      String
+  sizeBytes     Int
+
+  // Encryption
+  encrypted     Boolean        @default(true)
+  encryptionKey String?        // Reference to KMS key
+
+  // Versioning
+  version       Int            @default(1)
+  previousId    String?
+
+  // Audit
+  uploadedBy    String
+  uploadedAt    DateTime       @default(now())
+
+  @@index([contractId])
+  @@index([type])
+  @@index([storageKey])
+  @@map("documents")
+}
+
+enum DocumentType {
+  CONTRACT_DRAFT
+  CONTRACT_FINAL
+  AMENDMENT
+  ADDENDUM
+  EXHIBIT
+  SCHEDULE
+  SIGNATURE_PAGE
+  CERTIFICATE
+  NOTICE
+  CORRESPONDENCE
+  SUPPORTING_DOC
+  OTHER
+}
+
+// ============================================================================
+// CONTRACT MODIFICATIONS (Amendment/Addendum Tracking)
+// ============================================================================
+
+model ContractModification {
+  id                 String             @id @default(cuid())
+
+  contractId         String
+  contract           Contract           @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  // Type and numbering
+  type               ModificationType
+  modificationNumber Int                // Amendment #1, Addendum #2, etc.
+
+  // Identification
+  title              String
+  effectiveDate      DateTime
+
+  // What it does
+  sectionsAffected   String[]           // ["4.2", "7.1", "Exhibit A"]
+  summary            String             @db.Text
+
+  // Document reference
+  documentId         String?
+
+  // Status
+  status             ModificationStatus @default(DRAFT)
+
+  // Supersession tracking
+  supersedesId       String?
+  supersedes         ContractModification?  @relation("Supersession", fields: [supersedesId], references: [id])
+  supersededBy       ContractModification[] @relation("Supersession")
+
+  // Execution
+  allPartiesSigned   Boolean            @default(false)
+  executedAt         DateTime?
+
+  // Audit
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  createdBy          String
+
+  @@index([contractId])
+  @@index([type, status])
+  @@index([effectiveDate])
+  @@map("contract_modifications")
+}
+
+enum ModificationType {
+  AMENDMENT       // Changes existing terms
+  ADDENDUM        // Adds new terms
+  SUPPLEMENT      // Additional supporting material
+  SIDE_LETTER     // Informal modification
+  WAIVER          // Waives specific rights
+  CONSENT         // Consents to action requiring approval
+  NOVATION        // Substitutes party or obligation
+}
+
+enum ModificationStatus {
+  DRAFT
+  PENDING_REVIEW
+  PENDING_SIGNATURE
+  EXECUTED
+  REJECTED
+  SUPERSEDED
+}
+
+// ============================================================================
+// TEMPLATES
+// ============================================================================
+
+model ContractTemplate {
+  id            String           @id @default(cuid())
+
+  name          String
+  description   String?
+  type          ContractType
+
+  // Template content
+  content       String           @db.Text
+  variables     Json?            // Template variable definitions
+
+  // Versioning
+  version       String           @default("1.0.0")
+  isActive      Boolean          @default(true)
+
+  // Legal review
+  reviewedBy    String?
+  reviewedAt    DateTime?
+
+  // Generated contracts
+  contracts     Contract[]
+
+  // Clauses
+  clauses       TemplateClause[]
+
+  // Audit
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  createdBy     String
+
+  @@index([type, isActive])
+  @@map("contract_templates")
+}
+
+model TemplateClause {
+  id          String           @id @default(cuid())
+
+  templateId  String
+  template    ContractTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  name        String
+  content     String           @db.Text
+  isRequired  Boolean          @default(true)
+  order       Int
+
+  @@index([templateId])
+  @@map("template_clauses")
+}
+
+// ============================================================================
+// CONTRACT CLAUSES & OBLIGATIONS
+// ============================================================================
+
+model ContractClause {
+  id          String    @id @default(cuid())
+
+  contractId  String
+  contract    Contract  @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  title       String
+  content     String    @db.Text
+  section     String?
+  order       Int
+
+  // Risk assessment
+  riskLevel   RiskLevel?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([contractId])
+  @@map("contract_clauses")
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model Obligation {
+  id            String           @id @default(cuid())
+
+  contractId    String
+  contract      Contract         @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  type          ObligationType
+  description   String
+
+  // Responsible party
+  responsiblePartyId String?
+
+  // Dates
+  dueDate       DateTime?
+  completedDate DateTime?
+
+  // Status
+  status        ObligationStatus @default(PENDING)
+
+  // Reminders
+  reminderDays  Int[]            @default([])
+
+  // Audit
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([contractId, status])
+  @@index([dueDate])
+  @@map("obligations")
+}
+
+enum ObligationType {
+  PAYMENT
+  DELIVERY
+  PERFORMANCE
+  REPORTING
+  COMPLIANCE
+  NOTIFICATION
+  RENEWAL
+  OTHER
+}
+
+enum ObligationStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+  WAIVED
+  CANCELLED
+}
+
+// ============================================================================
+// CONTRACT LIFECYCLE & VERSIONING
+// ============================================================================
+
+model ContractVersion {
+  id          String    @id @default(cuid())
+
+  contractId  String
+  contract    Contract  @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  version     Int
+  changes     String    @db.Text   // Description of changes
+  snapshot    Json                 // Full contract data at this version
+
+  createdAt   DateTime  @default(now())
+  createdBy   String
+
+  @@unique([contractId, version])
+  @@map("contract_versions")
+}
+
+model ContractActivity {
+  id          String       @id @default(cuid())
+
+  contractId  String
+  contract    Contract     @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  type        ActivityType
+  description String
+  metadata    Json?
+
+  performedBy String
+  performedAt DateTime     @default(now())
+
+  @@index([contractId])
+  @@index([performedAt])
+  @@map("contract_activities")
+}
+
+enum ActivityType {
+  CREATED
+  UPDATED
+  STATUS_CHANGED
+  SENT_FOR_REVIEW
+  APPROVED
+  REJECTED
+  SENT_FOR_SIGNATURE
+  SIGNED
+  COUNTERSIGNED
+  EXECUTED
+  AMENDED
+  RENEWED
+  TERMINATED
+  EXPIRED
+  DOCUMENT_ADDED
+  DOCUMENT_REMOVED
+  COMMENT_ADDED
+  OBLIGATION_COMPLETED
+  REMINDER_SENT
+}
+
+// ============================================================================
+// LITIGATION & LEGAL OPERATIONS
+// ============================================================================
+
+model LegalMatter {
+  id            String          @id @default(cuid())
+
+  matterNumber  String          @unique
+  type          MatterType
+  status        MatterStatus    @default(OPEN)
+
+  title         String
+  description   String?         @db.Text
+
+  // Related contracts
+  contractIds   String[]
+
+  // Parties
+  internalLead  String?
+  externalCounsel String?
+  opposingParty String?
+
+  // Court/Venue
+  court         String?
+  jurisdiction  String?
+  caseNumber    String?
+
+  // Dates
+  filedDate     DateTime?
+  hearingDate   DateTime?
+  closedDate    DateTime?
+
+  // Financial
+  estimatedCost Decimal?        @db.Decimal(19, 4)
+  actualCost    Decimal?        @db.Decimal(19, 4)
+  settlement    Decimal?        @db.Decimal(19, 4)
+
+  // Priority
+  priority      Priority        @default(MEDIUM)
+
+  // Activities
+  activities    MatterActivity[]
+
+  // Discovery
+  discoveryInfo      DiscoveryInfo?
+  legalHolds         LegalHold[]
+  discoveryRequests  DiscoveryRequest[]
+  privilegeLog       PrivilegeLogEntry[]
+
+  // Audit
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  createdBy     String
+
+  @@index([type, status])
+  @@index([priority])
+  @@map("legal_matters")
+}
+
+enum MatterType {
+  LITIGATION
+  ARBITRATION
+  MEDIATION
+  REGULATORY
+  INTELLECTUAL_PROPERTY
+  EMPLOYMENT_DISPUTE
+  CONTRACT_DISPUTE
+  COMPLIANCE_INVESTIGATION
+  OTHER
+}
+
+enum MatterStatus {
+  OPEN
+  UNDER_REVIEW
+  IN_DISCOVERY
+  IN_NEGOTIATION
+  IN_TRIAL
+  SETTLED
+  WON
+  LOST
+  DISMISSED
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model MatterActivity {
+  id          String      @id @default(cuid())
+
+  matterId    String
+  matter      LegalMatter @relation(fields: [matterId], references: [id], onDelete: Cascade)
+
+  type        String
+  description String      @db.Text
+  metadata    Json?
+
+  performedBy String
+  performedAt DateTime    @default(now())
+
+  @@index([matterId])
+  @@map("matter_activities")
+}
+
+// ============================================================================
+// LEGAL DISCOVERY (EDRM Compliance)
+// ============================================================================
+
+model DiscoveryInfo {
+  id                  String      @id @default(cuid())
+
+  matterId            String      @unique
+  matter              LegalMatter @relation(fields: [matterId], references: [id], onDelete: Cascade)
+
+  // Timeline
+  discoveryOpened     DateTime?
+  discoveryDeadline   DateTime?
+  discoveryExtensions Int         @default(0)
+
+  // EDRM Phase tracking
+  currentPhase        EDRMPhase   @default(IDENTIFICATION)
+
+  // Scope
+  dateCutoffStart     DateTime?
+  dateCutoffEnd       DateTime?
+
+  // Volume
+  documentsIdentified Int?
+  documentsReviewed   Int?
+  documentsProduced   Int?
+  privilegedCount     Int?
+
+  // Cost tracking
+  reviewCost          Decimal?    @db.Decimal(19, 4)
+  eDiscoveryCost      Decimal?    @db.Decimal(19, 4)
+  vendorName          String?
+
+  // Audit
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  @@map("discovery_info")
+}
+
+enum EDRMPhase {
+  IDENTIFICATION    // Determine what data must be preserved
+  PRESERVATION      // Legal hold - safely store data
+  COLLECTION        // Gather data following legal process
+  PROCESSING        // Organize raw data for analysis
+  REVIEW            // Determine relevance, privilege (most expensive)
+  ANALYSIS          // Identify patterns and key info
+  PRODUCTION        // Produce ESI per FRCP 34
+  PRESENTATION      // Present to attorneys, judges, juries
+}
+
+model LegalHold {
+  id              String      @id @default(cuid())
+
+  matterId        String
+  matter          LegalMatter @relation(fields: [matterId], references: [id], onDelete: Cascade)
+
+  // What's on hold
+  holdName        String
+  description     String      @db.Text
+  dataTypes       String[]    // ["email", "slack", "documents", "voicemail"]
+
+  // Who's involved (custodians)
+  custodians      String[]    // Employee IDs or external party IDs
+
+  // Timeline
+  issuedAt        DateTime
+  issuedBy        String
+  acknowledgedBy  Json?       // { custodianId: { acknowledgedAt, method } }
+  liftedAt        DateTime?
+  liftedBy        String?
+  liftReason      String?
+
+  // Status
+  status          HoldStatus  @default(ACTIVE)
+
+  // Reminders
+  remindersSent   Int         @default(0)
+  lastReminderAt  DateTime?
+
+  // Audit
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([matterId])
+  @@index([status])
+  @@map("legal_holds")
+}
+
+enum HoldStatus {
+  DRAFT
+  ACTIVE
+  LIFTED
+  SUPERSEDED
+}
+
+model DiscoveryRequest {
+  id                  String         @id @default(cuid())
+
+  matterId            String
+  matter              LegalMatter    @relation(fields: [matterId], references: [id], onDelete: Cascade)
+
+  // Request details
+  type                DiscoveryType
+  requestNumber       String         // e.g., "RFP-001", "INT-003"
+  issuedBy            String         // "Plaintiff", "Defendant", or party name
+  direction           RequestDirection @default(RECEIVED)  // Are we responding or sending?
+  receivedAt          DateTime?
+  sentAt              DateTime?
+  dueDate             DateTime
+
+  // Content
+  description         String         @db.Text
+  requestItems        Json?          // Structured list of requests
+
+  // Response
+  responseStatus      ResponseStatus @default(PENDING)
+  respondedAt         DateTime?
+  objections          String[]
+  documentsProduced   Int?
+
+  // Extensions
+  extensionRequested  Boolean        @default(false)
+  extendedDueDate     DateTime?
+  extensionReason     String?
+
+  // Audit
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  @@index([matterId])
+  @@index([type, responseStatus])
+  @@index([dueDate])
+  @@map("discovery_requests")
+}
+
+enum DiscoveryType {
+  REQUEST_FOR_PRODUCTION  // RFP - demand for documents
+  INTERROGATORY           // Written questions requiring written answers
+  REQUEST_FOR_ADMISSION   // Statements to admit or deny
+  DEPOSITION_NOTICE       // Oral testimony under oath
+  SUBPOENA               // Compel third parties
+  RULE_30B6_NOTICE       // Corporate deposition
+}
+
+enum RequestDirection {
+  SENT      // We sent this request to opposing party
+  RECEIVED  // We received this from opposing party
+}
+
+enum ResponseStatus {
+  PENDING
+  IN_PROGRESS
+  RESPONDED
+  OBJECTED
+  EXTENDED
+  OVERDUE
+}
+
+model PrivilegeLogEntry {
+  id              String        @id @default(cuid())
+
+  matterId        String
+  matter          LegalMatter   @relation(fields: [matterId], references: [id], onDelete: Cascade)
+
+  // Document info
+  documentId      String?       // Reference to Document model if applicable
+  batesNumber     String?       // Bates stamp number
+  documentDate    DateTime?
+  documentType    String?       // "email", "memo", "letter"
+  author          String?
+  recipients      String[]
+
+  // Privilege claim
+  privilegeType   PrivilegeType
+  description     String        @db.Text
+
+  // Review
+  reviewedBy      String
+  reviewedAt      DateTime
+
+  // Challenge handling
+  challenged      Boolean       @default(false)
+  challengeNotes  String?
+  inCameraReview  Boolean       @default(false)
+
+  // Audit
+  createdAt       DateTime      @default(now())
+
+  @@index([matterId])
+  @@index([privilegeType])
+  @@map("privilege_log_entries")
+}
+
+enum PrivilegeType {
+  ATTORNEY_CLIENT       // Communications with attorney for legal advice
+  WORK_PRODUCT         // Attorney mental impressions, conclusions
+  JOINT_DEFENSE        // Shared with co-defendants under common legal interest
+  COMMON_INTEREST      // Shared with parties with aligned legal interests
+  DELIBERATIVE_PROCESS // Government internal deliberations
+}
+
+// ============================================================================
+// REAL ESTATE
+// ============================================================================
+
+model Property {
+  id            String        @id @default(cuid())
+
+  type          PropertyType
+
+  // Location
+  addressLine1  String
+  addressLine2  String?
+  city          String
+  state         String
+  postalCode    String
+  country       String
+
+  // Details
+  squareFeet    Int?
+  lotSize       Decimal?      @db.Decimal(10, 2)
+  yearBuilt     Int?
+
+  // Ownership
+  owned         Boolean       @default(false)
+  purchaseDate  DateTime?
+  purchasePrice Decimal?      @db.Decimal(19, 4)
+
+  // Valuation
+  currentValue  Decimal?      @db.Decimal(19, 4)
+  valuationDate DateTime?
+
+  // Related contracts (lease agreements, etc.)
+  contractIds   String[]
+
+  // Audit
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  createdBy     String
+
+  @@index([type])
+  @@index([city, state])
+  @@map("properties")
+}
+
+enum PropertyType {
+  OFFICE
+  RETAIL
+  WAREHOUSE
+  INDUSTRIAL
+  RESIDENTIAL
+  LAND
+  MIXED_USE
+  OTHER
+}
+
+// ============================================================================
+// EMPLOYMENT AGREEMENTS
+// ============================================================================
+
+model EmploymentAgreement {
+  id              String              @id @default(cuid())
+
+  // Link to main contract
+  contractId      String              @unique
+
+  // Employee info (reference to HR system)
+  employeeId      String
+  employeeName    String
+
+  // Position
+  jobTitle        String
+  department      String?
+  location        String?
+
+  // Employment type
+  employmentType  EmploymentType
+
+  // Dates
+  startDate       DateTime
+  endDate         DateTime?           // Null for permanent
+  probationEnd    DateTime?
+
+  // Compensation
+  baseSalary      Decimal             @db.Decimal(19, 4)
+  currency        String              @default("USD")
+  payFrequency    PayFrequency
+  bonus           Json?               // Bonus structure
+  equity          Json?               // Equity/stock options
+
+  // Benefits
+  benefits        String[]
+
+  // Restrictive covenants (legacy simple fields)
+  nonCompeteDays  Int?
+  nonSolicitDays  Int?
+
+  // Detailed restrictive covenants
+  restrictiveCovenants RestrictiveCovenant[]
+
+  // Audit
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([employeeId])
+  @@index([startDate])
+  @@map("employment_agreements")
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  TEMPORARY
+  INTERN
+}
+
+enum PayFrequency {
+  WEEKLY
+  BI_WEEKLY
+  SEMI_MONTHLY
+  MONTHLY
+  ANNUALLY
+}
+
+// ============================================================================
+// AUDIT & COMPLIANCE
+// ============================================================================
+
+model AuditLog {
+  id          String    @id @default(cuid())
+
+  entityType  String    // Contract, Party, Document, etc.
+  entityId    String
+  action      String    // CREATE, UPDATE, DELETE, VIEW
+
+  changes     Json?     // Field-level changes
+
+  userId      String
+  userEmail   String?
+  ipAddress   String?
+  userAgent   String?
+
+  timestamp   DateTime  @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([timestamp])
+  @@map("audit_logs")
+}
+
+// ============================================================================
+// NOTIFICATIONS & REMINDERS
+// ============================================================================
+
+model Notification {
+  id          String             @id @default(cuid())
+
+  type        NotificationType
+
+  // Target
+  entityType  String
+  entityId    String
+
+  // Content
+  title       String
+  message     String
+
+  // Recipients
+  recipients  String[]           // User IDs
+
+  // Status
+  sentAt      DateTime?
+
+  // Scheduling
+  scheduledFor DateTime?
+
+  createdAt   DateTime           @default(now())
+
+  @@index([entityType, entityId])
+  @@index([scheduledFor])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  EXPIRY_WARNING
+  RENEWAL_REMINDER
+  OBLIGATION_DUE
+  SIGNATURE_REQUIRED
+  APPROVAL_REQUIRED
+  STATUS_CHANGE
+  MATTER_UPDATE
+  CUSTOM
+}

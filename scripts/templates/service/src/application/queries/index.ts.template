@@ -1,0 +1,7 @@
+/**
+ * Query handlers (read operations)
+ * Queries are read-only and return data
+ */
+
+export * from './base-query.js';
+// Export domain-specific queries here

@@ -1,0 +1,31 @@
+/**
+ * Health check endpoints
+ */
+
+import { Hono } from 'hono';
+
+export const healthRoutes = new Hono();
+
+healthRoutes.get('/', (c) => {
+  return c.json({
+    status: 'healthy',
+    service: '{{SERVICE_NAME}}',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+healthRoutes.get('/ready', async (c) => {
+  // Add readiness checks (database, message broker, etc.)
+  const checks = {
+    database: true, // TODO: Implement actual check
+    messageBroker: true, // TODO: Implement actual check
+  };
+
+  const allHealthy = Object.values(checks).every(Boolean);
+
+  return c.json({
+    status: allHealthy ? 'ready' : 'not_ready',
+    checks,
+    timestamp: new Date().toISOString(),
+  }, allHealthy ? 200 : 503);
+});

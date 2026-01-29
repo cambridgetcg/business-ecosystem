@@ -1,0 +1,66 @@
+# =============================================================================
+# Business Ecosystem - Git Ignore
+# =============================================================================
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Turbo
+.turbo/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Database
+*.sqlite
+*.sqlite3
+
+# Generated
+src/**/generated/
+
+# Docker volumes (if stored locally)
+.docker-data/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Secrets (never commit)
+*.pem
+*.key
+credentials.json
+secrets/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+

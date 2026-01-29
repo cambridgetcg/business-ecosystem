@@ -1,0 +1,54 @@
+/**
+ * Base entity for domain objects
+ */
+
+import { randomUUID } from 'crypto';
+import type { DomainEvent } from './domain-events.js';
+
+export abstract class Entity {
+  public readonly id: string;
+  public readonly createdAt: Date;
+  public updatedAt: Date;
+
+  protected constructor(id?: string) {
+    this.id = id ?? randomUUID();
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
+  }
+
+  public equals(other: Entity): boolean {
+    if (!(other instanceof Entity)) return false;
+    return this.id === other.id;
+  }
+}
+
+export abstract class AggregateRoot extends Entity {
+  private _domainEvents: DomainEvent[] = [];
+
+  protected addDomainEvent(event: DomainEvent): void {
+    this._domainEvents.push(event);
+  }
+
+  public pullDomainEvents(): DomainEvent[] {
+    const events = [...this._domainEvents];
+    this._domainEvents = [];
+    return events;
+  }
+
+  public get domainEvents(): ReadonlyArray<DomainEvent> {
+    return this._domainEvents;
+  }
+}
+
+export abstract class ValueObject<T> {
+  protected readonly props: T;
+
+  protected constructor(props: T) {
+    this.props = Object.freeze(props);
+  }
+
+  public equals(other: ValueObject<T>): boolean {
+    if (other === null || other === undefined) return false;
+    return JSON.stringify(this.props) === JSON.stringify(other.props);
+  }
+}

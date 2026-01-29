@@ -1,0 +1,40 @@
+# GDPR Regulatory Mapping
+# Maps GDPR requirements to operational domains
+
+regulation: GDPR
+description: General Data Protection Regulation (EU)
+jurisdictions:
+  - EU
+  - EEA
+
+assessmentFrequency: continuous
+
+domains:
+  - domain: data-privacy
+    requirements:
+      - lawful-basis-for-processing
+      - consent-management
+      - data-subject-rights
+      - breach-notification-72h
+      - data-protection-impact-assessment
+      - records-of-processing
+      - data-minimization
+      - purpose-limitation
+      - storage-limitation
+
+  - domain: contracts-legal
+    requirements:
+      - data-processing-agreements
+      - standard-contractual-clauses
+      - joint-controller-arrangements
+      - processor-agreements
+      - sub-processor-authorization
+
+  - domain: insurance
+    requirements:
+      - cyber-liability-coverage
+      - data-breach-coverage
+
+  - domain: intellectual-property
+    requirements:
+      - ip-licensing-data-terms

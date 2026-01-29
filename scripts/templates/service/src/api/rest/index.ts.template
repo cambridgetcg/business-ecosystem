@@ -1,0 +1,19 @@
+/**
+ * REST API routes for {{SERVICE_NAME}}
+ */
+
+import { Hono } from 'hono';
+import { healthRoutes } from './health.js';
+// Import domain-specific routes here
+
+export function createRestApi(): Hono {
+  const app = new Hono();
+
+  // Health check endpoint
+  app.route('/health', healthRoutes);
+
+  // Add domain routes here
+  // app.route('/{{DOMAIN_RESOURCE}}', {{domainResource}}Routes);
+
+  return app;
+}

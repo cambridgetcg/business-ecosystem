@@ -1,0 +1,70 @@
+/**
+ * {{SERVICE_NAME}} Service Entry Point
+ */
+
+import { serve } from '@hono/node-server';
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { logger as honoLogger } from 'hono/logger';
+import { createLogger } from '@ecosystem/audit-logging';
+import { createRestApi } from './api/rest/index.js';
+import { loadConfig } from './infrastructure/config.js';
+import { connectDatabase, disconnectDatabase } from './infrastructure/persistence/prisma-client.js';
+
+async function main(): Promise<void> {
+  const config = loadConfig();
+  
+  const logger = createLogger({
+    serviceName: config.serviceName,
+    environment: config.nodeEnv,
+    logLevel: config.logLevel,
+    prettyPrint: config.nodeEnv === 'development',
+  });
+
+  logger.info('Starting service...', { service: config.serviceName });
+
+  // Connect to database
+  await connectDatabase();
+  logger.info('Database connected');
+
+  // Create Hono app
+  const app = new Hono();
+
+  // Middleware
+  app.use('*', cors());
+  app.use('*', honoLogger());
+
+  // Mount REST API
+  app.route('/api', createRestApi());
+
+  // Root endpoint
+  app.get('/', (c) => c.json({ 
+    service: config.serviceName,
+    version: '0.1.0',
+    status: 'running',
+  }));
+
+  // Graceful shutdown
+  const shutdown = async (): Promise<void> => {
+    logger.info('Shutting down...');
+    await disconnectDatabase();
+    process.exit(0);
+  };
+
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
+
+  // Start server
+  serve({
+    fetch: app.fetch,
+    port: config.port,
+    hostname: config.host,
+  }, (info) => {
+    logger.info(`Server running at http://${info.address}:${info.port}`);
+  });
+}
+
+main().catch((error) => {
+  console.error('Failed to start service:', error);
+  process.exit(1);
+});

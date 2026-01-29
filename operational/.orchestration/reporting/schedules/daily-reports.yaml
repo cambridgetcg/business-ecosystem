@@ -1,0 +1,28 @@
+# Daily Report Schedules
+# Automated reports generated on a schedule
+
+schedules:
+  - report: expiration-forecast
+    cron: "0 6 * * *"  # Daily at 6 AM
+    parameters:
+      daysAhead: 30
+    format: json
+    enabled: true
+    distribution:
+      - type: email
+        recipients:
+          - operations@company.com
+      - type: slack
+        channel: "#operations-alerts"
+
+  - report: expiration-forecast
+    cron: "0 6 * * 1"  # Weekly on Monday at 6 AM
+    parameters:
+      daysAhead: 90
+    format: pdf
+    enabled: true
+    distribution:
+      - type: email
+        recipients:
+          - legal@company.com
+          - risk@company.com

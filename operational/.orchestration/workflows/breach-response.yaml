@@ -1,0 +1,76 @@
+# Data Breach Response Workflow
+#
+# Triggered when a data breach is identified in data-privacy domain.
+# Coordinates cross-domain breach response activities.
+
+id: breach-response
+name: Data Breach Response
+version: "1.0.0"
+description: |
+  Coordinates response to identified data breaches:
+  - Assesses contract breach notification requirements
+  - Evaluates cyber insurance claims potential
+  - Tracks regulatory notification deadlines
+
+trigger:
+  type: event
+  source: data-privacy.breach.identified
+
+input:
+  breachId: $.aggregateId
+  entityId: $.payload.entityId
+  severity: $.payload.severity
+  category: $.payload.category
+  affectedCount: $.payload.affectedCount
+  notificationDeadline: $.payload.notificationDeadline
+
+steps:
+  # Step 1: Check contract notification requirements
+  - id: check-contract-obligations
+    name: Check Contract Notification Obligations
+    domain: contracts-legal
+    action: checkBreachNotificationClauses
+    input:
+      entityId: ${input.entityId}
+      breachSeverity: ${input.severity}
+      affectedCount: ${input.affectedCount}
+    timeout: 30s
+    retries: 2
+    onFailure: continue
+
+  # Step 2: Evaluate cyber insurance coverage
+  - id: evaluate-cyber-coverage
+    name: Evaluate Cyber Insurance Coverage
+    domain: insurance
+    action: evaluateCyberClaim
+    input:
+      entityId: ${input.entityId}
+      incidentType: data_breach
+      category: ${input.category}
+      affectedCount: ${input.affectedCount}
+    timeout: 30s
+    retries: 2
+    onFailure: continue
+
+  # Step 3: Log breach response coordination complete
+  - id: log-response-initiated
+    name: Log Breach Response Initiated
+    domain: data-privacy
+    action: logActivity
+    dependsOn:
+      - check-contract-obligations
+      - evaluate-cyber-coverage
+    input:
+      breachId: ${input.breachId}
+      activityType: CROSS_DOMAIN_RESPONSE
+      description: "Cross-domain breach response workflow completed"
+    timeout: 10s
+    onFailure: continue
+
+metadata:
+  owner: operational-orchestration
+  tags:
+    - breach
+    - security
+    - compliance
+    - critical-path

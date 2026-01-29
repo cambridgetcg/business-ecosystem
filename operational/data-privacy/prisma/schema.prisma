@@ -1,0 +1,672 @@
+// Data Privacy Service - Prisma Schema
+// GDPR, CCPA, and other privacy regulation compliance
+// AWS RDS PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// CONSENT MANAGEMENT
+// ============================================================================
+
+model ConsentRecord {
+  id String @id @default(cuid())
+
+  // Entity ownership (FK to entity-governance)
+  entityId String
+
+  // Data subject identification
+  subjectId    String // Internal identifier for data subject
+  subjectEmail String? // Optional for verification
+  subjectType  SubjectType @default(CUSTOMER)
+
+  // Consent details
+  purpose      String // e.g., "marketing-emails", "analytics"
+  purposeGroup String? // Grouping for related purposes
+  lawfulBasis  LawfulBasis
+
+  // Status
+  status ConsentStatus @default(ACTIVE)
+
+  // Timestamps
+  grantedAt   DateTime
+  withdrawnAt DateTime?
+  expiresAt   DateTime?
+
+  // Evidence and audit
+  proofRef      String? // Link to consent capture evidence (S3)
+  captureMethod CaptureMethod @default(FORM)
+  sourceSystem  String? // Where consent was captured
+  version       String? // Consent policy version
+
+  // Withdrawal handling
+  withdrawalReason String?
+  withdrawalMethod CaptureMethod?
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+
+  @@index([entityId])
+  @@index([subjectId])
+  @@index([purpose])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("consent_records")
+}
+
+enum SubjectType {
+  CUSTOMER
+  EMPLOYEE
+  CONTRACTOR
+  PROSPECT
+  PARTNER
+  OTHER
+}
+
+enum LawfulBasis {
+  CONSENT // GDPR Art. 6(1)(a)
+  CONTRACT // GDPR Art. 6(1)(b)
+  LEGAL_OBLIGATION // GDPR Art. 6(1)(c)
+  VITAL_INTEREST // GDPR Art. 6(1)(d)
+  PUBLIC_TASK // GDPR Art. 6(1)(e)
+  LEGITIMATE_INTEREST // GDPR Art. 6(1)(f)
+}
+
+enum ConsentStatus {
+  ACTIVE
+  WITHDRAWN
+  EXPIRED
+  SUPERSEDED
+}
+
+enum CaptureMethod {
+  FORM
+  API
+  VERBAL
+  WRITTEN
+  CHECKBOX
+  DOUBLE_OPT_IN
+  IMPLICIT
+}
+
+// ============================================================================
+// DATA SUBJECT ACCESS REQUESTS (DSARs)
+// ============================================================================
+
+model DSARRequest {
+  id String @id @default(cuid())
+
+  // Entity ownership
+  entityId String
+
+  // Request identification
+  requestNumber String @unique
+
+  // Data subject
+  subjectId    String? // Link to known subject
+  subjectEmail String
+  subjectName  String?
+
+  // Request details
+  requestType DSARType
+  description String?  @db.Text
+
+  // Status and workflow
+  status   DSARStatus @default(RECEIVED)
+  priority Priority   @default(MEDIUM)
+
+  // Timeline (GDPR: 30 days, extendable to 90)
+  receivedAt       DateTime  @default(now())
+  deadline         DateTime // Initial deadline (30 days from receipt)
+  extendedDeadline DateTime? // If extension needed
+  extensionReason  String?
+
+  // Verification
+  verifiedAt         DateTime?
+  verifiedBy         String?
+  verificationMethod VerificationMethod?
+
+  // Processing
+  assignedTo  String?
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  // Response
+  responseRef    String? // Link to response document (S3)
+  responseMethod ResponseMethod?
+  responseSentAt DateTime?
+
+  // Rejection (if applicable)
+  rejectedAt      DateTime?
+  rejectionReason String?
+
+  // Related items
+  activities DSARActivity[]
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+
+  @@index([entityId])
+  @@index([subjectId])
+  @@index([subjectEmail])
+  @@index([status])
+  @@index([deadline])
+  @@index([requestNumber])
+  @@map("dsar_requests")
+}
+
+enum DSARType {
+  ACCESS // Right to access (GDPR Art. 15)
+  RECTIFICATION // Right to rectification (GDPR Art. 16)
+  ERASURE // Right to erasure (GDPR Art. 17)
+  RESTRICTION // Right to restriction (GDPR Art. 18)
+  PORTABILITY // Right to data portability (GDPR Art. 20)
+  OBJECTION // Right to object (GDPR Art. 21)
+  AUTOMATED_DECISION // Rights related to automated decisions (GDPR Art. 22)
+}
+
+enum DSARStatus {
+  RECEIVED // Request received
+  PENDING_VERIFICATION // Awaiting identity verification
+  VERIFIED // Identity verified
+  PROCESSING // Being processed
+  PENDING_REVIEW // Awaiting review
+  AWAITING_APPROVAL // Needs approval (complex cases)
+  COMPLETED // Response provided
+  REJECTED // Request rejected (with reason)
+  EXTENDED // Timeline extended
+  CLOSED // Closed (no response needed)
+}
+
+enum VerificationMethod {
+  ID_DOCUMENT
+  EMAIL_VERIFICATION
+  PHONE_VERIFICATION
+  ACCOUNT_LOGIN
+  KNOWLEDGE_BASED
+  IN_PERSON
+  OTHER
+}
+
+enum ResponseMethod {
+  EMAIL
+  PORTAL_DOWNLOAD
+  PHYSICAL_MAIL
+  SECURE_TRANSFER
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model DSARActivity {
+  id String @id @default(cuid())
+
+  dsarId String
+  dsar   DSARRequest @relation(fields: [dsarId], references: [id], onDelete: Cascade)
+
+  type        String
+  description String @db.Text
+  metadata    Json?
+
+  performedBy String
+  performedAt DateTime @default(now())
+
+  @@index([dsarId])
+  @@map("dsar_activities")
+}
+
+// ============================================================================
+// DATA BREACH MANAGEMENT
+// ============================================================================
+
+model DataBreach {
+  id String @id @default(cuid())
+
+  // Entity ownership
+  entityId String
+
+  // Identification
+  breachNumber String @unique
+  title        String
+  description  String @db.Text
+
+  // Classification
+  severity BreachSeverity
+  category BreachCategory
+
+  // Timeline
+  discoveredAt DateTime // When breach was discovered
+  occurredAt   DateTime? // When breach actually occurred (if known)
+  containedAt  DateTime? // When breach was contained
+  resolvedAt   DateTime? // When breach was fully resolved
+
+  // Impact assessment
+  affectedCount      Int? // Number of affected individuals
+  affectedCategories String[] // Categories of affected data
+  crossBorder        Boolean  @default(false)
+
+  // Risk assessment
+  riskToSubjects   RiskLevel
+  likelihoodOfHarm RiskLevel?
+
+  // Status and workflow
+  status BreachStatus @default(IDENTIFIED)
+
+  // Regulatory notification (72-hour rule)
+  authorityNotificationRequired Boolean   @default(true)
+  authorityNotifiedAt           DateTime?
+  authorityReference            String? // Reference number from authority
+  notificationDeadline          DateTime? // 72 hours from discovery
+
+  // Subject notification
+  subjectNotificationRequired Boolean   @default(false)
+  subjectsNotifiedAt          DateTime?
+  notificationMethod          String?
+
+  // Root cause
+  rootCause    String? @db.Text
+  attackVector String?
+
+  // Remediation
+  remediationPlan   String?           @db.Text
+  remediationStatus RemediationStatus @default(NOT_STARTED)
+  lessonsLearned    String?           @db.Text
+
+  // Related
+  activities BreachActivity[]
+
+  // Audit
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  createdBy  String
+  assignedTo String?
+
+  @@index([entityId])
+  @@index([severity])
+  @@index([status])
+  @@index([discoveredAt])
+  @@index([notificationDeadline])
+  @@map("data_breaches")
+}
+
+enum BreachSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum BreachCategory {
+  CONFIDENTIALITY // Unauthorized disclosure
+  INTEGRITY // Unauthorized alteration
+  AVAILABILITY // Loss of access
+  MIXED // Multiple categories
+}
+
+enum BreachStatus {
+  IDENTIFIED // Breach identified
+  ASSESSING // Impact being assessed
+  CONTAINED // Breach contained
+  NOTIFYING // Notifications in progress
+  REMEDIATING // Remediation underway
+  RESOLVED // Fully resolved
+  CLOSED // Case closed
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RemediationStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  VERIFIED
+}
+
+model BreachActivity {
+  id String @id @default(cuid())
+
+  breachId String
+  breach   DataBreach @relation(fields: [breachId], references: [id], onDelete: Cascade)
+
+  type        String
+  description String @db.Text
+  metadata    Json?
+
+  performedBy String
+  performedAt DateTime @default(now())
+
+  @@index([breachId])
+  @@map("breach_activities")
+}
+
+// ============================================================================
+// PROCESSING ACTIVITIES (GDPR Art. 30 Records)
+// ============================================================================
+
+model ProcessingActivity {
+  id String @id @default(cuid())
+
+  // Entity ownership
+  entityId String
+
+  // Identification
+  name        String
+  description String @db.Text
+
+  // Purpose and legal basis
+  purposes           String[]
+  lawfulBasis        LawfulBasis[]
+  legitimateInterest String?       @db.Text // If using legitimate interest
+
+  // Data categories
+  dataCategories    DataCategory[]
+  specialCategories SpecialCategory[]
+
+  // Data subjects
+  subjectCategories String[]
+
+  // Recipients
+  recipients            String[]
+  thirdCountryTransfers String[]
+  transferSafeguards    String?
+
+  // Retention
+  retentionPeriod   String? // e.g., "3 years", "until contract end"
+  retentionCriteria String?
+
+  // Technical measures
+  technicalMeasures      String[]
+  organizationalMeasures String[]
+
+  // DPIA required?
+  dpiaRequired  Boolean @default(false)
+  dpiaReference String? // Link to DPIA document
+
+  // Status
+  status         ActivityStatus @default(ACTIVE)
+  lastReviewedAt DateTime?
+  nextReviewDue  DateTime?
+
+  // Responsibility
+  controller String
+  processor  String?
+  dpo        String?
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+
+  @@index([entityId])
+  @@index([status])
+  @@map("processing_activities")
+}
+
+enum DataCategory {
+  BASIC_IDENTITY
+  CONTACT_DETAILS
+  FINANCIAL
+  EMPLOYMENT
+  EDUCATION
+  ONLINE_IDENTIFIERS
+  LOCATION
+  BEHAVIORAL
+  PREFERENCES
+  DEVICE_DATA
+  COMMUNICATION
+  IMAGES
+  AUDIO_VIDEO
+  OTHER
+}
+
+enum SpecialCategory {
+  RACIAL_ETHNIC_ORIGIN
+  POLITICAL_OPINIONS
+  RELIGIOUS_BELIEFS
+  TRADE_UNION_MEMBERSHIP
+  GENETIC_DATA
+  BIOMETRIC_DATA
+  HEALTH_DATA
+  SEX_LIFE
+  SEXUAL_ORIENTATION
+  CRIMINAL_CONVICTIONS
+}
+
+enum ActivityStatus {
+  DRAFT
+  ACTIVE
+  UNDER_REVIEW
+  SUSPENDED
+  ARCHIVED
+}
+
+// ============================================================================
+// PRIVACY IMPACT ASSESSMENTS (DPIAs)
+// ============================================================================
+
+model PrivacyImpactAssessment {
+  id String @id @default(cuid())
+
+  // Entity ownership
+  entityId String
+
+  // Identification
+  assessmentNumber String @unique
+  title            String
+  description      String @db.Text
+
+  // Linked activity
+  processingActivityId String?
+
+  // Assessment details
+  necessity       String @db.Text // Necessity assessment
+  proportionality String @db.Text // Proportionality assessment
+
+  // Risk identification
+  risks         Json // Array of identified risks
+  mitigations   Json // Array of mitigation measures
+  residualRisks Json? // Risks remaining after mitigation
+
+  // Consultation
+  dpoConsulted       Boolean @default(false)
+  dpoOpinion         String? @db.Text
+  authorityConsulted Boolean @default(false)
+  authorityResponse  String? @db.Text
+
+  // Status
+  status DPIAStatus @default(DRAFT)
+
+  // Review
+  completedAt   DateTime?
+  approvedAt    DateTime?
+  approvedBy    String?
+  nextReviewDue DateTime?
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+
+  @@index([entityId])
+  @@index([status])
+  @@map("privacy_impact_assessments")
+}
+
+enum DPIAStatus {
+  DRAFT
+  IN_PROGRESS
+  PENDING_REVIEW
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  REQUIRES_CONSULTATION
+}
+
+// ============================================================================
+// DATA RETENTION
+// ============================================================================
+
+model RetentionPolicy {
+  id String @id @default(cuid())
+
+  // Entity ownership
+  entityId String
+
+  // Policy details
+  name         String
+  description  String?      @db.Text
+  dataCategory DataCategory
+
+  // Retention rules
+  retentionPeriod Int // In days
+  retentionBasis  String // Legal or business basis
+
+  // Actions
+  actionOnExpiry RetentionAction
+
+  // Status
+  isActive Boolean @default(true)
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+
+  @@unique([entityId, dataCategory])
+  @@index([entityId])
+  @@map("retention_policies")
+}
+
+enum RetentionAction {
+  DELETE
+  ANONYMIZE
+  ARCHIVE
+  REVIEW
+}
+
+// ============================================================================
+// THIRD-PARTY DATA PROCESSORS
+// ============================================================================
+
+model DataProcessor {
+  id String @id @default(cuid())
+
+  // Entity ownership
+  entityId String
+
+  // Processor details
+  name        String
+  description String?
+
+  // Contact
+  contactName  String?
+  contactEmail String?
+
+  // Location
+  country String
+  isEU    Boolean @default(false)
+
+  // Data Processing Agreement
+  dpaReference String? // Link to DPA document
+  dpaSignedAt  DateTime?
+  dpaExpiresAt DateTime?
+
+  // Transfer mechanisms (for non-EU)
+  transferMechanism TransferMechanism?
+  sccReference      String? // Standard Contractual Clauses reference
+
+  // Processing details
+  dataCategories DataCategory[]
+  purposes       String[]
+
+  // Sub-processors
+  hasSubProcessors Boolean @default(false)
+  subProcessors    Json? // List of sub-processors
+
+  // Compliance
+  lastAuditDate    DateTime?
+  complianceStatus ComplianceStatus @default(UNKNOWN)
+  certifications   String[]
+
+  // Status
+  status ProcessorStatus @default(ACTIVE)
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+
+  @@index([entityId])
+  @@index([status])
+  @@map("data_processors")
+}
+
+enum TransferMechanism {
+  ADEQUACY_DECISION
+  STANDARD_CONTRACTUAL_CLAUSES
+  BINDING_CORPORATE_RULES
+  DEROGATION
+  CERTIFICATION
+  CODE_OF_CONDUCT
+}
+
+enum ComplianceStatus {
+  UNKNOWN
+  COMPLIANT
+  NON_COMPLIANT
+  UNDER_REVIEW
+}
+
+enum ProcessorStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  TERMINATED
+}
+
+// ============================================================================
+// AUDIT LOGGING
+// ============================================================================
+
+model PrivacyAuditLog {
+  id String @id @default(cuid())
+
+  entityId   String
+  entityType String // ConsentRecord, DSARRequest, DataBreach, etc.
+  recordId   String
+
+  action  String // CREATE, UPDATE, DELETE, VIEW, EXPORT
+  changes Json? // Field-level changes
+
+  userId    String
+  userEmail String?
+  ipAddress String?
+  userAgent String?
+
+  timestamp DateTime @default(now())
+
+  @@index([entityId])
+  @@index([entityType, recordId])
+  @@index([userId])
+  @@index([timestamp])
+  @@map("privacy_audit_logs")
+}

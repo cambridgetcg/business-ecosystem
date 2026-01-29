@@ -1,0 +1,160 @@
+name: Progress Sync
+
+on:
+  push:
+    paths:
+      - '**/STATUS.md'
+      - '**/PATH.md'
+      - '**/LIGHT.md'
+      - 'PROGRESS.md'
+      - 'progress/**'
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      full_sync:
+        description: 'Run full sync (not just changed files)'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  sync-to-aws:
+    name: Sync Progress to AWS
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Need previous commit to detect changes
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Detect Changed Files
+        id: changes
+        run: |
+          if [ "${{ github.event.inputs.full_sync }}" == "true" ]; then
+            echo "full_sync=true" >> $GITHUB_OUTPUT
+          else
+            CHANGED=$(git diff --name-only HEAD~1 HEAD | grep -E '(STATUS|PATH|LIGHT)\.md$|PROGRESS\.md$' || true)
+            if [ -n "$CHANGED" ]; then
+              echo "files_changed=true" >> $GITHUB_OUTPUT
+              echo "changed_files<<EOF" >> $GITHUB_OUTPUT
+              echo "$CHANGED" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+            else
+              echo "files_changed=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Trigger Lambda Sync
+        if: steps.changes.outputs.files_changed == 'true' || steps.changes.outputs.full_sync == 'true'
+        run: |
+          LAMBDA_URL="${{ secrets.PROGRESS_SYNC_LAMBDA_URL }}"
+
+          if [ -z "$LAMBDA_URL" ]; then
+            echo "PROGRESS_SYNC_LAMBDA_URL not configured, skipping AWS sync"
+            exit 0
+          fi
+
+          PAYLOAD=$(cat <<EOF
+          {
+            "source": "github_actions",
+            "action": "${{ steps.changes.outputs.full_sync == 'true' && 'full_sync' || 'incremental' }}",
+            "ref": "${{ github.ref }}",
+            "sha": "${{ github.sha }}",
+            "changedFiles": ${{ steps.changes.outputs.changed_files == 'true' && toJSON(steps.changes.outputs.changed_files) || '[]' }}
+          }
+          EOF
+          )
+
+          echo "Triggering Lambda sync..."
+          curl -X POST "$LAMBDA_URL" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            --fail --silent --show-error
+
+      - name: Update Local Progress Dashboard
+        run: |
+          # Regenerate local PROGRESS.md if tsx is available
+          if command -v npx &> /dev/null; then
+            npx tsx scripts/generate-progress.ts || echo "Progress generation skipped"
+          fi
+
+      - name: Summary
+        run: |
+          echo "## Progress Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.changes.outputs.full_sync }}" == "true" ]; then
+            echo "**Mode:** Full sync" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.changes.outputs.files_changed }}" == "true" ]; then
+            echo "**Mode:** Incremental sync" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Changed files:**" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            echo "${{ steps.changes.outputs.changed_files }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Mode:** No relevant changes detected" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  validate-progress-files:
+    name: Validate Progress Files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate progress files
+        run: pnpm progress:check
+
+      - name: Check for stale STATUS.md
+        run: |
+          echo "Checking for stale STATUS.md files..."
+
+          STALE_DAYS=30
+          NOW=$(date +%s)
+          STALE_FILES=""
+
+          for file in $(find . -name "STATUS.md" -not -path "./node_modules/*"); do
+            LAST_UPDATED=$(grep -oP 'Last [Uu]pdated[:\s]*\K\d{4}-\d{2}-\d{2}' "$file" || echo "")
+            if [ -n "$LAST_UPDATED" ]; then
+              FILE_DATE=$(date -d "$LAST_UPDATED" +%s 2>/dev/null || echo "0")
+              DAYS_OLD=$(( (NOW - FILE_DATE) / 86400 ))
+              if [ $DAYS_OLD -gt $STALE_DAYS ]; then
+                STALE_FILES="$STALE_FILES\n- $file ($DAYS_OLD days old)"
+              fi
+            fi
+          done
+
+          if [ -n "$STALE_FILES" ]; then
+            echo "::warning::Stale STATUS.md files detected (>$STALE_DAYS days old):$STALE_FILES"
+          else
+            echo "All STATUS.md files are up to date"
+          fi

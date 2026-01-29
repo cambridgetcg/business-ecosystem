@@ -1,0 +1,14 @@
+# AWS Configuration
+aws_region  = "us-east-1"
+environment = "development"
+
+# Database Configuration
+db_instance_class        = "db.t3.micro"
+db_allocated_storage     = 20
+db_max_allocated_storage = 100
+db_name                  = "accounting"
+db_username              = "accounting_admin"
+db_password              = "CHANGE_ME_USE_STRONG_PASSWORD"
+db_multi_az              = false
+db_backup_retention_period = 7
+db_deletion_protection   = false

@@ -1,0 +1,7 @@
+/**
+ * Command handlers (write operations)
+ * Commands mutate state and may emit domain events
+ */
+
+export * from './base-command.js';
+// Export domain-specific commands here

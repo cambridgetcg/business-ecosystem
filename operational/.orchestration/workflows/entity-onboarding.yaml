@@ -1,0 +1,140 @@
+# Entity Onboarding Workflow
+#
+# Triggered when a new legal entity is created in entity-governance.
+# Orchestrates initial setup across all operational domains.
+#
+# Pattern follows ARCHITECTURE.md Cross-Operational Coordination section.
+
+id: entity-onboarding
+name: Entity Onboarding
+version: "1.0.0"
+description: |
+  Sets up a newly formed legal entity across all operational domains:
+  - Creates standard contract templates
+  - Initiates insurance coverage assessment
+  - Performs privacy impact assessment
+  - Establishes IP assignment agreements (if applicable)
+
+trigger:
+  type: event
+  source: entity-governance.entity.created
+  filter:
+    status: active
+
+input:
+  entityId: $.aggregateId
+  entityType: $.payload.type
+  entityName: $.payload.name
+  jurisdictionCountry: $.payload.jurisdictionCountry
+
+steps:
+  # Step 1: Create standard contract templates for the entity
+  - id: create-standard-contracts
+    name: Create Standard Contract Templates
+    domain: contracts-legal
+    action: createStandardAgreements
+    input:
+      entityId: ${input.entityId}
+      templateTypes:
+        - nda
+        - service-agreement
+        - employment-agreement
+        - vendor-agreement
+    timeout: 30s
+    retries: 3
+    onFailure: stop
+
+  # Step 2: Assess insurance coverage requirements (parallel with steps 3-4)
+  - id: assess-insurance-requirements
+    name: Assess Insurance Requirements
+    domain: insurance
+    action: assessCoverageRequirements
+    dependsOn:
+      - create-standard-contracts
+    input:
+      entityId: ${input.entityId}
+      entityType: ${input.entityType}
+      jurisdiction: ${input.jurisdictionCountry}
+    timeout: 60s
+    retries: 3
+    onFailure: continue
+
+  # Step 3: Initiate privacy impact assessment (parallel with steps 2,4)
+  - id: initiate-privacy-assessment
+    name: Initiate Privacy Impact Assessment
+    domain: data-privacy
+    action: initiatePrivacyAssessment
+    dependsOn:
+      - create-standard-contracts
+    input:
+      entityId: ${input.entityId}
+      assessmentType: initial
+      jurisdiction: ${input.jurisdictionCountry}
+    timeout: 30s
+    retries: 3
+    onFailure: continue
+
+  # Step 4: Create IP assignment agreements (conditional, parallel with steps 2-3)
+  - id: create-ip-assignments
+    name: Create IP Assignment Agreements
+    domain: intellectual-property
+    action: createIPAssignments
+    dependsOn:
+      - create-standard-contracts
+    condition: ${input.entityType in ['corporation', 'llc']}
+    input:
+      entityId: ${input.entityId}
+      assignmentTypes:
+        - employee-ip-assignment
+        - contractor-ip-assignment
+    timeout: 30s
+    retries: 3
+    onFailure: continue
+
+  # Step 5: Emit completion event
+  - id: notify-completion
+    name: Emit Onboarding Complete Event
+    domain: operational
+    action: emitEvent
+    dependsOn:
+      - assess-insurance-requirements
+      - initiate-privacy-assessment
+      - create-ip-assignments
+    input:
+      eventType: operational.entity_onboarded
+      payload:
+        entityId: ${input.entityId}
+        entityName: ${input.entityName}
+        completedSteps: ${workflow.completedSteps}
+        skippedSteps: ${workflow.skippedSteps}
+        failedSteps: ${workflow.failedSteps}
+    timeout: 10s
+
+compensation:
+  - step: create-standard-contracts
+    action: deleteStandardAgreements
+    input:
+      entityId: ${input.entityId}
+      reason: "Workflow compensation - onboarding failed"
+
+  - step: assess-insurance-requirements
+    action: cancelAssessment
+    input:
+      entityId: ${input.entityId}
+
+  - step: initiate-privacy-assessment
+    action: cancelAssessment
+    input:
+      entityId: ${input.entityId}
+
+  - step: create-ip-assignments
+    action: deleteIPAssignments
+    input:
+      entityId: ${input.entityId}
+
+metadata:
+  owner: operational-orchestration
+  tags:
+    - onboarding
+    - entity
+    - critical-path

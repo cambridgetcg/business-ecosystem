@@ -1,0 +1,39 @@
+{
+  "name": "@ecosystem/progress-tracking-lambdas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm run build:sync && npm run build:analyzer && npm run build:comparator && npm run build:reporter && npm run build:notifier && npm run build:layer",
+    "build:sync": "esbuild sync/index.ts --bundle --platform=node --target=node20 --outfile=sync/dist/index.js --external:@aws-sdk/*",
+    "build:analyzer": "esbuild analyzer/index.ts --bundle --platform=node --target=node20 --outfile=analyzer/dist/index.js --external:@aws-sdk/*",
+    "build:comparator": "esbuild comparator/index.ts --bundle --platform=node --target=node20 --outfile=comparator/dist/index.js --external:@aws-sdk/*",
+    "build:reporter": "esbuild reporter/index.ts --bundle --platform=node --target=node20 --outfile=reporter/dist/index.js --external:@aws-sdk/*",
+    "build:notifier": "esbuild notifier/index.ts --bundle --platform=node --target=node20 --outfile=notifier/dist/index.js --external:@aws-sdk/*",
+    "build:layer": "mkdir -p layers/nodejs && cp package-layer.json layers/nodejs/package.json && cd layers/nodejs && npm install --production",
+    "package": "npm run package:sync && npm run package:analyzer && npm run package:comparator && npm run package:reporter && npm run package:notifier && npm run package:layer",
+    "package:sync": "cd sync/dist && zip -r ../sync.zip .",
+    "package:analyzer": "cd analyzer/dist && zip -r ../analyzer.zip .",
+    "package:comparator": "cd comparator/dist && zip -r ../comparator.zip .",
+    "package:reporter": "cd reporter/dist && zip -r ../reporter.zip .",
+    "package:notifier": "cd notifier/dist && zip -r ../notifier.zip .",
+    "package:layer": "cd layers && zip -r dependencies.zip nodejs",
+    "deploy": "npm run build && npm run package",
+    "clean": "rm -rf */dist */*.zip layers"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.131",
+    "@types/node": "^20.10.0",
+    "esbuild": "^0.19.0",
+    "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cloudwatch": "^3.500.0",
+    "@aws-sdk/client-dynamodb": "^3.500.0",
+    "@aws-sdk/client-s3": "^3.500.0",
+    "@aws-sdk/client-secrets-manager": "^3.500.0",
+    "@aws-sdk/client-ses": "^3.500.0",
+    "@aws-sdk/client-sns": "^3.500.0",
+    "@aws-sdk/util-dynamodb": "^3.500.0"
+  }
+}

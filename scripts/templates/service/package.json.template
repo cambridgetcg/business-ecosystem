@@ -1,0 +1,47 @@
+{
+  "name": "@ecosystem/{{SERVICE_NAME}}",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run --dir tests/unit",
+    "test:integration": "vitest run --dir tests/integration",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:prod": "prisma migrate deploy",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@ecosystem/audit-logging": "workspace:*",
+    "@ecosystem/auth": "workspace:*",
+    "@ecosystem/database": "workspace:*",
+    "@ecosystem/encryption": "workspace:*",
+    "@ecosystem/messaging": "workspace:*",
+    "@ecosystem/validation": "workspace:*",
+    "@ecosystem/contracts-identity": "workspace:*",
+    "@ecosystem/contracts-entity": "workspace:*",
+    "@ecosystem/contracts-audit": "workspace:*",
+    "@hono/node-server": "^1.8.0",
+    "hono": "^4.0.0",
+    "@prisma/client": "^5.10.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "prisma": "^5.10.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.2.0"
+  }
+}

@@ -1,0 +1,50 @@
+# Entity Operations Summary Report
+# Comprehensive operational overview for an entity
+
+id: entity-operations-summary
+name: Entity Operations Summary
+description: Complete operational status summary for an entity across all domains
+
+parameters:
+  - name: entityId
+    type: string
+    required: true
+    description: Entity ID to generate report for
+  - name: includePendingActions
+    type: boolean
+    default: true
+    description: Include pending actions section
+  - name: includeCompliance
+    type: boolean
+    default: true
+    description: Include compliance status section
+
+sources:
+  - domain: contracts-legal
+    query: getEntityContracts
+  - domain: insurance
+    query: getEntityPolicies
+  - domain: intellectual-property
+    query: getEntityIP
+  - domain: data-privacy
+    query: getEntityPrivacyRecords
+
+output:
+  summary: true
+  sections:
+    - title: Active Contracts
+      filter: status == 'active'
+      sortBy: title
+    - title: Insurance Policies
+      filter: domain == 'insurance'
+      sortBy: expirationDate
+    - title: Intellectual Property
+      filter: domain == 'intellectual-property'
+      sortBy: title
+    - title: Data Privacy Records
+      filter: domain == 'data-privacy'
+      sortBy: updatedAt
+
+formats:
+  - json
+  - pdf

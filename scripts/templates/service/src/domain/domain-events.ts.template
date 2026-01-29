@@ -1,0 +1,40 @@
+/**
+ * Domain event types for {{SERVICE_NAME}}
+ */
+
+import { randomUUID } from 'crypto';
+
+export interface DomainEvent {
+  readonly id: string;
+  readonly type: string;
+  readonly aggregateId: string;
+  readonly aggregateType: string;
+  readonly occurredAt: Date;
+  readonly version: number;
+  readonly metadata: EventMetadata;
+}
+
+export interface EventMetadata {
+  correlationId: string;
+  causationId?: string;
+  userId?: string;
+  tenantId?: string;
+  source: string;
+  timestamp: Date;
+}
+
+export abstract class BaseDomainEvent implements DomainEvent {
+  public readonly id: string;
+  public readonly occurredAt: Date;
+  public readonly version: number = 1;
+
+  constructor(
+    public readonly type: string,
+    public readonly aggregateId: string,
+    public readonly aggregateType: string,
+    public readonly metadata: EventMetadata
+  ) {
+    this.id = randomUUID();
+    this.occurredAt = new Date();
+  }
+}

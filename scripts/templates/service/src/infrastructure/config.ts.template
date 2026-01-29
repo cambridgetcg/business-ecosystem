@@ -1,0 +1,48 @@
+/**
+ * Service configuration
+ */
+
+import { z } from 'zod';
+
+const configSchema = z.object({
+  // Server
+  port: z.coerce.number().default(3000),
+  host: z.string().default('0.0.0.0'),
+  nodeEnv: z.enum(['development', 'test', 'production']).default('development'),
+  
+  // Database
+  databaseUrl: z.string(),
+  
+  // Redis
+  redisUrl: z.string().optional(),
+  
+  // Message Broker
+  rabbitmqUrl: z.string().optional(),
+  
+  // Auth
+  jwtSecret: z.string(),
+  jwtExpiresIn: z.string().default('1d'),
+  
+  // Logging
+  logLevel: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
+  
+  // Service
+  serviceName: z.string().default('{{SERVICE_NAME}}'),
+});
+
+export type Config = z.infer<typeof configSchema>;
+
+export function loadConfig(): Config {
+  return configSchema.parse({
+    port: process.env.PORT,
+    host: process.env.HOST,
+    nodeEnv: process.env.NODE_ENV,
+    databaseUrl: process.env.DATABASE_URL,
+    redisUrl: process.env.REDIS_URL,
+    rabbitmqUrl: process.env.RABBITMQ_URL,
+    jwtSecret: process.env.JWT_SECRET,
+    jwtExpiresIn: process.env.JWT_EXPIRES_IN,
+    logLevel: process.env.LOG_LEVEL,
+    serviceName: process.env.SERVICE_NAME,
+  });
+}

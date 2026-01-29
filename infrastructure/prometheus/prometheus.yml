@@ -1,0 +1,26 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'ecosystem-services'
+    static_configs:
+      - targets:
+        # Foundational Services
+        - 'host.docker.internal:3001'  # accounting
+        - 'host.docker.internal:3002'  # banking-treasury
+        - 'host.docker.internal:3003'  # compliance
+        - 'host.docker.internal:3004'  # corporate-security
+        - 'host.docker.internal:3005'  # entity-governance
+        - 'host.docker.internal:3006'  # kyc-identity
+        - 'host.docker.internal:3007'  # tax
+        # Operational Services
+        - 'host.docker.internal:3011'  # contracts-legal
+        - 'host.docker.internal:3012'  # data-privacy
+        - 'host.docker.internal:3013'  # insurance
+        - 'host.docker.internal:3014'  # intellectual-property
+    metrics_path: '/metrics'

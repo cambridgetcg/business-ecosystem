@@ -1,0 +1,6 @@
+/**
+ * Persistence layer - Database implementations
+ */
+
+export * from './prisma-client.js';
+// Export repository implementations here

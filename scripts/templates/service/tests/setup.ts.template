@@ -1,0 +1,13 @@
+/**
+ * Test setup
+ */
+
+import { beforeAll, afterAll } from 'vitest';
+
+beforeAll(async () => {
+  // Setup test database, mocks, etc.
+});
+
+afterAll(async () => {
+  // Cleanup
+});

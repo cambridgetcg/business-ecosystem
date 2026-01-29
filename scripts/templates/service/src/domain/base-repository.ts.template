@@ -1,0 +1,12 @@
+/**
+ * Repository interface for domain layer
+ * Implementation lives in infrastructure layer
+ */
+
+import type { Entity } from './base-entity.js';
+
+export interface Repository<T extends Entity> {
+  findById(id: string): Promise<T | null>;
+  save(entity: T): Promise<void>;
+  delete(id: string): Promise<void>;
+}

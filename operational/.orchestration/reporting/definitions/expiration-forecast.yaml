@@ -1,0 +1,47 @@
+# Expiration Forecast Report
+# Shows items expiring within specified time window
+
+id: expiration-forecast
+name: Expiration Forecast Report
+description: Items expiring within specified time window across all operational domains
+
+parameters:
+  - name: entityId
+    type: string
+    required: true
+    description: Entity ID to generate report for
+  - name: daysAhead
+    type: number
+    default: 90
+    description: Number of days ahead to forecast
+
+sources:
+  - domain: contracts-legal
+    query: getExpiringContracts
+  - domain: insurance
+    query: getExpiringPolicies
+  - domain: intellectual-property
+    query: getExpiringIP
+  - domain: data-privacy
+    query: getExpiringConsents
+
+output:
+  summary: true
+  sections:
+    - title: Critical (7 days)
+      filter: daysUntilExpiration <= 7
+      sortBy: daysUntilExpiration
+      sortOrder: asc
+    - title: Warning (30 days)
+      filter: daysUntilExpiration <= 30
+      sortBy: daysUntilExpiration
+      sortOrder: asc
+    - title: Notice (90 days)
+      filter: daysUntilExpiration <= 90
+      sortBy: daysUntilExpiration
+      sortOrder: asc
+
+formats:
+  - json
+  - pdf
+  - excel

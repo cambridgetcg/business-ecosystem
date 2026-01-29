@@ -1,0 +1,18 @@
+packages:
+  # Foundational domain apps
+  - "foundational/*"
+
+  # Operational domain apps
+  - "operational/*"
+
+  # Orchestration packages (workflow engine, reporting, compliance)
+  - "operational/.orchestration/*"
+
+  # Shared libraries and contracts
+  - "shared/config"
+  - "shared/libs/*"
+  - "shared/contracts/*"
+  - "shared/events/*"
+
+  # Infrastructure packages
+  - "infra/*"

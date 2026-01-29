@@ -1,0 +1,25 @@
+/**
+ * Base query infrastructure
+ */
+
+export interface Query<TResult> {
+  readonly type: string;
+}
+
+export interface QueryHandler<TQuery extends Query<TResult>, TResult> {
+  handle(query: TQuery): Promise<TResult>;
+}
+
+export interface QueryBus {
+  execute<TResult>(query: Query<TResult>): Promise<TResult>;
+  register<TQuery extends Query<TResult>, TResult>(
+    queryType: string,
+    handler: QueryHandler<TQuery, TResult>
+  ): void;
+}
+
+export abstract class BaseQueryHandler<TQuery extends Query<TResult>, TResult>
+  implements QueryHandler<TQuery, TResult>
+{
+  abstract handle(query: TQuery): Promise<TResult>;
+}

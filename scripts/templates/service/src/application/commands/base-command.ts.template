@@ -1,0 +1,41 @@
+/**
+ * Base command infrastructure
+ */
+
+import type { UnitOfWork } from '@ecosystem/database';
+
+export interface Command<TResult = void> {
+  readonly type: string;
+}
+
+export interface CommandHandler<TCommand extends Command<TResult>, TResult = void> {
+  handle(command: TCommand): Promise<TResult>;
+}
+
+export interface CommandBus {
+  execute<TResult>(command: Command<TResult>): Promise<TResult>;
+  register<TCommand extends Command<TResult>, TResult>(
+    commandType: string,
+    handler: CommandHandler<TCommand, TResult>
+  ): void;
+}
+
+export abstract class BaseCommandHandler<TCommand extends Command<TResult>, TResult = void>
+  implements CommandHandler<TCommand, TResult>
+{
+  constructor(protected readonly unitOfWork: UnitOfWork) {}
+
+  abstract handle(command: TCommand): Promise<TResult>;
+
+  protected async executeInTransaction<T>(fn: () => Promise<T>): Promise<T> {
+    await this.unitOfWork.begin();
+    try {
+      const result = await fn();
+      await this.unitOfWork.commit();
+      return result;
+    } catch (error) {
+      await this.unitOfWork.rollback();
+      throw error;
+    }
+  }
+}

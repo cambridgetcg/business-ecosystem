@@ -1,0 +1,33 @@
+/**
+ * Event subscriber implementation
+ */
+
+import type { EventHandler, EventSubscriber } from '@ecosystem/messaging';
+import type { DomainEvent } from '../../domain/domain-events.js';
+
+export class ServiceEventSubscriber implements EventSubscriber {
+  private connected = false;
+  private handlers: Map<string, EventHandler[]> = new Map();
+
+  async connect(): Promise<void> {
+    // TODO: Implement RabbitMQ connection
+    this.connected = true;
+  }
+
+  async disconnect(): Promise<void> {
+    // TODO: Implement RabbitMQ disconnection
+    this.connected = false;
+  }
+
+  async subscribe<T>(eventType: string, handler: EventHandler<T>): Promise<void> {
+    const existing = this.handlers.get(eventType) || [];
+    existing.push(handler as EventHandler);
+    this.handlers.set(eventType, existing);
+    console.log('Subscribed to event:', eventType);
+  }
+
+  async subscribeToTopic<T>(topic: string, handler: EventHandler<T>): Promise<void> {
+    // TODO: Implement topic-based subscription
+    console.log('Subscribed to topic:', topic);
+  }
+}

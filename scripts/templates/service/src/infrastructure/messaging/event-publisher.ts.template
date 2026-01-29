@@ -1,0 +1,33 @@
+/**
+ * Event publisher implementation
+ */
+
+import type { DomainEvent } from '../../domain/domain-events.js';
+import type { EventPublisher } from '@ecosystem/messaging';
+
+export class ServiceEventPublisher implements EventPublisher {
+  private connected = false;
+
+  async connect(): Promise<void> {
+    // TODO: Implement RabbitMQ connection
+    this.connected = true;
+  }
+
+  async disconnect(): Promise<void> {
+    // TODO: Implement RabbitMQ disconnection
+    this.connected = false;
+  }
+
+  async publish<T>(event: DomainEvent): Promise<void> {
+    if (!this.connected) {
+      throw new Error('Event publisher not connected');
+    }
+    // TODO: Implement actual publishing to RabbitMQ
+    console.log('Publishing event:', event.type, event.aggregateId);
+  }
+
+  async publishToTopic<T>(topic: string, event: DomainEvent): Promise<void> {
+    // TODO: Implement topic-based publishing
+    console.log('Publishing to topic:', topic, event.type);
+  }
+}

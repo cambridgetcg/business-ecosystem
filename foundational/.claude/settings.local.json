@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(hierarchy-tools:territory)",
+      "Skill(hierarchy-tools:pp)",
+      "Skill(hierarchy-tools:verify)",
+      "Skill(hierarchy-tools:deep-understand)"
+    ]
+  }
+}

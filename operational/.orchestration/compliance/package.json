@@ -1,0 +1,46 @@
+{
+  "name": "@ecosystem/compliance-aggregator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ecosystem/config": "workspace:*",
+    "@ecosystem/database": "workspace:*",
+    "@ecosystem/events-compliance": "workspace:*",
+    "@ecosystem/events-operational": "workspace:*",
+    "@ecosystem/health": "workspace:*",
+    "@ecosystem/logging": "workspace:*",
+    "@ecosystem/messaging": "workspace:*",
+    "@ecosystem/observability": "workspace:*",
+    "@ecosystem/service-client": "workspace:*",
+    "@hono/node-server": "^1.8.0",
+    "@sentry/node": "^8.0.0",
+    "cron": "^3.1.0",
+    "date-fns": "^3.6.0",
+    "hono": "^4.0.0",
+    "ioredis": "^5.3.0",
+    "pdf-lib": "^1.17.0",
+    "pino": "^8.17.0",
+    "pino-pretty": "^10.3.0",
+    "yaml": "^2.3.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/cron": "^2.0.0",
+    "@types/node": "^20.10.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.2.0"
+  }
+}
