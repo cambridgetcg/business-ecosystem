@@ -15,10 +15,14 @@ import { nanoid } from 'nanoid';
 import { env } from '../../env.js';
 import { getDb, healthCheck } from '../../infrastructure/persistence/database.js';
 import { DrizzleLegalEntityRepository } from '../../infrastructure/persistence/repositories/drizzle-legal-entity-repository.js';
+import { DrizzleOfficerRepository } from '../../infrastructure/persistence/repositories/drizzle-officer-repository.js';
+import { DrizzleShareholderRepository } from '../../infrastructure/persistence/repositories/drizzle-shareholder-repository.js';
 import { LegalEntityCommandHandler } from '../../application/handlers/legal-entity-command-handler.js';
 import { LegalEntityQueryHandler } from '../../application/handlers/legal-entity-query-handler.js';
 import { createEventPublisher, type EventPublisher } from '../../infrastructure/integration/event-publisher.js';
 import { legalEntitiesRoutes } from './routes/legal-entities.js';
+import { officerRoutes } from './routes/officers.js';
+import { shareholderRoutes } from './routes/shareholders.js';
 
 let rabbitMQPublisher: RabbitMQPublisher | null = null;
 
@@ -112,6 +116,7 @@ export async function buildApp() {
       tags: [
         { name: 'Health', description: 'Health check endpoints' },
         { name: 'Legal Entities', description: 'Legal entity management' },
+        { name: 'Officers', description: 'Corporate officer management' },
         { name: 'Corporate Structure', description: 'Parent-subsidiary relationships' },
         { name: 'Governance', description: 'Board and committee management' },
         { name: 'Shareholders', description: 'Shareholder and cap table management' },
@@ -172,6 +177,8 @@ export async function buildApp() {
   // Set up repositories and handlers
   const db = getDb();
   const legalEntityRepository = new DrizzleLegalEntityRepository(db as any);
+  const officerRepository = new DrizzleOfficerRepository(db as any);
+  const shareholderRepository = new DrizzleShareholderRepository(db as any);
   const commandHandler = new LegalEntityCommandHandler(legalEntityRepository, eventPublisher);
   const queryHandler = new LegalEntityQueryHandler(legalEntityRepository);
 
@@ -181,6 +188,30 @@ export async function buildApp() {
       await legalEntitiesRoutes(instance, { commandHandler, queryHandler });
     },
     { prefix: '/api/v1/entities' }
+  );
+
+  // Officer routes
+  await app.register(
+    async (instance) => {
+      await officerRoutes(instance, {
+        officerRepository,
+        entityRepository: legalEntityRepository,
+        eventPublisher,
+      });
+    },
+    { prefix: '/api/v1' }
+  );
+
+  // Shareholder routes
+  await app.register(
+    async (instance) => {
+      await shareholderRoutes(instance, {
+        shareholderRepository,
+        entityRepository: legalEntityRepository,
+        eventPublisher,
+      });
+    },
+    { prefix: '/api/v1' }
   );
 
   return app;

@@ -9,8 +9,8 @@
 
 | Metric | Value |
 |--------|-------|
-| Overall Progress | 25% |
-| Current Waypoint | WP0 Complete, Starting WP1 |
+| Overall Progress | 50% |
+| Current Waypoint | WP1 Complete - MVP Ready |
 | Blockers | None |
 | Last Updated | 2026-01-29 |
 
@@ -21,8 +21,8 @@
 | Component | Status |
 |-----------|--------|
 | Schema/Database | ██████████ 100% |
-| Domain Model | ███░░░░░░░ 30% |
-| API Layer | ███░░░░░░░ 30% |
+| Domain Model | ██████░░░░ 60% |
+| API Layer | ███████░░░ 70% |
 | Tests | ░░░░░░░░░░ 0% |
 | Events | ██░░░░░░░░ 20% |
 | Documentation | ████░░░░░░ 40% |
@@ -33,49 +33,93 @@
 
 | Subdomain | Progress | Notes |
 |-----------|----------|-------|
-| Entity Lifecycle | 43% | Basic CRUD working |
-| Corporate Structure | 23% | Schema only |
+| Entity Lifecycle | 90% | Full CRUD + dissolve + events |
+| Corporate Structure | 50% | Parent/subsidiary queries working |
 | Governance | 22% | Schema only |
-| Ownership | 22% | Basic shareholder |
-| Compliance (BOI) | 17% | **CRITICAL** - Not started |
+| Ownership | 60% | Shareholder CRUD complete |
+| Compliance (BOI) | 17% | Not started |
 | Corporate Records | 17% | Schema only |
 | Registered Agent | 17% | Schema only |
-| Officers/Directors | 27% | Basic tracking |
+| Officers/Directors | 70% | Full officer CRUD + appoint/terminate + events |
+
+---
+
+## Recent Completions (2026-01-29)
+
+- ✅ Officer management: appoint, update, terminate, delete
+- ✅ Officer REST API: 6 endpoints with full validation
+- ✅ Shareholder management: add, update, remove
+- ✅ Shareholder REST API: 5 endpoints
+- ✅ Event publishing for officer/shareholder changes
+
+---
+
+## MVP Status
+
+**READY for MVP vertical slice** - Entity governance can:
+1. ✅ Create legal entities (triggers EntityCreatedEvent)
+2. ✅ Update entity details
+3. ✅ Dissolve entities
+4. ✅ Manage officers (CEO, CFO, etc.)
+5. ✅ Track shareholders
 
 ---
 
 ## Current Focus
 
-Completing WP1: Entity Lifecycle with full create/update/dissolve workflow for Corp, LLC, and LP entity types.
+MVP complete. Next phase: Production hardening.
 
 ## Next Steps
 
-1. [ ] Entity dissolution handlers
-2. [ ] Status transition validation
-3. [ ] Unit tests for entity domain
-4. [ ] Event handlers for incoming events
+1. [ ] Unit tests for domain logic
+2. [ ] Integration tests for API
+3. [ ] Wire external event handlers (KYC completed, Tax ID assigned)
+4. [ ] BOI/CTA compliance module
 
 ---
 
 ## Key Strengths
 
-- Comprehensive 18-table database schema
+- Comprehensive 13-table database schema
 - Clean Architecture / DDD structure
 - SaaS infrastructure complete (rate limiting, JWT, compression)
 - Event publishing ready via RabbitMQ
+- Officer and shareholder management complete
 
 ## Key Gaps
 
 - Zero test coverage
-- 7 of 8 subdomains need implementation
+- External event handlers not wired
 - BOI/CTA compliance not started (regulatory critical)
 
 ---
 
-## Quick Links
+## API Endpoints
 
-- [PATH.md](./PATH.md) - Full roadmap with 6 waypoints
-- [LIGHT.md](./LIGHT.md) - 12 accumulated insights
+### Legal Entities
+- `GET    /api/v1/entities` - List entities
+- `POST   /api/v1/entities` - Create entity
+- `GET    /api/v1/entities/:id` - Get entity
+- `PATCH  /api/v1/entities/:id` - Update entity
+- `POST   /api/v1/entities/:id/dissolve` - Dissolve entity
+- `DELETE /api/v1/entities/:id` - Delete entity
+- `GET    /api/v1/entities/:id/subsidiaries` - List subsidiaries
+- `GET    /api/v1/entities/:id/parent` - Get parent
+
+### Officers
+- `GET    /api/v1/entities/:entityId/officers` - List officers
+- `POST   /api/v1/entities/:entityId/officers` - Appoint officer
+- `GET    /api/v1/officers/:id` - Get officer
+- `PATCH  /api/v1/officers/:id` - Update officer
+- `POST   /api/v1/officers/:id/terminate` - Terminate officer
+- `DELETE /api/v1/officers/:id` - Delete officer
+
+### Shareholders
+- `GET    /api/v1/entities/:entityId/shareholders` - List shareholders
+- `POST   /api/v1/entities/:entityId/shareholders` - Add shareholder
+- `GET    /api/v1/shareholders/:id` - Get shareholder
+- `PATCH  /api/v1/shareholders/:id` - Update shareholder
+- `DELETE /api/v1/shareholders/:id` - Remove shareholder
 
 ---
 
