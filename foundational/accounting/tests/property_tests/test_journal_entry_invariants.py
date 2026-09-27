@@ -65,8 +65,9 @@ def balanced_entry_lines(draw, min_lines: int = 2, max_lines: int = 10):
     debit_amounts = [draw(money_amount) for _ in range(num_debits)]
     total_debits = sum(debit_amounts, Decimal("0"))
 
-    # Generate credit amounts that sum to total_debits
-    num_credits = draw(st.integers(min_value=1, max_value=max_lines // 2))
+    # Each credit needs at least one cent of the debit total.
+    max_credits = min(max_lines // 2, int(total_debits / Decimal("0.01")))
+    num_credits = draw(st.integers(min_value=1, max_value=max_credits))
 
     if num_credits == 1:
         # Single credit must equal all debits
@@ -283,6 +284,25 @@ class TestPositiveAmountsInvariant:
             assert line["amount"] > Decimal("0"), (
                 f"Amount must be positive, got {line['amount']}"
             )
+
+    def test_cent_sized_debits_keep_credits_positive(self, monkeypatch):
+        """Even tiny debit totals must leave a positive amount for every credit."""
+        monkeypatch.setattr(f"{__name__}.money_amount", st.just(Decimal("0.01")))
+
+        @given(lines=balanced_entry_lines())
+        @settings(max_examples=100, derandomize=True, database=None)
+        def check(lines):
+            credits = [
+                line["amount"] for line in lines
+                if line["entry_type"] == EntryType.CREDIT
+            ]
+            assert all(amount >= Decimal("0.01") for amount in credits), credits
+            assert sum(credits, Decimal("0")) == sum(
+                line["amount"] for line in lines
+                if line["entry_type"] == EntryType.DEBIT
+            )
+
+        check()
 
     @given(amount=money_amount)
     def test_money_strategy_generates_positive(self, amount: Decimal):

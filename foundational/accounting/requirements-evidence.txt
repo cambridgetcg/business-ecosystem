@@ -1,0 +1,15 @@
+# Minimal standalone offline demo + focused tests; Python >=3.12.
+# No FastAPI, async database driver, application settings, or AWS dependency.
+# Runtime and transitives:
+sqlalchemy==2.1.1
+python-ulid==4.0.1
+typing-extensions==4.16.0
+# Test runner, existing conftest's Hypothesis import, and transitives:
+pytest==9.1.1
+pytest-asyncio==1.4.0
+hypothesis==6.168.2
+iniconfig==2.3.0
+packaging==26.3
+pluggy==1.6.0
+pygments==2.21.0
+sortedcontainers==2.4.0

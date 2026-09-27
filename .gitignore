@@ -2,6 +2,17 @@
 # Business Ecosystem - Git Ignore
 # =============================================================================
 
+# Python tooling (never commit local environments or test state)
+.venv/
+.venv-*/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+.coverage.*
+
 # Dependencies
 node_modules/
 .pnpm-store/

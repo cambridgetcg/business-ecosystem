@@ -156,6 +156,11 @@ class JournalEntryLine(Base):
         return self.entry_type == EntryType.CREDIT
 
 
-# Import at bottom to avoid circular imports
-from src.domain.general_ledger.models.journal_entry import JournalEntry
+# JournalEntry is only a forward reference: importing it here creates a cycle
+# before its class has been defined. SQLAlchemy resolves the relationship name.
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.domain.general_ledger.models.journal_entry import JournalEntry
+
 from src.domain.chart_of_accounts.models.account import Account

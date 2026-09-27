@@ -32,6 +32,9 @@ importers:
       prettier:
         specifier: ^3.2.0
         version: 3.8.1
+      tsx:
+        specifier: ^4.7.0
+        version: 4.21.0
       turbo:
         specifier: ^2.0.0
         version: 2.7.6
@@ -1504,6 +1507,31 @@ importers:
         specifier: ^5.4.0
         version: 5.9.3
 
+  shared/libs/repository:
+    dependencies:
+      drizzle-orm:
+        specifier: ^0.30.0
+        version: 0.30.10(@opentelemetry/api@1.9.0)(@types/pg@8.16.0)(pg@8.17.2)
+      pg:
+        specifier: ^8.11.0
+        version: 8.17.2
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^20.10.0
+        version: 20.19.30
+      '@types/pg':
+        specifier: ^8.11.0
+        version: 8.16.0
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^1.2.0
+        version: 1.6.1(@types/node@20.19.30)
+
   shared/libs/saga:
     dependencies:
       drizzle-orm:
@@ -1530,25 +1558,6 @@ importers:
         version: 8.5.1(postcss@8.5.6)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.8.2)
       typescript:
         specifier: ^5.4.0
-        version: 5.9.3
-
-  shared/libs/secrets:
-    dependencies:
-      '@aws-sdk/client-secrets-manager':
-        specifier: ^3.400.0
-        version: 3.975.0
-      '@ecosystem/logging':
-        specifier: workspace:*
-        version: link:../logging
-      lru-cache:
-        specifier: ^10.0.0
-        version: 10.4.3
-    devDependencies:
-      '@types/node':
-        specifier: ^20.0.0
-        version: 20.19.30
-      typescript:
-        specifier: ^5.3.0
         version: 5.9.3
 
   shared/libs/service-auth:

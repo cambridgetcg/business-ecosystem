@@ -1,6 +1,6 @@
 # Business Ecosystem
 
-A comprehensive multi-domain platform for managing complex business operations across legal, financial, compliance, and operational domains.
+A multi-domain codebase for legal, financial, compliance, and operational systems. Implementation and verification vary by service.
 
 ## Mission
 
@@ -8,14 +8,28 @@ A comprehensive multi-domain platform for managing complex business operations a
 
 ## What This Is
 
-The business-ecosystem is a monorepo containing interconnected services that manage:
+The business-ecosystem is a monorepo containing service implementations and designs for:
 
 - **Legal entities and governance** — Corporate structures, boards, shareholders
 - **Financial operations** — Accounting, banking, treasury, tax
 - **Compliance and risk** — Regulatory requirements, KYC/AML, security
 - **Operational activities** — Contracts, insurance, intellectual property, data privacy
 
+## Portfolio and offline evidence
+
+Start with the [portfolio map workflow](docs/PORTFOLIO_MAP.md) for source and
+hosting inventory, or the [synthetic payment evidence example](foundational/accounting/docs/PAYMENT_EVIDENCE.md)
+for a bounded accounting exercise. The [integration boundary](docs/PORTFOLIO_BOUNDARIES.md)
+explains what must be established before a real project supplies business records.
+
+Private inventories and local evidence databases stay outside this repository.
+Human reports and agent-readable records are views of the same evidence, not
+separate authorities. Neither a repository nor a hosting account establishes a
+legal entity or permission to transact.
+
 ## Architecture Overview
+
+This diagram describes intended boundaries, not a verified deployment topology.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐

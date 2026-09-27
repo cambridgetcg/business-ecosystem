@@ -154,6 +154,7 @@ class PostingService:
         """
         # Step 1: Validate the entry
         try:
+            entry.validate_for_posting()
             self.balance_validator.validate_entry_complete(entry)
         except Exception as e:
             return PostingResult(
@@ -169,6 +170,12 @@ class PostingService:
 
         if not period.allows_posting:
             raise PeriodClosedError(period.period_key)
+
+        if not period.can_accept_entry(entry.entry_date):
+            raise InvariantViolationError(
+                invariant="ENTRY_DATE_IN_PERIOD",
+                message=f"Entry date {entry.entry_date} is outside fiscal period {period.period_key}",
+            )
 
         # Step 3: Verify all accounts exist
         for line in entry.lines:
