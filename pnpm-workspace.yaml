@@ -1,18 +1,21 @@
 packages:
+  # HTTP edge gateway (distinct from operational/gateway's aggregation API)
+  - 'gateway'
+
   # Foundational domain apps
-  - "foundational/*"
+  - 'foundational/*'
 
   # Operational domain apps
-  - "operational/*"
+  - 'operational/*'
 
   # Orchestration packages (workflow engine, reporting, compliance)
-  - "operational/.orchestration/*"
+  - 'operational/.orchestration/*'
 
   # Shared libraries and contracts
-  - "shared/config"
-  - "shared/libs/*"
-  - "shared/contracts/*"
-  - "shared/events/*"
+  - 'shared/config'
+  - 'shared/libs/*'
+  - 'shared/contracts/*'
+  - 'shared/events/*'
 
   # Infrastructure packages
-  - "infra/*"
+  - 'infra/*'
