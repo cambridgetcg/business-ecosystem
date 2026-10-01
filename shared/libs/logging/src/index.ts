@@ -3,7 +3,7 @@
  * Centralized logging configuration for the business ecosystem
  */
 
-import pino from 'pino';
+import { pino } from 'pino';
 import type { Logger, LoggerOptions } from 'pino';
 
 export interface LogConfig {
