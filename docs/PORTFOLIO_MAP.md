@@ -13,6 +13,17 @@ labels describe presentation, **not access control**. JSON and both human
 formats retain private metadata and source locators. Nothing here authorizes
 publication, source access, transactions, deployment or enrolment.
 
+**Recorded exception (decision `dec-2026-10-17-1`).** At the owner's request,
+the estate layer keeps its private area inside this repository, at
+`estate/private/`. It is never committed or published: the root `.gitignore`
+and the layer's own ignore files exclude it, a canary path is checked with
+`git check-ignore` before each run, directories are 0700 and files 0600, and
+every write is no-follow and never overwrites. Committing anything from the
+layer stays the owner's act, from a branch other than `main` or `develop`. The
+exception covers that directory only. Every other real map, review and export
+still stays outside the repository, and this CLI still has no default map or
+output location: it reads and writes only the paths it is given.
+
 ## Commands
 
 Run from the repository root. Replace the illustrative paths and identifiers

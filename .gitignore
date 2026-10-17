@@ -13,6 +13,10 @@ __pycache__/
 .coverage
 .coverage.*
 
+# Estate layer private area: never committed (decision dec-2026-10-17-1,
+# docs/PORTFOLIO_MAP.md). The layer's own ignore files exclude it as well.
+/estate/private/
+
 # Dependencies
 node_modules/
 .pnpm-store/

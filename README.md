@@ -22,7 +22,9 @@ hosting inventory, or the [synthetic payment evidence example](foundational/acco
 for a bounded accounting exercise. The [integration boundary](docs/PORTFOLIO_BOUNDARIES.md)
 explains what must be established before a real project supplies business records.
 
-Private inventories and local evidence databases stay outside this repository.
+Private inventories and local evidence databases stay outside this repository,
+except the estate layer's gitignored `estate/private/` area (decision
+`dec-2026-10-17-1`, see the portfolio map workflow).
 Human reports and agent-readable records are views of the same evidence, not
 separate authorities. Neither a repository nor a hosting account establishes a
 legal entity or permission to transact.

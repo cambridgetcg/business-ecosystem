@@ -19,7 +19,10 @@ separate; both are useful, but they prove different things.
 
 These are presentation and responsibility boundaries, not access-control rules.
 Private source IDs, account metadata and local paths must not enter public site
-bundles, fixtures or committed inventory snapshots.
+bundles, fixtures or committed inventory snapshots. The one in-repository private
+area, the estate layer's gitignored `estate/private/`, is a recorded exception
+(decision `dec-2026-10-17-1`, described in [the map workflow](PORTFOLIO_MAP.md));
+it is never committed and does not change this rule.
 
 ## Selecting a real project
 
