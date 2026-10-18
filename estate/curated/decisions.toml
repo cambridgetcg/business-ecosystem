@@ -1,0 +1,177 @@
+[[decision]]
+id = "dec-2026-10-17-1"
+date = 2026-10-17
+kind = "exception"
+by = "yu (user request 2026-10-17; confirmed by dec-2026-10-17-4)"
+status = "confirmed"
+confirmed_by = "dec-2026-10-17-4"
+subject = "docs/PORTFOLIO_MAP.md rule: keep real maps, reviews and exports outside the repository"
+decision = "The estate layer keeps its private area inside the business-ecosystem repository, at estate/private, as an explicit exception to that rule."
+conditions = ["estate/.gitignore and private/.gitignore both ignore the private area", "a canary file is checked with git check-ignore before every run", "private directories are 0700 and files 0600", "every private write is no-follow and never overwrites", "committing stays the owner's act, from a branch other than main or develop"]
+refs = ["q:in-repo-private-area", "note:pr1-portfolio-map-doc"]
+
+# Owner decisions of 2026-10-17 (D1 to D8): Yu's answer to the atlas Questions for Yu, as the
+# orchestrator settled its reading. The estate applies each effect on every build (tool/decisions.py)
+# and never rewrites a curation file for it. The verbatim words are kept in the private curation.
+
+[[decision]]
+id = "dec-2026-10-17-2"
+label = "D1"
+date = 2026-10-17
+kind = "owner-decision"
+by = "yu"
+subject = "Which KINGDOM taxonomy is authoritative"
+decision = "The taxonomy follows GitHub: the main branch of github.com/cambridgetcg/kingdom-os (origin/main) is the authority. The local kingdom-os worktree is no longer a rival: where it differs, the estate follows origin/main and reports the difference as drift, with one kingdom-os proposal to reconcile the two. Layer labels come from the origin/main ARCHITECTURE box, where the commerce layer is labelled PROJECTS. The Codeberg KINGDOM-OS fork and the off-enum vocabularies are not authoritative. The estate still never fetches, so origin/main is as fresh as the last fetch in kingdom-os."
+resolves = ["dispute:taxonomy-authority", "q:taxonomy-authority"]
+basis = "The owner's answer of 2026-10-17 to the atlas questions."
+
+[decision.outcome]
+"dispute:taxonomy-authority" = "kingdom-os origin/main"
+"q:taxonomy-authority" = "origin/main is authoritative and the worktree is shown as drift only; the Codeberg fork and the off-enum vocabularies (boot, kernel, registry, userland) are non-authoritative, proposals only"
+
+[decision.effects]
+taxonomy_ref = "origin/main"
+drift_only = "worktree"
+non_authoritative = ["codeberg.org/zerone-dev/kingdom-os, the Codeberg KINGDOM-OS fork", "the off-enum layer vocabularies (boot, kernel, registry, userland)"]
+
+[[decision]]
+id = "dec-2026-10-17-3"
+label = "D2"
+date = 2026-10-17
+kind = "owner-decision"
+by = "yu"
+subject = "Citizen layer: soul or fleet"
+decision = "Citizens are layer soul. Where a citizen's card says soul, or names no layer, and harvest's discoverFleet rule forces fleet on it, the forced fleet no longer contests the card: the citizen is soul, and harvest's fleet stays visible as a claim. One kingdom-os proposal carries a patch preview that makes discoverFleet honour the card layer, soul when a card has none."
+resolves = ["dispute:citizen-layer", "q:citizen-layer"]
+basis = "The owner's answer of 2026-10-17 to the atlas questions."
+stays_open = ["A citizen whose card names a layer other than soul is not covered: it stays contested between its card and harvest's fleet, and whether such a card should say soul is not decided."]
+
+[decision.outcome]
+"dispute:citizen-layer" = "soul"
+"q:citizen-layer" = "citizens are layer soul, as their cards say"
+
+[decision.open]
+"q:citizen-layer" = "Should the fleet stay at rest, or resume by pulling qwen2.5:7b and removing HALT?"
+
+[decision.effects]
+layer_overrule = "harvest:fleet"
+layer_default = "soul"
+
+[[decision]]
+id = "dec-2026-10-17-4"
+label = "D3"
+date = 2026-10-17
+kind = "owner-decision"
+by = "yu"
+subject = "Where the real estate map may live"
+decision = "The private area stays inside the business-ecosystem repository, at estate/private, under the conditions of dec-2026-10-17-1, which this confirms."
+resolves = ["q:in-repo-private-area"]
+basis = "The owner's answer of 2026-10-17 to the atlas questions."
+
+[decision.outcome]
+"q:in-repo-private-area" = "inside the repository, at estate/private, as dec-2026-10-17-1 describes"
+
+[decision.effects]
+confirms = "dec-2026-10-17-1"
+
+[[decision]]
+id = "dec-2026-10-17-5"
+label = "D4"
+date = 2026-10-17
+kind = "owner-decision"
+by = "yu"
+subject = "What KINGDOM OS is"
+decision = "KINGDOM OS is the civilisation, not one repository: every civilisation-related repository, and several Cloudflare domains, are part of it. github.com/cambridgetcg/kingdom-os remains its connective map (roster and harvest); the Codeberg KINGDOM-OS fork and the REALM repository (github.com/cambridgetcg/kingdom) are members, not rivals."
+resolves = ["dispute:kingdom-os-claimants", "q:kingdom-os-identity"]
+basis = "The owner's answer of 2026-10-17 to the atlas questions."
+stays_open = ["dispute:adr-0001: whether legible-money stays canonical or the live zerone-1 chain supersedes it.", "Every record the sphere facet holds as undecided (evidence mixed or absent, or third-party code), listed for Yu in the atlas."]
+
+[decision.outcome]
+"dispute:kingdom-os-claimants" = "all three are part of KINGDOM OS: github.com/cambridgetcg/kingdom-os is its connective map; codeberg.org/zerone-dev/kingdom-os and github.com/cambridgetcg/kingdom are members"
+"q:kingdom-os-identity" = "KINGDOM OS is the civilisation, the umbrella; kingdom-os is its connective map"
+
+[decision.open]
+"q:kingdom-os-identity" = "Should ADR-0001 (legible-money canonical) be closed as superseded by the live zerone-1?"
+
+# The sphere facet (kingdom-os, independent, undecided) for projects, zones and surfaces. Curated
+# assignments come from the evidence-backed classification of 2026-10-17 (reviewed = false); this
+# rule of thumb places only what no assignment names: the KINGDOM layers are part of KINGDOM OS and
+# the commerce layer (PROJECTS) is independent.
+[decision.effects]
+sphere_by_layer = { soul = "kingdom-os", runtime = "kingdom-os", nervous = "kingdom-os", fleet = "kingdom-os", economy = "kingdom-os", os = "kingdom-os", commerce = "independent" }
+
+[[decision]]
+id = "dec-2026-10-17-6"
+label = "D5"
+date = 2026-10-17
+kind = "owner-decision"
+by = "yu"
+subject = "Who owns the unattributed live surfaces"
+decision = "The estate's own Cloudflare account owns the listed surfaces and zones. The answer was given for the list as a whole, so the betangel-research-collector Fly app is attributed to the estate's own Fly account on that collective answer."
+resolves = ["q:unattributed-surfaces"]
+basis = "The owner's answer of 2026-10-17 to the atlas questions."
+
+[decision.outcome]
+"q:unattributed-surfaces" = "owned by the estate's own Cloudflare account, and by its own Fly account for betangel-research-collector (collective answer); whether each is KINGDOM OS or independent comes from the sphere classification of dec-2026-10-17-5"
+
+[decision.effects]
+ownership = [
+  { provider = "cloudflare", basis = "owner answer", ids = ["zone:lotbinder.com", "surface:cf-worker:tendlot-private", "zone:hkgoldtrader.com", "surface:cf-pages:hkgoldtrader", "surface:cf-worker:kingdom-telegram", "surface:cf-worker:party-chain", "surface:cf-worker:counterseal-demand-operations", "surface:cf-worker:openweight-constellation-mcp", "zone:mythseal.com"] },
+  { provider = "fly", basis = "collective answer", ids = ["surface:fly:betangel-research-collector"] },
+]
+
+[[decision]]
+id = "dec-2026-10-17-7"
+label = "D6"
+date = 2026-10-17
+kind = "owner-decision"
+by = "yu"
+subject = "The AWS side of the remaining cloud question"
+decision = "Agents on another device are inspecting the AWS side now. The estate and its hygiene map make no AWS calls and take no AWS action; AWS items carry the status in-progress-elsewhere."
+resolves = ["q:residual-cloud"]
+basis = "The owner's answer of 2026-10-17 to the atlas questions."
+
+[decision.outcome]
+"q:residual-cloud" = "AWS: in progress elsewhere, with agents on another device"
+
+[decision.open]
+"q:residual-cloud" = "The Fly half of this question stays open; the private curation names its resources."
+
+[decision.effects]
+provider_status = { provider = "aws", status = "in-progress-elsewhere", note = "agents on another device are inspecting it" }
+no_calls = true
+
+[[decision]]
+id = "dec-2026-10-17-8"
+label = "D7"
+date = 2026-10-17
+kind = "owner-decision"
+by = "yu"
+subject = "What happens to business-ecosystem's state"
+decision = "Go ahead. The orchestrator, not the estate tool, carries out the business-ecosystem actions, among them reviewing and landing PRs #1 to #3, and lands estate/ through a pull request."
+resolves = ["q:business-ecosystem-state"]
+basis = "The owner's answer of 2026-10-17 to the atlas questions."
+
+[decision.outcome]
+"q:business-ecosystem-state" = "carried out 2026-10-18: PRs #1 to #3 merged into main, and this layer lands through its own pull request"
+
+[decision.open]
+"q:business-ecosystem-state" = "Is business-ecosystem meant to become the estate's legal and finance backbone, or only the host directory?"
+
+[decision.effects]
+status_note = "decided: go-ahead, carried out 2026-10-18 outside the estate tool (the private curation records the details)"
+
+[[decision]]
+id = "dec-2026-10-17-9"
+label = "D8"
+date = 2026-10-17
+kind = "owner-decision"
+by = "yu"
+subject = "Hygiene issues"
+decision = "Map every hygiene issue and say what needs to be done: a plan, not execution. The plan lives in the private half of the estate and renders as a view on every build."
+resolves = []
+basis = "The owner's answer of 2026-10-17 to the atlas questions."
+stays_open = ["Carrying out any item of the plan: the view only plans, and each item's status is changed by its owner."]
+
+[decision.effects]
+hygiene_view = true

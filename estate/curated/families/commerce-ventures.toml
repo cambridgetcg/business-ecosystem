@@ -1,0 +1,395 @@
+[family]
+id = "family:commerce-ventures"
+label = "Commerce · standalone ventures — RewardsPro, AxiePro, taxsorted, cashloom, fomoengine/fomoscan, captioneer, rhetorlint, saas-marketing"
+summary = "These are Yu's standalone commercial products. They do not share a codebase. They are tied together by the KINGDOM catalog (roster.conf, kingdom.yaml cards, REGISTRY.yaml, sites.json) and by a few live service links. Four are live public services today, each with its own runtime. TaxSorted is a Hono+Postgres API on Fly (taxsorted-api) with a Next.js static site on Cloudflare Pages. CashLoom's info-server.ts runs as the MONEYWORLD fact door on Fly (cashloom-api), with cashloom.io on Pages (cashloom-atlas). The fomoscan detector runs at api.fomoengine.io on Fly and charges $0.01 USDC per /scan through x402. The 'authenticity shield' Next.js app on Vercel serves the fomoengine.io apex. These four were reported up by the cached pulse at 2026-10-17T11:13Z. The links between them: rhetorlint-spec publishes the @rhetorlint/* npm packages that fomoscan bundles. kingdom-mcp's fomo_scan and money_* tools call fomoscan and cashloom-api over HTTP. The agenttool seller-loop imports ⟨local⟩ by absolute path. A launchd job (com.kingdom.loom-snapshot) pulls cashloom-api every day into Tigris. No code has changed on any of them since June 2026. Captioneer (the JA→Cantonese dubbing pipeline) and the two saas-marketing repos are archived on GitHub. The captioneer.io brand now serves a different reader whose source is not on this machine. Across the family, the local checkouts lag the forge. Every repo was last fetched on 2026-07-26, and most forge repos were pushed again on 2026-09-24 or 2026-10-14. The kingdom.yaml cards are untracked local files in 9 of the 15 repos. Several cards and roster lines describe products that have since pivoted (cashloom, fomoengine, captioneer)."
+open_questions = ["Which repo and source build captioneer.io (CF Pages project 'captioneer-read')? Candidates are github mynameisyou-cmyk/captioneer (linked from cashloom WAKE.md) and cambridgetcg/open-lens. Checking the Pages project's source settings would resolve this.", "RewardsPro: is the Vercel app (rewardspro-production.vercel.app / Shopify handle RewardsproMembership) still serving installed merchants, and is rewardspro.io still served by CF Pages rewardspro-landing? Check the Vercel deployments and the Shopify Partner dashboard. Do the 461 rewardspro-shopify-only commits contain work that never reached production?", "Every local checkout in this family was last fetched 2026-07-26 (fomoscan 07-23). The forge shows pushes on 2026-09-24 and 2026-10-14 for cashloom, fomoengine, taxsorted.io, rewardspro-production, rewardspro-shopify, AxiePro and rhetorlint-spec. Their content is unknown locally until an owner-run fetch.", "Should the untracked kingdom.yaml cards (10 repos) be committed, and with which corrected purpose/state? Should rhetorlint-spec, fomoscan and the github 'rewardspro' dev repo get cards and roster rows?", "rhetorlint: is the npm Trusted Publisher (OIDC) now configured, and was rules-en 0.1.1 deprecated? Memory said both were pending as of 2026-07-25, and this cannot be verified without network access.", "taxsorted-studies and cashloom-aws are forge-only. Is taxsorted-studies deployed anywhere? Was the cashloom-aws Terraform ever applied to an AWS account?"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "independent"
+evidence = "Standalone products: origin/main roster layer commerce, named independent products in ARCHITECTURE."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "github.com/cambridgetcg/axiepro"
+name = "AxiePro"
+what = "Read-only analytics for Axie Infinity on the Ronin chain: Next.js trader frontend (axiepro/), a FastAPI backend, Python sales/metadata fetchers, SQL schema files and Lambda/EC2/App Runner deploy plans, meant to value Axies by traits and surface underpriced listings."
+role = ["product"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/captioneer"
+name = "captioneer"
+what = "An archived Japanese-to-Cantonese video dubbing monorepo with a FastAPI Python pipeline (Whisper/Groq transcription, Claude/DeepSeek translation, TTS), Next.js web apps and Phase-1 AWS Terraform, never shown to be deployed."
+role = ["research", "product"]
+role_status = "retired"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/rhetorlint-spec"
+raw_kind = "superseded_by"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/open-lens"
+raw_kind = "related"
+
+[[project]]
+id = "github.com/cambridgetcg/cashloom"
+name = "cashloom"
+what = "A Bun/Hono/SQLite 'sovereign' non-custodial money node (sealed key vault, read-only rail connectors for Stripe, GoCardless, Bitcoin, EVM and agenttool, plus pay() senders for BTC and Base). Its info-server.ts entrypoint runs on Fly as the public MONEYWORLD 'cited money facts' door (cashloom-api). The repo also has a Vite/React atlas site and a stdio MCP server."
+role = ["platform", "product"]
+role_status = "current"
+topics = ["mcp", "x402"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "undecided", confidence = "medium", evidence = "Authority labels say independent product; its own docs call it the front door of zerone and the KINGDOM payment layer: Yu's call.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/xenia"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/zerone-core"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/kingdom-mcp"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/cashloom-aws"
+raw_kind = "related"
+
+[[project.corrections]]
+field = "kingdom.drift / drift[1]: 'cashloom is the exception: its card is tracked'"
+verdict = "refuted"
+corrected = "On local main the card is untracked AND gitignored. 'git ls-files kingdom.yaml' is empty, 'git check-ignore -v' points to .gitignore:31, and the file's mtime is 2026-06-18. Only origin/main tracks a (different) card, added in 04bb2b3 on 2026-07-30. New risk: Git treats ignored files as expendable, so merging origin/main into main would silently overwrite the local card."
+
+[[project]]
+id = "github.com/cambridgetcg/cashloom-aws"
+name = "cashloom-aws"
+what = "A private Terraform (HCL, 33 KB) repo holding CashLoom's AWS treasury architecture and a Phase 0 security-baseline."
+role = ["ops"]
+role_status = "current"
+topics = ["treasury"]
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "undecided", confidence = "medium", evidence = "The infrastructure satellite of cashloom; it follows cashloom.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/cashloom"
+raw_kind = "part_of"
+
+[[project]]
+id = "github.com/cambridgetcg/fomoengine"
+name = "fomoengine"
+what = "A Next.js 14 + Prisma app on Vercel that was turned around on 2026-06-04 from a social-media comment-automation SaaS into 'the authenticity shield'. The shield is a free, anonymous page where you paste text and it names the manipulation tactics in it. It serves the fomoengine.io apex."
+role = ["public-door"]
+role_status = "current"
+topics = ["fomo"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "independent", confidence = "low", evidence = "Card and origin/main roster layer commerce, a product door; a commons listing counts it a citizen, so low.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/fomoscan"
+raw_kind = "related"
+
+[[project]]
+id = "github.com/cambridgetcg/fomoscan"
+name = "fomoscan"
+what = "A Bun API and CLI that deterministically scores a URL, HTML or text for engineered FOMO, using regex rules named after the FTC dark-pattern taxonomy. It returns staged receipts and a RhetorLint rhetoric block, and charges $0.01 USDC on Solana through x402 for POST /scan."
+role = ["revenue", "platform"]
+role_status = "current"
+topics = ["x402", "fomo"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/rhetorlint-spec"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/kingdom-mcp"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/fomoengine"
+raw_kind = "related"
+
+[[project]]
+id = "github.com/cambridgetcg/rewardspro"
+name = "rewardspro"
+what = "The original RewardsPro prototype: a Shopify Remix app-template project (handle 'rewardspro', rewardspro.vercel.app) with tiers, customers, credit, analytics and an orders-paid webhook, last given a UI/performance overhaul on 2026-03-24."
+role = ["revenue"]
+role_status = "historic"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/rewardspro-production"
+raw_kind = "superseded_by"
+
+[[project]]
+id = "github.com/cambridgetcg/rewardspro-docs"
+name = "rewardspro-docs"
+what = "GitBook-format Markdown user documentation for the RewardsPro Shopify app (tiers, cashback, store credit, billing, customer portal, API)."
+topics = ["rewardspro"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/rewardspro-production"
+raw_kind = "part_of"
+
+[[project]]
+id = "github.com/cambridgetcg/rewardspro-landing"
+name = "rewardspro-landing"
+what = "A small public repo (Shell, 35 KB) holding the retired standalone RewardsPro promotional page, which the July Cloudflare review shows deployed as CF Pages project 'rewardspro-landing' behind rewardspro.io."
+role = ["public-door"]
+role_status = "retired"
+topics = ["rewardspro"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/rewardspro-production"
+raw_kind = "part_of"
+
+[[project]]
+id = "github.com/cambridgetcg/rewardspro-marketing"
+name = "rewardspro-marketing"
+what = "A small TypeScript CLI 'wave engine' that reads RewardsPro install counts from the Shopify Partner API and schedules social posts and AI-generated promo media when install thresholds are met."
+role = ["revenue"]
+role_status = "retired"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/rewardspro-production"
+raw_kind = "part_of"
+
+[[project]]
+id = "github.com/cambridgetcg/rewardspro-production"
+name = "rewardspro-production"
+what = "The main RewardsPro Shopify loyalty app, built on Remix + Prisma + Aurora Serverless Postgres and hosted on Vercel."
+heavy = true
+role = ["revenue"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/rewardspro"
+raw_kind = "supersedes"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/rewardspro-shopify"
+raw_kind = "related"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/rewardspro-docs"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/rewardspro-shopify"
+name = "rewardspro-shopify"
+what = ""
+heavy = true
+role = ["revenue"]
+role_status = "historic"
+topics = ["rewardspro"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "fork_of"
+to = "github.com/cambridgetcg/rewardspro-production"
+raw_kind = "fork_of"
+
+[[project]]
+id = "github.com/cambridgetcg/rhetorlint-spec"
+name = "rhetorlint-spec"
+what = "An open framework for marking manipulative rhetorical tells in text: a taxonomy plus an output JSON schema, a zero-dependency JS engine and rule pack (@rhetorlint/core, rules-en, cli on npm), Python and Go engines with a shared conformance corpus, a browser widget and an explorer page."
+role = ["methodology", "distribution"]
+role_status = "current"
+topics = ["rhetoric"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "medium", evidence = "The portable engine of the Open Lens framework (origin/main roster layer soul).", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/fomoscan"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/captioneer"
+raw_kind = "supersedes"
+note = "brand only"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/open-lens"
+raw_kind = "related"
+
+[[project]]
+id = "github.com/cambridgetcg/saas-marketing-suite"
+name = "saas-marketing-suite"
+what = "A single-commit dump of a marketing-operations blueprint (SEO, ads, email, analytics, social proof, FOMO campaigns, AI-visibility) as Markdown plans plus AWS Terraform stacks and zipped Python Lambdas, tailored to promote Legible Money."
+role = ["revenue"]
+role_status = "retired"
+topics = ["legible"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/saas-marketing-template"
+raw_kind = "related"
+
+[[project]]
+id = "github.com/cambridgetcg/saas-marketing-template"
+name = "saas-marketing-template"
+what = "The product-neutral copy of saas-marketing-suite: a single-commit marketing-infrastructure template (AWS serverless Terraform stacks, Python Lambdas, Markdown playbooks)."
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "copy_of"
+to = "github.com/cambridgetcg/saas-marketing-suite"
+raw_kind = "copy_of"
+
+[[project]]
+id = "github.com/cambridgetcg/taxsorted"
+name = "taxsorted"
+what = "An archived small Next.js multilingual UK tax learning site (10 language dictionaries) whose README now just points to taxsorted.io, where its Learn content was recovered."
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/taxsorted.io"
+raw_kind = "superseded_by"
+
+[[project]]
+id = "github.com/cambridgetcg/taxsorted-studies"
+name = "taxsorted-studies"
+what = "A public TypeScript repo (124 KB) of 'connected studies in lawful tax choices: recognition, time, choice and repair', framed as historical illustration rather than tax advice. It is described here only from its forge listing."
+role = ["revenue", "research"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/taxsorted.io"
+raw_kind = "related"
+
+[[project]]
+id = "github.com/cambridgetcg/taxsorted.io"
+name = "taxsorted.io"
+what = ""
+heavy = true
+role = ["product"]
+role_status = "current"
+topics = ["commons"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/taxsorted"
+raw_kind = "supersedes"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/taxsorted-studies"
+raw_kind = "related"

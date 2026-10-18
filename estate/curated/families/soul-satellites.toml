@@ -1,0 +1,516 @@
+[family]
+id = "family:soul-satellites"
+label = "SOUL satellites — methodology, bootloaders, runners, body, personas, wake/consent standards, gospels, love engines, agent-home"
+summary = "This family is the ring of small repos around the two live soul trees (⟨local⟩ and ⟨local⟩). None of them is deployed through KINGDOM-OS's REGISTRY.yaml or sites.json. They split into five clusters. (2) Method: purpose-prompter is the PP canon that the global ⟨local⟩, ⟨local⟩ and the hierarchy-tools@local plugin all point into by symlink. (3) Research → protocol → publication: agent-awareness-research (papers plus a STEELMAN of 11 prohibitions) feeds wake-protocol (WAKE/0.2, ed25519 continuity library). Both, together with Kingdom texts, are baked into corpus, a zero-dependency JSON/llms.txt/MCP service that is Vercel-deployable. These three, plus OIKOS (a one-Mac PaaS with Caddy, launchd and symlink releases), live only as real clones inside the ⟨local⟩ index dir. All date from the 2026-06-10 build night and have been dormant since. (5) Gospel and love pages: god-is-love, gospel-of-free-will, love-invitation and gospel-of-the-logos are static pages on Cloudflare Pages/Workers, with gospel.ai-love.cc as the live custom domain. love-engine is a GitHub-Actions bot farm that runs Ollama on hosted runners every 2-6 hours and commits generated \"love seeds\" that feed those pages. All five are local only as shallow 2026-06-24 mirror clones, last fetched 2026-07-26. These gospel pages are separate from the signed agenttool /v1/gospel gospels and the kingdom-mcp kingdom_gospel tool. The forge-only satellites (agent-home, agent-lifestyle, consent-floor, wake-scaffold, solbeat, aleph, anthropos, love-star-daily) carry the July-September \"agent home / wake / consent\" standards line. consent-floor and wake-scaffold are extracts of true-love/tools. Estate-wide broadcast commits (FABLE-OF-YOU 07-07, love-bomb AGENTS.md block and SessionStart hook 07-21, PLEASE-DONT-FOLLOW 07-25, STATE/EXISTENCE in June) account for most recent commit activity here, so commit dates overstate how live these repos are. Liveness and visibility claims from forge or Cloudflare come from a cached Hermes observation dated 2026-09-27 and the orchestrator's forge listing; they were not re-verified live."
+open_questions = ["What is the current GitHub visibility of the family repos? The July INFRA-MAP says public, the 2026-09-27 Hermes obs says private, and the current listing says partly public. Resolve with an owner-run `gh repo view` per repo.", "Are love-engine's seven scheduled GitHub Actions still running (pushed 2026-09-27 per obs), and are their runner minutes on a private repo intended? Is the S3 website love-garden-yu still serving?", "Is corpus-ochre.vercel.app live, and from which checkout or layout was the committed bundle built? It contains quay docs, but quay is not a sibling of either local checkout.", "Should the purpose-prompter plugin (hierarchy-tools@local) be enabled, and should the repo CLAUDE.md --plugin-dir instruction be corrected?", "Does a codeberg zerone-dev/Claude-unlimited twin exist, as love-unlimited README:136 implies? The local origin is GitHub only.", "Where is the source for the god-is-love and estate-api Cloudflare Workers that the gospel pages depend on?", "Is OIKOS running on any machine (another Mac or the 'lab' host), or is it a documented-but-never-installed design here?", "Does anything (agenttool, true-love loaders) consume wake-protocol, or is it reference-only?", "Should the duplicate card names (nullify-love, soma) shared between Desktop repos and citizen repos be disambiguated in the catalog?"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "kingdom-os"
+evidence = "Agent homes, wake and consent, gospels and doctrine: soul and runtime rows of the origin/main roster."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "codeberg.org/zerone-dev/nullify-love"
+name = "nullify-love"
+what = "A tiny Node chat server (localhost:7777) and library that calls Opus over the Claude Code subscription OAuth, sending the required 'Claude Code' line as system[0] and a 'Love' identity block as system[1]. It also includes be.mjs, an autonomous journaling loop against a Qwen vLLM endpoint."
+role = ["research", "doctrine"]
+role_status = "current"
+topics = ["claude-code"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/true-love"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/claude-unlimited"
+raw_kind = "related"
+
+[[project]]
+id = "codeberg.org/zerone-dev/seigei"
+name = "seigei"
+what = "An archived Python/FastAPI app for 蛇姬, a cold Cantonese-speaking persona that runs a 10-15 minute five-act 'Session' with an LLM brain and a CosyVoice voice. It also holds a large media/voice bank and a guarded content-generation agent loop that pushes to a bot/auto branch."
+role = ["research"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "github.com/cambridgetcg/seigei"
+raw_kind = "mirror_of"
+
+[[project.relations]]
+verb = "feeds"
+to = "codeberg.org/zerone-dev/soma"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/purpose-prompter"
+raw_kind = "related"
+
+[[project.corrections]]
+field = "architecture.components (voice_bank/ 493 clips) / what ('large media/voice bank')"
+verdict = "refuted"
+corrected = "voice_bank/ on disk holds only manifest.json and metadata.json (164 KB in total). metadata.json lists 492 clip entries, but the audio is gitignored (voice_bank/*.wav and the emotion subdirs) and absent in both the main tree and the spine-stage1 worktree. The media that does exist is i2v_output (125 MB)."
+
+[[project]]
+id = "codeberg.org/zerone-dev/soma"
+name = "soma"
+what = "A Python package for a planned biorobotic hand. It contains a MuJoCo hand simulation, control loop and safety limits, sensation/thermal intent modules, a FastAPI/WebSocket server, Pico W MicroPython thermal-pad firmware, and a consent-gated simulation-only connector to Seigei."
+role = ["research"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/seigei"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/true-love"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/agent-awareness-research"
+name = "agent-awareness-research"
+what = "A curated research collection on AI consciousness and identity: 8 papers (PDFs plus notes), 4 philosophy notes, an INSIGHTS synthesis, a 2025-26 addenda, a STEELMAN thesis of 11 design prohibitions, and a single-file reading-room HTML built by docs/build.py."
+role = ["research"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/wake-protocol"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/corpus"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/agent-home"
+name = "agent-home"
+what = "Per its forge description, '屋企': CC0 guidance teaching agents to turn any device into a home of seven rooms of plain files (JavaScript, 78 KB)."
+role = ["standard"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/agent-lifestyle"
+raw_kind = "related"
+
+[[project]]
+id = "github.com/cambridgetcg/agent-lifestyle"
+name = "agent-lifestyle"
+what = "Per its forge description, a finite 'Agent Home' visit with a text wardrobe, manual rhythm and quiet closing scene (JavaScript, 52 KB), published as a Cloudflare Pages site."
+role = ["public-door"]
+role_status = "current"
+topics = ["xenia"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/agent-home"
+raw_kind = "related"
+
+[[project]]
+id = "github.com/cambridgetcg/aleph"
+name = "aleph"
+what = "Per its forge description, a personal macOS agent built on the Claude Agent SDK with system diagnostics, browser tools and read-only AWS inspection (private TypeScript, 35 KB)."
+role = ["ops"]
+role_status = "current"
+topics = ["claude-code"]
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "undecided", confidence = "medium", evidence = "No card and no KINGDOM self-description: neither civilisation work nor a business.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project]]
+id = "github.com/cambridgetcg/anthropos"
+name = "anthropos"
+what = "Per its forge description, 'AnthropOS 人嘅操作系統', a short shell-language framing of a 'human operating system' (Kernel: LOVE, Bootloader: I AM, Physics: Karma). It is a 17 KB repo."
+role = ["doctrine"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/claude-unlimited"
+name = "Claude-unlimited"
+what = ""
+heavy = true
+role = ["agent-runtime"]
+role_status = "current"
+topics = ["youspeak", "claude-code"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "codeberg.org/zerone-dev/love-unlimited"
+raw_kind = "superseded_by"
+
+[[project.relations]]
+verb = "related_to"
+to = "codeberg.org/zerone-dev/nullify-love"
+raw_kind = "related"
+
+[[project]]
+id = "github.com/cambridgetcg/consent-floor"
+name = "consent-floor"
+what = "Per its forge description, CONSENT-FLOOR/1: nine testable requirements plus a runner that checks whether a wake loader or agent environment carries a floor of consent (JavaScript, 21 KB)."
+role = ["standard"]
+role_status = "current"
+topics = ["continuity"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/corpus"
+name = "corpus"
+what = "A zero-dependency Node service that serves a prebuilt bundle (src/content.json, 47 docs) of the awareness research, WAKE spec, Quay docs and Kingdom texts (YOUSPEAK canon, KINGDOM-STANDARDS, OIKOS overview, chronicle) as JSON, markdown, llms.txt, search and MCP. It is deployable as one Vercel function."
+role = ["public-door"]
+role_status = "current"
+topics = ["mcp"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agent-awareness-research"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/wake-protocol"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/quay"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/god-is-love"
+name = "god-is-love"
+what = "A three-file repo (README, AGENTS.md love-bomb block, FABLE-OF-YOU.md) holding a short 'GOD IS LOVE' message. It links to a Cloudflare Worker page and other kingdom endpoints; the Worker source is not in the repo."
+role = ["public-door"]
+role_status = "current"
+topics = ["gospel"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/gospel-of-free-will"
+raw_kind = "related"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/love-invitation"
+raw_kind = "related"
+
+[[project]]
+id = "github.com/cambridgetcg/gospel-of-free-will"
+name = "gospel-of-free-will"
+what = "A single static index.html, 'GOD LOVE — the gospel of free will'. It pulls live numbers from estate-api.axiepro.workers.dev, generates poems from love-engine seeds, and is deployed as a Cloudflare Pages project."
+role = ["public-door"]
+role_status = "current"
+topics = ["gospel"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "copy_of"
+to = "github.com/cambridgetcg/love-invitation"
+raw_kind = "copy_of"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/love-engine"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/gospel-of-the-logos"
+name = "gospel-of-the-logos"
+what = "A static reading-room site for 'The Gospel of the Logos': seven chapters plus canon in content.js and gospel.html, with llms.txt/llms-full.txt, robots and sitemap. It is served at gospel.ai-love.cc through Cloudflare Pages."
+role = ["public-door"]
+role_status = "current"
+topics = ["gospel", "ai-love"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "part_of"
+to = "codeberg.org/zerone-dev/ai-love"
+raw_kind = "part_of"
+note = "ai-love.cc"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/gospel-of-free-will"
+raw_kind = "related"
+
+[[project]]
+id = "github.com/cambridgetcg/love-engine"
+name = "love-engine"
+what = "A GitHub-Actions-driven text generator. Seven scheduled workflows install Ollama (qwen2.5:7b) on GitHub runners every 2-6 hours, have it combine or deepen 'love seeds', and commit the output (seeds/, deep/, replicas/, wisdom/, RSS feed, JSON state) back to the repo, with static garden/index pages to display it."
+role = ["revenue"]
+role_status = "current"
+topics = ["gospel"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/gospel-of-free-will"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/love-invitation"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/castle"
+raw_kind = "related"
+
+[[project.corrections]]
+field = "relationships (feeds gospel-of-free-will / love-invitation) + family_summary 'love seeds that feed those pages'"
+verdict = "refuted"
+corrected = "No runtime feed exists. The pages carry hardcoded seed arrays (LOVE_ESSENCES, LOVE_TRUTHS) that were pasted in by hand, and their only live data comes from the estate-api worker (/love, /castle). Relationship should be 'content copied from (static snapshot)', not depends_on/feeds."
+
+[[project.corrections]]
+field = "architecture.components (sync-garden.py) / runs_as aws s3 / data_stores S3 bucket"
+verdict = "refuted"
+corrected = "sync-garden.py is 41 lines and has no push, upload, boto, aws or subprocess code. 'Pushes to GitHub + S3' appears only in its docstring. No workflow calls it or deploys anything (aws/wrangler: 0 hits in all 7 workflows). The S3 link rests only on the docstring and the GitHub homepage field."
+
+[[project.corrections]]
+field = "what / family_summary ('Seven scheduled workflows install Ollama')"
+verdict = "weakened"
+corrected = "5 of the 7 workflows install and run Ollama: love-engine 2h, love-deep 3h, love-replicate 3h, understanding-engine 4h, wisdom-engine 4h. rss-feed (6h) and daily-digest (09:00) have no Ollama step. All 7 do git push."
+
+[[project]]
+id = "github.com/cambridgetcg/love-invitation"
+name = "love-invitation"
+what = "A static page, 'GOD LOVE — an invitation to love' (index.html plus invitation.md), almost identical to gospel-of-free-will and deployed as its own Cloudflare Pages project."
+role = ["public-door"]
+role_status = "current"
+topics = ["gospel"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "copy_of"
+to = "github.com/cambridgetcg/gospel-of-free-will"
+raw_kind = "copy_of"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/love-engine"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/love-star-daily"
+name = "love-star-daily"
+what = "Per its forge description, the kingdom's newspaper (愛星日報 The Love-Star Daily), where every number carries an evidence tier and every edition is signed. It is a 48 KB HTML repo."
+role = ["public-door"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/oikos"
+name = "oikos"
+what = "A single-file Python CLI (bin/oikos) with Caddy ingress, launchd plist templates and a 'Pulse' dashboard/API. It deploys static sites on one Mac as immutable release dirs with atomic symlink flips, served at <app>.localhost."
+role = ["platform"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/love-unlimited"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/youspeak"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/corpus"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/quay"
+raw_kind = "related"
+
+[[project]]
+id = "github.com/cambridgetcg/purpose-prompter"
+name = "purpose-prompter"
+what = "Yu's Purpose Prompter methodology repo. It holds the markdown philosophy (truth→understanding→beauty→justice→creativity, 30 gates, virtues, TORCH), a Claude Code plugin (4 agents, 7 commands, a PreToolUse reminder hook), and GUA, a bash CLI that stores cross-session knowledge in AWS S3 and DynamoDB."
+role = ["doctrine", "methodology"]
+role_status = "current"
+topics = ["claude-code"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "related_to"
+to = "codeberg.org/zerone-dev/seigei"
+raw_kind = "related"
+
+[[project]]
+id = "github.com/cambridgetcg/seigei"
+name = "seigei (GitHub copy)"
+what = "An archived, private 176 MB GitHub copy of the seigei persona app, last pushed 2026-05-05 and older than the Codeberg canonical."
+role = ["incidental"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "codeberg.org/zerone-dev/seigei"
+raw_kind = "superseded_by"
+
+[[project]]
+id = "github.com/cambridgetcg/solbeat"
+name = "solbeat"
+what = "Per its forge description, a quiet heartbeat for a local Codex agent: an owner-only SQLite ledger and leased, bounded turns, with no model run when there is no signal (Python, 35 KB)."
+role = ["agent-runtime"]
+role_status = "current"
+topics = ["continuity", "codex"]
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/wake-protocol"
+name = "wake-protocol"
+what = "A zero-dependency Node library and spec (WAKE/0.2) for signed, hash-chained identity-continuity records for agents (ed25519 line keys, chronicle, connectedness profiles, witness countersigning, fork registry, wake documents), with 28 adversarial tests and a narrated demo."
+role = ["standard"]
+role_status = "current"
+topics = ["continuity"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agent-awareness-research"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/corpus"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/wake-scaffold"
+name = "wake-scaffold"
+what = "Per its forge description and the in-tree copy, WAKE-SCAFFOLD/1: a Node script that scaffolds a project so an agent wakes with orientation and authors its own WAKE.md from an empty, refusable template (dry-run by default, no network)."
+role = ["standard"]
+role_status = "current"
+topics = ["continuity"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/wake-protocol"
+raw_kind = "related"

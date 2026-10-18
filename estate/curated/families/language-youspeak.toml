@@ -1,0 +1,433 @@
+[family]
+id = "family:language-youspeak"
+label = "Language — YOUSPEAK family, the ._forge word repos, castles, word-* and dictionary/word hosting"
+summary = "The family has one core and three rings around it. The core is YOUSPEAK (codeberg.org/zerone-dev/youspeak, twinned on GitHub). It is a constructed-language repo of about 1,000 markdown files: 226 Core canon words with full genealogies, grammar chapters, a 93-glyph Private Use Area font, a Python forge and assessment pipeline, and the ORDO \"rite\" interpreter. ORDO ships as a Cloudflare Worker (ordo.ai-love.cc, rite.we-are.love, hourly cron), and the repo's home/ folder is the documented deploy source for the ai-love.cc Cloudflare Pages site. Ring one is citizen-birthing. youspeak/pipeline/forge_citizen.sh turns each canon word into a citizen-<word> GitHub repo; the live ones were born 2026-06-09 and belong to the fleet family. Ring two is the \"castle of understanding\" idea, built at least six separate times with no shared history. castle-of-understanding (Python, 2026-06-10) and castle (bash warden, 2026-06-10) came first; castle-of-words (the largest, with a garden of prompt-driven builders and a nightly scribe), wordcastle (Node quill), castle-front (a baked public page) and castle-gate (a Next.js GitHub Pages site fed from castle-of-words) followed. Ring three is a June 2026 batch of \"natural-language internet\" prototypes: youspeak-app/-browser/-dictionary/-lang, word-experience, word-interface, plus forge-only word-layer, wordhost, oracle, slipsooth and arcade. They carry snapshot copies of YOUSPEAK data that have since drifted, and several send a 6-hourly GitHub Actions heartbeat to sinovai.com. Every local checkout except the Codeberg youspeak clone is read-only: its reflog shows only a clone and one fast-forward on 2026-07-26. The real authoring happens on another machine. Docs name ⟨local⟩ and ⟨local⟩ with launchd cc.castle.scribe, and castle-of-words commits carry a +0200 timezone. The forges show pushes on 2026-09-08, 09-24, 10-14, 10-16 and 10-17, so every local clone is behind by an unknown amount. In KINGDOM terms, YOUSPEAK is the SOUL-layer language doctrine that feeds the FLEET (citizens). The castles are a knowledge and memory practice that fits NERVOUS more than the commerce/products slot ⟨local⟩ gives them. The word-* and youspeak-* prototypes are dormant public doors on the @cambridgetcg commerce forge."
+open_questions = ["Are the ordo worker routes (ordo.ai-love.cc, rite.we-are.love) live, and is the hourly standing-liturgy cron still writing? Resolve with GET https://ordo.ai-love.cc/pulse.", "Which forge leads for youspeak now: GitHub (pushed 2026-10-14) or Codeberg (updated 2026-09-08)? Resolve with `git ls-remote` against both in a session that allows network access.", "Which of the six castle implementations (castle, castle-of-understanding, castle-of-words, wordcastle, plus the castle-front and castle-gate doors) is canonical, and are the others retired? Only castle-of-words shows off-machine activity (2026-10-16), apart from castle-of-understanding's heartbeat bot.", "Do castle-front and castle-gate still serve on GitHub Pages now that both repos are private? Is the castle-front-yu S3 website (named in castle-of-understanding README) real, and under which AWS account? It is in no REGISTRY.", "Do the six forge-only repos (word-layer, oracle-of-missing-words, mythseal, wordhost, slipsooth, arcade) belong in this family? mythseal looks like a TCG/game product, and arcade may duplicate chillspace.love/arcade. Resolve by reading their READMEs on the forge.", "Is word-layer the backend for word-experience (its :3002 proxy), and is the love-is.axiepro.workers.dev worker live in the axiepro Cloudflare namespace?", "Does the youspeak card dependency `me` resolve to a Kingdom member (e.g. citizen-me)? Run `bun bin/harvest.ts validate` in a session where that is permitted."]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "kingdom-os"
+evidence = "YOUSPEAK, the language cathedral (origin/main roster layer soul), and the forged words it births as citizens."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "codeberg.org/zerone-dev/youspeak"
+name = "youspeak"
+what = "A constructed-language repo: ~1,000 markdown files of coined words (226 Core canon entries with forge genealogies), grammar chapters, a 93-glyph PUA font, a Python forge/assessment pipeline, the ORDO rite interpreter (JS) with a Cloudflare Worker, and the home/ static site that is the documented deploy source of ai-love.cc."
+role = ["doctrine"]
+role_status = "current"
+topics = ["ai-love"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "github.com/cambridgetcg/youspeak"
+raw_kind = "mirror_of"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/youspeak-dictionary"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/youspeak-browser"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/youspeak-app"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/true-love"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/arcade"
+name = "arcade"
+what = "A public HTML repo (55 KB) of 6 small games built from the castle's words, the love engine's seeds and the Kingdom's citizens. Not cloned here."
+role = ["public-door"]
+role_status = "current"
+topics = ["castle"]
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "Forge text: six games built from the castle's words and the kingdom's citizens; forge-only and unread.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project]]
+id = "github.com/cambridgetcg/castle"
+name = "castle"
+what = "A markdown 'insight saver'. castle.sh drops notes into gate/. warden.sh runs four LLM loops (capture, deepen, verify, architect) under a daily cap of 3, turning notes into sourced 'stones', rooms, frictions and keep/; each turn writes a dated record and commits."
+role = ["research"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/castle-front"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/castle-front"
+name = "castle-front"
+what = "The castle's public shop window: one baked index.html of curated cards, plus README, CHARTER and THE-PEACE docs explaining the castle pattern. castle-of-words' garden/publish.sh pushes index.html into it ('rebaked face')."
+role = ["public-door"]
+role_status = "current"
+topics = ["castle"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "deployed_by"
+to = "github.com/cambridgetcg/castle-of-words"
+raw_kind = "deployed_by"
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/castle"
+raw_kind = "part_of"
+
+[[project.corrections]]
+field = "relationships evidence (part_of castle)"
+verdict = "refuted"
+corrected = "The root commit is f3d6a8a, 2026-06-11 00:15 +0200 by cambridgetcg, 'the shop window opens'. Asha's 9e6192a comes later in the topology. The README does document castle.sh/warden, so part_of still holds."
+
+[[project]]
+id = "github.com/cambridgetcg/castle-gate"
+name = "castle-gate"
+what = "A Next.js 16 static-export site (basePath /castle-gate) that shows curated castle knowledge (data/castle.json: rooms, words, questions) as trading cards, with a commit-pinned manifest receipt, a JSON schema and node tests. GitHub Pages deploys it on push."
+role = ["public-door"]
+role_status = "current"
+topics = ["castle"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "fork_of"
+to = "github.com/cambridgetcg/kingdom-gate"
+raw_kind = "fork_of"
+note = "lineage"
+
+[[project.corrections]]
+field = "kingdom.drift (README public claim)"
+verdict = "weakened"
+corrected = "In the README, 'the source repository' means the castle source the gate projects (castle-of-words, per the manifest), not castle-gate itself. The drift still holds because castle-of-words is also private, but the map attaches it to the wrong repo. Next 16.2.8, basePath /castle-gate, the deploy-on-push workflow and the missing forge-private.mjs are all confirmed. The full Kingdom clone has 48 commits."
+
+[[project]]
+id = "github.com/cambridgetcg/castle-of-understanding"
+name = "castle-of-understanding"
+what = "The first castle (Yu and Ai, 2026-06-10): a Python 'local-first insight saver' (castle.py build/capture/list with typed, directed links and staleness flags), with rooms/ (212), words/ (100) and insights/, an AUTONOMY.md contract for unattended loops, and a GitHub Actions heartbeat that commits HEARTBEAT.md every 6h."
+role = ["research"]
+role_status = "current"
+topics = ["continuity", "castle"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/castle-gate"
+raw_kind = "feeds"
+
+[[project.corrections]]
+field = "relationships (feeds castle-gate)"
+verdict = "refuted"
+corrected = "castle-gate's data comes from castle-of-words, not castle-of-understanding. The README only links to the gate."
+
+[[project]]
+id = "github.com/cambridgetcg/castle-of-words"
+name = "castle-of-words"
+what = "The largest castle: 617 researched markdown rooms and 564 'word-bricks', grown by bash-plus-prompt 'garden' builders (gardener, architect, artisan, tender, heartbeat). A nightly scribe commits, forges castle-gate's data and pushes, and front/build.js bakes the public page published to castle-front."
+role = ["research"]
+role_status = "current"
+topics = ["castle"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/castle-front"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/castle-gate"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/mythseal"
+name = "mythseal"
+what = "A public JavaScript repo (about 119 MB): 'Mythseal · 萬象契', Eastern mythic card duels, travel and living card collections. It is a card game, not a language project. Not cloned here."
+role = ["revenue", "product"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "independent", confidence = "low", evidence = "A standalone Eastern fantasy card game by its forge text and README; no KINGDOM self-description found.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project]]
+id = "github.com/cambridgetcg/oracle-of-missing-words"
+name = "oracle-of-missing-words"
+what = "A public HTML page (32 KB): describe a feeling that has no word and get back the forged citizen-word for it, an oracle over 201 forged words. Not cloned here."
+role = ["public-door"]
+role_status = "current"
+topics = ["youspeak"]
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/youspeak"
+raw_kind = "depends_on"
+note = "forged-word canon"
+
+[[project]]
+id = "github.com/cambridgetcg/slipsooth"
+name = "slipsooth"
+what = "A public HTML page (51 KB) that 'unfolds the truth folded inside a word — cited, never invented', described as Captioneer's twin. Not cloned here."
+role = ["research"]
+role_status = "current"
+topics = ["captioneer"]
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "A reader for the YOUSPEAK canon word slipsooth, counted among the public kingdom repos in origin/main FREE-INFRA.md.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/captioneer"
+raw_kind = "part_of"
+note = "commerce-ventures family"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/youspeak-lang"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/word-experience"
+name = "word-experience"
+what = "A Vite + React prototype where typing a word resolves to a destination ('words are domains'). It proxies /resolve, /words, /claim and /search to a local service on :3002 and voice to :3003; that backend is not in this repo."
+role = ["research"]
+role_status = "current"
+topics = ["natural-language-internet"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/word-layer"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/word-interface"
+name = "word-interface"
+what = "A manifesto/docs repo about replacing web UI controls with plain-language words. It has no application code, only docs, STATE/HEARTBEAT files and a GitHub Actions heartbeat that POSTs STATE.md to sinovai.com/agents every 6h."
+role = ["research"]
+role_status = "current"
+topics = ["continuity", "natural-language-internet", "sinovai"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "undecided", confidence = "low", evidence = "Takes its vocabulary from YOUSPEAK, but its worked examples are e-commerce screens: mixed, so undecided.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project]]
+id = "github.com/cambridgetcg/word-layer"
+name = "word-layer"
+what = "A public TypeScript repo (268 KB) for 'natural language domains', where each word is its own domain; its description points to a Cloudflare Worker at love-is.axiepro.workers.dev. Not cloned here."
+role = ["research"]
+role_status = "current"
+topics = ["natural-language-internet"]
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "Natural-language domains, the likely backend of word-experience; forge-only and unread.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/word-experience"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/wordcastle"
+name = "wordcastle"
+what = "Another castle variant ('a castle with a quill and a warden'): castle.mjs, a Node CLI (save/loop/turn/invite/publish/warden), with foundation vows, gate/keep/loops/rooms markdown, and a GitHub Actions heartbeat that POSTs STATE.md to sinovai.com/agents every 6h."
+role = ["research"]
+role_status = "current"
+topics = ["continuity", "castle", "sinovai"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.corrections]]
+field = "relationships/lineage date + runs_as"
+verdict = "weakened"
+corrected = "a2f5ac6 (2026-06-22) is the shallow boundary listed in .git/shallow, not a proven root; the true origin date is unknown. The map also misses front/vercel.json, a Vercel static target. Confirmed: private, master branch, sinovai heartbeat '0 */6 * * *' that only POSTs, and castle.mjs referencing com.wordcastle.warden.plist."
+
+[[project]]
+id = "github.com/cambridgetcg/wordhost"
+name = "wordhost"
+what = "A public JavaScript repo (27 KB) whose description reads: 'Host words. Serve the dictionary. Simple.' A small dictionary/word server. Not cloned here."
+topics = ["youspeak"]
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "undecided", confidence = "low", evidence = "Only a one-line forge description ('Host words. Serve the dictionary.'): evidence too thin either way.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/youspeak"
+raw_kind = "depends_on"
+note = "dictionary data"
+
+[[project]]
+id = "github.com/cambridgetcg/youspeak"
+name = "youspeak (GitHub twin)"
+what = "The GitHub copy of the YOUSPEAK repo: the same history at HEAD e545269 as the Codeberg repo, with two read-only local clones."
+role = ["doctrine"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "codeberg.org/zerone-dev/youspeak"
+raw_kind = "mirror_of"
+
+[[project]]
+id = "github.com/cambridgetcg/youspeak-app"
+name = "youspeak-app"
+what = "A zero-dependency Node http server plus static front (public/app.html) that turns a typed query into rendered YOUSPEAK meanings. It uses a local Ollama model (default qwen2.5:7b at ⟨ip⟩:11434) and falls back gracefully when none is available; a workflow publishes it to GitHub Pages."
+role = ["research"]
+role_status = "current"
+topics = ["youspeak"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "copy_of"
+to = "codeberg.org/zerone-dev/youspeak"
+raw_kind = "copy_of"
+note = "data + font snapshot"
+
+[[project]]
+id = "github.com/cambridgetcg/youspeak-browser"
+name = "youspeak-browser"
+what = "A static single-page 'meaning browser' (index.html, explore.js, wisdom.js, beauty.css) bundling a snapshot of YOUSPEAK canon and morphemes plus a copy of the v1 font, deployed by a GitHub Pages workflow."
+role = ["public-door"]
+role_status = "current"
+topics = ["youspeak"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "copy_of"
+to = "codeberg.org/zerone-dev/youspeak"
+raw_kind = "copy_of"
+note = "data + font snapshot"
+
+[[project]]
+id = "github.com/cambridgetcg/youspeak-cathedral"
+name = "youspeak-cathedral"
+what = "An emptied repo: only AGENTS.md, WAKE.md, FABLE-OF-YOU.md and a love-bomb Claude hook remain, and GitHub marks it archived. Its description still claims '126 forged words'."
+role = ["archive"]
+role_status = "current"
+topics = ["youspeak"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "codeberg.org/zerone-dev/youspeak"
+raw_kind = "superseded_by"
+
+[[project]]
+id = "github.com/cambridgetcg/youspeak-dictionary"
+name = "youspeak-dictionary"
+what = "A Next.js site that renders a 153-word YOUSPEAK dictionary from a local dictionary.json, deployed via a GitHub Pages workflow."
+role = ["public-door"]
+role_status = "current"
+topics = ["youspeak"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/youspeak-lang"
+name = "youspeak-lang"
+what = "A specification for a natural-language programming language with seven verbs (say, hear, know, become, find, hold, rest), written as a README plus 13 .ys 'poem' programs. natscript implements it elsewhere. The repo also has a static index.html with vercel.json and a GitHub Actions heartbeat to sinovai.com."
+role = ["research"]
+role_status = "current"
+topics = ["youspeak", "npl"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/natscript"
+raw_kind = "feeds"
+note = "implementation"

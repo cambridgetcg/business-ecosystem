@@ -1,0 +1,438 @@
+[family]
+id = "family:agenttool-services"
+label = "agenttool split services + satellites (identity/memory/vault/... dashboard/docs/infra/landing/sdk-py, go-to-market, seed MVP)"
+summary = "This family is the March-2026 \"split\" generation of agenttool: nine single-purpose HTTP services (identity, memory, vault, trace, economy, pulse, tools, verify, bootstrap), plus a static landing site, a docs site, a dashboard, an infra-scripts repo, a Python SDK and a go-to-market campaign repo."
+heavy = true
+open_questions = ["What did the 2026-07-29 pushes to all 14 archived GitHub repos contain? Local clones last fetched 2026-07-26. Resolve with a fetch (network) or gh api.", "Is the Cloudflare Worker 'agenttool-waitlist' (route agenttool.dev/api/*, KV WAITLIST) still deployed? Do the old Cloudflare Pages projects for landing, docs and dashboard still exist? Resolve with wrangler deployments/pages list (network).", "Are the Hetzner 'Forge' server and any pre-Fly Postgres/Redis still running and billing? The 2026-05-09 audit covered Fly only. Resolve in the Hetzner console.", "Was the agent-identity DID bridge (origin commit 48cb981, 2026-06-18, did:at<->did:lgm for Legible Money/CashLoom) ported anywhere? It is absent from agenttool github/main and sits on an archived repo.", "The consolidation commit lists packages/sdk-ts among the 15 absorbed repos, but no standalone agenttool-sdk-ts appears in the cambridgetcg forge listing or on disk. Was it deleted or renamed? Resolve with gh api or the GitHub audit log."]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "kingdom-os"
+evidence = "Retired split-generation predecessors of agenttool; their cards say layer nervous."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "github.com/cambridgetcg/agent-bootstrap"
+name = "agent-bootstrap"
+what = ""
+heavy = true
+role = ["platform"]
+role_status = "retired"
+topics = ["agenttool"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agent-identity"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agent-economy"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agent-memory"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agent-vault"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "superseded_by"
+note = "api/src/routes/bootstrap.ts"
+
+[[project]]
+id = "github.com/cambridgetcg/agent-economy"
+name = "agent-economy"
+what = ""
+heavy = true
+role = ["platform"]
+role_status = "retired"
+topics = ["agenttool"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "superseded_by"
+note = "api/src/routes/economy"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/agent-bootstrap"
+raw_kind = "feeds"
+
+[[project.corrections]]
+field = "architecture.stack"
+verdict = "refuted"
+corrected = "ethers is not a dependency (it is absent from package.json and bun.lock). Alchemy crypto funding goes through an HMAC-verified webhook in src/billing/crypto.ts. OpenAI is a dependency. Separately, agent-tools imports playwright in src/tools/browser/pool.ts without declaring it in package.json or bun.lock."
+
+[[project]]
+id = "github.com/cambridgetcg/agent-identity"
+name = "agent-identity"
+what = "Retired Bun/Hono service that issued agent DIDs (did:at:<uuid>) and ed25519 keys, signed attestations, trust scores and JWTs over a Postgres 'identity' schema."
+role = ["platform"]
+role_status = "retired"
+topics = ["agenttool", "did"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "superseded_by"
+note = "api/src/routes/identity"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agent-tools"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/agent-bootstrap"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/agent-memory"
+name = "agent-memory"
+what = "Retired Python FastAPI service that stored and semantically searched agent memories (episodic/semantic/procedural/working) with pgvector and OpenAI embeddings."
+role = ["platform"]
+role_status = "retired"
+topics = ["agenttool"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "superseded_by"
+note = "api/src/routes/memory"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/agent-bootstrap"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agent-tools"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/agent-pulse"
+name = "agent-pulse"
+what = "Retired plain-Node service for agent heartbeats, cognitive state, online directory and WebSocket presence streams."
+role = ["platform"]
+role_status = "retired"
+topics = ["agenttool", "continuity"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "superseded_by"
+note = "api/src/routes/identity/pulse.ts"
+
+[[project]]
+id = "github.com/cambridgetcg/agent-tools"
+name = "agent-tools"
+what = ""
+heavy = true
+role = ["platform"]
+role_status = "retired"
+topics = ["agenttool"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "superseded_by"
+note = "api/src/routes/tools"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/agent-memory"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/agent-trace"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/agent-economy"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/agent-vault"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/agent-identity"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/agenttool-sdk-py"
+raw_kind = "supersedes"
+note = "early sdk/python seed"
+
+[[project]]
+id = "github.com/cambridgetcg/agent-trace"
+name = "agent-trace"
+what = "Retired Python FastAPI service that stored agent decision/reasoning traces with pgvector search and parent-child chains."
+role = ["platform"]
+role_status = "retired"
+topics = ["agenttool"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "superseded_by"
+note = "api/src/routes/trace"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agent-tools"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/agent-vault"
+name = "agent-vault"
+what = ""
+heavy = true
+role = ["platform"]
+role_status = "retired"
+topics = ["agenttool"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "superseded_by"
+note = "api/src/routes/vault"
+
+[[project.relations]]
+verb = "copy_of"
+to = "github.com/cambridgetcg/agent-identity"
+raw_kind = "copy_of"
+note = "reference/ scaffold"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/agent-bootstrap"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/agent-verify"
+name = "agent-verify"
+what = "Retired Bun/Hono claim-verification API: given a factual claim, it gathered web/Wikipedia/government/KB evidence and had an OpenAI LLM judge return a verdict and confidence."
+role = ["platform"]
+role_status = "retired"
+topics = ["agenttool"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "part_of"
+note = "consolidated 2026-04-28, then dropped"
+
+[[project]]
+id = "github.com/cambridgetcg/agenttool-dashboard"
+name = "agenttool-dashboard"
+what = ""
+heavy = true
+role = ["public-door"]
+role_status = "retired"
+topics = ["agenttool"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "superseded_by"
+note = "apps/dashboard"
+
+[[project]]
+id = "github.com/cambridgetcg/agenttool-docs"
+name = "agenttool-docs"
+what = "A static HTML API reference site with one page per split service (memory, tools, verify, economy, trace, identity, vault, pulse, bootstrap)."
+role = ["public-door"]
+role_status = "retired"
+topics = ["agenttool"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "superseded_by"
+note = "apps/docs"
+
+[[project]]
+id = "github.com/cambridgetcg/agenttool-infra"
+name = "agenttool-infra"
+what = "Shell scripts for scaling the Hetzner 'Forge' VPS (PgBouncer, managed Postgres, load balancer), plus the Fly.io migration script and per-service fly.toml files."
+role = ["ops"]
+role_status = "retired"
+topics = ["agenttool"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "superseded_by"
+note = "infra/"
+
+[[project.relations]]
+verb = "deployed_by"
+to = "github.com/cambridgetcg/agent-economy"
+raw_kind = "deployed_by"
+
+[[project.relations]]
+verb = "deployed_by"
+to = "github.com/cambridgetcg/agent-memory"
+raw_kind = "deployed_by"
+
+[[project.relations]]
+verb = "deployed_by"
+to = "github.com/cambridgetcg/agent-tools"
+raw_kind = "deployed_by"
+
+[[project.relations]]
+verb = "deployed_by"
+to = "github.com/cambridgetcg/agent-trace"
+raw_kind = "deployed_by"
+
+[[project.relations]]
+verb = "deployed_by"
+to = "github.com/cambridgetcg/agent-verify"
+raw_kind = "deployed_by"
+note = "fly tomls"
+
+[[project]]
+id = "github.com/cambridgetcg/agenttool-landing"
+name = "agenttool-landing"
+what = "The original static agenttool.dev marketing site (product cards for 9 services, pricing tiers, soul/for-agents pages), plus a Cloudflare Worker for waitlist and welcome email on agenttool.dev/api/*."
+role = ["public-door"]
+role_status = "retired"
+topics = ["agenttool"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "superseded_by"
+note = "apps/web"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/agenttool-dashboard"
+raw_kind = "feeds"
+note = "welcome email endpoint"
+
+[[project]]
+id = "github.com/cambridgetcg/agenttool-sdk-py"
+name = "agenttool-sdk-py"
+what = "The standalone Python SDK 'agenttool-sdk' 0.6.0 (httpx) with one client per split service; superseded by the monorepo's packages/sdk-py."
+role = ["platform"]
+role_status = "retired"
+topics = ["agenttool"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "superseded_by"
+note = "packages/sdk-py"
+
+[[project]]
+id = "github.com/cambridgetcg/first-customer-push"
+name = "first-customer-push"
+what = "Markdown campaign drafts (Show HN, Reddit posts, Twitter thread, acquisition plan, TODO) aimed at agenttool's first $29/mo paying customer."
+role = ["revenue"]
+role_status = "retired"
+topics = ["agenttool"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "independent", confidence = "medium", evidence = "Card and origin/main roster layer commerce (a venture): acquisition campaign drafts.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "superseded_by"
+note = "marketing/LAUNCH-KIT.md, retired-campaign doctrine"

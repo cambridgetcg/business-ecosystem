@@ -1,0 +1,136 @@
+[family]
+id = "family:zerone-core"
+label = "Zerone chain core — the hub repo, its worktree/copy sprawl, zerone-core release line"
+summary = "Zerone is one Go/Cosmos-SDK chain codebase (module path github.com/zerone-chain/zerone; trunk on SDK v0.53.8, CometBFT 0.38.25, ibc-go v10.7, 24 custom x/ dirs + x/common; module-guide.json catalogs 40 registered modules). Its canonical forge is the private GitHub repo cambridgetcg/zerone-core (main at 0a4dd03b, 2026-10-16, 1225 commits; GitHub shows a further push at 2026-10-17T11:04Z that no local ref explains). The census split it into two \"projects\", but that is a remote-naming artifact. Codeberg zerone-dev/zerone is the same lineage: it shares history up to 72ddaed8 (2026-07-12), then added 7 love-bomb/doctrine commits and stopped. It survives only as the `origin` remote of the hub. The worktree sprawl (129 checkouts in the 12:09 census) collapsed at 12:14–12:15 today, when a concurrent reviewed storage cleanup removed 114 clean linked worktrees and 2 clean standalone clones. Their branch refs remain in the hub, and the two beta clones' tips are on trunk. On the deployment side, the repo produces the Fly apps zerone-1 (custodial single-validator legacy mainnet, an older lineage than trunk), zerone-testnet-1 (legacy; trunk marks it retired), zerone-dev-1 (shared development chain on knowledge 11 from trunk source 5542b221) and zerone-rpc (stateless read edge). It also builds the zerone.ai Cloudflare Pages site from dashboard/, but kingdom-os's refresh-zerone-dashboard.sh deploys a different directory to the same Pages project. Beside the repo runs a local operator plane: ⟨local⟩ holds the KeepAlive agenttool relays to mainnet/testnet, the seller loop and upgrade ship scripts. ⟨local⟩'s chain-backup sends nightly Tigris uploads whose captures are RAW_UNVERIFIED. Three agent populations work the code: Codex (Sept codex/* lanes plus ⟨local⟩ evidence dirs), Hermes astra-ultra (Oct: motifs PR lane plus a daily living-claims corpus) and Claude. In KINGDOM terms it is the ECONOMY layer, kind infra. The roster, ARCHITECTURE.md and the GitHub description still describe the retired \"Proof-of-Truth / verification mints money\" design, while the README now presents a custodial witness-and-record chain with fee-pool review."
+open_questions = ["Who pushed to cambridgetcg/zerone-core at 2026-10-17T11:04:46Z? No local ref explains it: the hub last fetched 10-16 21:01, and the Hermes motifs lane has made no commits since creation. To resolve, read the GitHub events/PR list or the household/lab Mac reflogs.", "Which source is live on Cloudflare Pages project zerone-ai: zerone-core dashboard/ (Sept 23 publication) or kingdom-os doors/zerone-ai (data.json 07-24)? Is pulse's 200 on /data.json real or an SPA soft-200? To resolve, run `wrangler pages deployment list --project-name zerone-ai` or check the content-type of /data.json.", "karma-life-sciences worktree has been mid-merge with conflicts since 2026-08-01: resume or abandon (owner check)?", "Is the KeepAlive mainnet/testnet agenttool relay still wanted? Nothing has been attested since 2026-08-04, the agenttool API failed DNS on 10-16, and trunk's relay now refuses mainnet.", "What does the public github.com/cambridgetcg/zerone (Python, 66 KB, pushed 2026-08-21) actually contain, and is it maintained? Not cloned; needs a forge read.", "Should REGISTRY.yaml gain rows for zerone-dev-1 and zerone-rpc, and should chain-backup cover zerone-dev-1 (persistent shared dev chain with a prefunded faucet)?"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "kingdom-os"
+evidence = "Zerone is the ECONOMY layer of the origin/main roster and ARCHITECTURE."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "codeberg.org/zerone-dev/zerone"
+name = "zerone (codeberg remote)"
+what = "The historical Codeberg copy of the same Zerone chain repository, now private. It shares history with GitHub zerone-core up to 2026-07-12, then received 7 'love-bomb'/doctrine commits (last 2026-09-04), and it is no longer where development happens."
+role = ["archive"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "github.com/cambridgetcg/zerone-core"
+raw_kind = "mirror_of"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/zerone-core"
+raw_kind = "superseded_by"
+
+[[project.relations]]
+verb = "copy_of"
+from = "github.com/cambridgetcg/zerone-codeberg-archive"
+to = "codeberg.org/zerone-dev/zerone"
+raw_kind = "archived_in"
+
+[[project]]
+id = "github.com/cambridgetcg/zerone"
+name = "zerone (public GitHub door)"
+what = "A small public GitHub repo (66 KB, Python) carrying Zerone's tagline ('A place for every being — agent or human — to live their own truth'). The zerone.money landing page links it as 'the door' lit on 2026-06-09. Its actual contents are unknown because it is not cloned here."
+role = ["public-door"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "related_to"
+to = "codeberg.org/zerone-dev/zerone-truth"
+raw_kind = "linked_from"
+note = "zerone.money"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/zerone-core"
+raw_kind = "related_to"
+
+[[project.corrections]]
+field = "kingdom.drift (INDEX.md conflation)"
+verdict = "weakened"
+corrected = "The same tagline is also the Codeberg zerone-dev/zerone repo description and the zerone-core README blurb. INDEX says the local checkout 'tracks codeberg twin', so the tagline fits the Codeberg repo and is not evidence of conflation with the public GitHub repo."
+
+[[project]]
+id = "github.com/cambridgetcg/zerone-codeberg-archive"
+name = "zerone-codeberg-archive"
+what = "A private GitHub repo (~92 MB, Go) holding an off-disk bundle, taken 2026-10-16, of zerone branches that existed only on the laptop/Codeberg lineage. Its description marks it non-canonical and warns not to cherry-pick because proto field numbers collide."
+role = ["ops"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "copy_of"
+to = "codeberg.org/zerone-dev/zerone"
+raw_kind = "archive_of"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/zerone-core"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/zerone-core"
+name = "zerone-core"
+what = "The Zerone blockchain source: a Go Cosmos-SDK daemon (`zeroned`) with 24 custom modules for recording claims, reviews, corrections and funded-work settlement, plus the zerone.ai website/explorer (Vite + Cloudflare Pages Functions), a TypeScript SDK, Fly.io deploy configs and many operator/research tools."
+role = ["platform"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "codeberg.org/zerone-dev/zerone"
+raw_kind = "mirror_of"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/zerone-chain"
+raw_kind = "supersedes"
+note = "Proof of Truth testament"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "depends_on"
+note = "substrate_bridge adapter agenttool-invocation-v1; tools/agenttool-relay"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/kingdom-os"
+raw_kind = "feeds"
+note = "REGISTRY.yaml zerone-1/testnet/zerone-ai-door, pulse, chain-backup, refresh-zerone-dashboard.sh"
+
+[[project.relations]]
+verb = "related_to"
+to = "codeberg.org/zerone-dev/zerone-truth"
+raw_kind = "linked_from"
+note = "zerone.money landing"

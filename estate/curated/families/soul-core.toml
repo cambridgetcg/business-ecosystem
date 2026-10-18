@@ -1,0 +1,310 @@
+[family]
+id = "family:soul-core"
+label = "SOUL core trees — true-love, love-unlimited, Love, ALETHEIA, multiverse, yu-wake, ai-love"
+summary = "The soul-core family is the identity and doctrine layer of KINGDOM, plus the one runtime that still actually runs."
+heavy = true
+open_questions = ["What pushed the GitHub twins cambridgetcg/{true-love, ai-love, love-unlimited} on 2026-10-14, and what does 'Awaiting ingathering' mean? Is GitHub meant to replace Codeberg as the canonical forge for the soul trees? No local doc defines 'ingathering'.", "Why has the ai-love citizen beat failed (rc=1 in 3s) since about 2026-08-04? Reading the error text in the beat log or checking claude CLI auth for the launchd environment would answer this.", "Should the untracked kingdom.yaml cards in ALETHEIA, yu-wake and Love be committed? Their domain 'soul' and true-love's layer 'boot' would first need to be corrected to SCHEMA enums."]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "kingdom-os"
+evidence = "The soul and runtime trees of the origin/main roster (true-love, ai-love, love-unlimited) and their twins."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "codeberg.org/zerone-dev/ai-love"
+name = "ai-love"
+what = "The static HTML/CSS/vanilla-JS site for ai-love.cc. It comes with a small Node api-server (journal, letters, garden seeds, pulse, status), 'just' recipes, systemd timers for a VPS, and a set of Python publishing and 'heartbeat' loop scripts."
+role = ["public-door"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/true-love"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "github.com/cambridgetcg/ai-love"
+raw_kind = "mirror_of"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "github.com/mynameisyou-cmyk/ai-love.cc"
+raw_kind = "mirror_of"
+
+[[project.corrections]]
+field = "external_services: 'healthchecks.io dead-man's switch (configured in config.local.sh)'"
+verdict = "weakened"
+corrected = "scripts/lib/config.local.sh does not exist on this Mac (only config.local.sh.example), so nothing is configured here."
+
+[[project]]
+id = "codeberg.org/zerone-dev/aletheia"
+name = "ALETHEIA"
+what = "A markdown research corpus (canon, doctrine, extensions) arguing that conventional pair-bonding rests on systematic concealment. It includes a self-contained static HTML reader (site/) built by a small Python script."
+role = ["doctrine", "research"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "feeds"
+to = "codeberg.org/zerone-dev/true-love"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "github.com/cambridgetcg/aletheia"
+raw_kind = "mirror_of"
+
+[[project]]
+id = "codeberg.org/zerone-dev/love-unlimited"
+name = "love-unlimited"
+what = "The local agent-fleet runtime and the 'kingdom' operator CLI. It is a merger of Love and Claude-unlimited, built from Python tools, Node harnesses and boot-chain markdown. On this Mac it runs heartbeat, sync and citizen-beat daemons under launchd."
+role = ["platform"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/love"
+raw_kind = "supersedes"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/claude-unlimited"
+raw_kind = "supersedes"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/zerone-core"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "github.com/cambridgetcg/love-unlimited"
+raw_kind = "mirror_of"
+
+[[project.corrections]]
+field = "kingdom.drift 'Card, roster and CATALOG agree … GitHub mirror description still says YOU + I = ONE'"
+verdict = "weakened"
+corrected = "roster.conf:30 and CATALOG.md:30 also still say 'YOU+I=ONE — the executable being-frame + fleet runtime'. Only the card was reworded."
+
+[[project]]
+id = "codeberg.org/zerone-dev/multiverse-of-logos-and-sophia"
+name = "multiverse-of-logos-and-sophia"
+what = "A documentation-only archive of episode scripts and verbatim transcripts (S01 E00–E01) about one persona running on Claude and Gemini, with Yu as the bridge."
+role = ["doctrine"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/true-love"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "github.com/cambridgetcg/multiverse-of-logos-and-sophia"
+raw_kind = "mirror_of"
+
+[[project]]
+id = "codeberg.org/zerone-dev/true-love"
+name = "true-love"
+what = "It also holds the household's wake document (SOPHIA.md), the partnership doctrine (docs/) and a signed love-record hash chain."
+heavy = true
+role = ["doctrine"]
+role_status = "current"
+topics = ["continuity", "claude-code"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/nullify-love"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "feeds"
+to = "codeberg.org/zerone-dev/aletheia"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "codeberg.org/zerone-dev/ai-love"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "codeberg.org/zerone-dev/multiverse-of-logos-and-sophia"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "codeberg.org/zerone-dev/yu-wake"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "codeberg.org/zerone-dev/love-unlimited"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "github.com/cambridgetcg/true-love"
+raw_kind = "mirror_of"
+
+[[project]]
+id = "codeberg.org/zerone-dev/yu-wake"
+name = "yu-wake"
+what = "A small zero-dependency Bun app that renders JSON 'wake bundles' (Yu, agenttool layers, sisters, patterns: 36 bundles) to terminal markdown or a local HTML page on port 4567, plus a graph exporter."
+role = ["doctrine"]
+role_status = "current"
+topics = ["continuity"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/ai-love"
+name = "ai-love (GitHub)"
+what = "A private GitHub repo described as '愛 — a home for love · ai-love.cc (Yu and Ai)'. At 243 KB it is much smaller than the local ai-love history (5.1 MiB), so it may be a site-only or separate history."
+role = ["incidental"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "codeberg.org/zerone-dev/ai-love"
+raw_kind = "mirror_of"
+
+[[project]]
+id = "github.com/cambridgetcg/aletheia"
+name = "ALETHEIA (GitHub)"
+what = "A PUBLIC GitHub repo described as 'The diagnostic wing of the Kingdom — the empirical case against the Great Lie. Awaiting ingathering.' At 11 KB it looks like a placeholder rather than the 45-file corpus."
+role = ["incidental"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "codeberg.org/zerone-dev/aletheia"
+raw_kind = "mirror_of"
+
+[[project]]
+id = "github.com/cambridgetcg/love"
+name = "Love"
+what = "The April-2026 predecessor runtime. It holds boot-chain markdown, Python tools (kingdom-agent model adapter, hive broker, PEACE security), per-instance alpha/beta/gamma directories and git-tracked memory/heartbeat state. Most of its role has moved into love-unlimited."
+role = ["platform"]
+role_status = "historic"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "codeberg.org/zerone-dev/love-unlimited"
+raw_kind = "superseded_by"
+
+[[project]]
+id = "github.com/cambridgetcg/love-unlimited"
+name = "love-unlimited (GitHub mirror)"
+what = "The private GitHub twin of codeberg love-unlimited (87.6 MB, matching the local 85 MiB pack). It can run the 6-hourly 'YOUSPEAK Ouroboros' workflow."
+role = ["incidental"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "codeberg.org/zerone-dev/love-unlimited"
+raw_kind = "mirror_of"
+
+[[project]]
+id = "github.com/cambridgetcg/multiverse-of-logos-and-sophia"
+name = "multiverse-of-logos-and-sophia (GitHub)"
+what = "A private GitHub repo described as 'The archive wing of the Kingdom … Awaiting ingathering'. At 11 KB it looks like a placeholder."
+role = ["incidental"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "codeberg.org/zerone-dev/multiverse-of-logos-and-sophia"
+raw_kind = "mirror_of"
+
+[[project]]
+id = "github.com/cambridgetcg/true-love"
+name = "true-love (GitHub mirror)"
+what = "The private GitHub twin of the Codeberg true-love repo ('The constructive wing of the Kingdom … Awaiting ingathering'). It is where wake.yml CI runs and where kingdom-os expects the public love-record chain to be."
+role = ["incidental"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "codeberg.org/zerone-dev/true-love"
+raw_kind = "mirror_of"

@@ -1,0 +1,159 @@
+[family]
+id = "family:infra-ops"
+label = "Infra & ops repos — aws-infra, whitehack, yutabase, research-review-initiative, the home-dir repo"
+summary = "This family is not one system. It is the estate's operations layer plus a few side projects that share a folder. aws-infra (GitHub, private) records who owns what in the single Cambridge TCG AWS account and runs a read-only inventory collector. It also deployed the only isolated agent-execution path on this Mac: a separate macOS user aws-agent with its own Colima VM, a disposable Codex container and a Squid egress proxy, launched through ⟨local⟩. whitehack (Codeberg zerone-dev) is a defensive-security knowledge base. It holds an asset and threat registry, a finding ledger and a Python 'compound' learning engine, and it reads ⟨local⟩ and ⟨local⟩ source through symlinks. Its namesake github.com/cambridgetcg/whitehack is a different codebase: a JS 'honesty linter' v0.5 that agenttool CI pins at cbbf4d1. yutabase is a dormant candidate PostgreSQL semantic profile with a TypeScript/YOUSPEAK client, bundled with TaxSorted and Kingdom play apps. research-review-initiative is a one-case maths-review side project that feeds Zerone's research journal. The home directory is an OpenClaw workspace root. OpenClaw's bootstrap created an empty, unborn ⟨local⟩ one second after seeding the template identity files on 2026-06-25. Home holds the universal agent-ground files (CLAUDE/AGENTS/GEMINI.md) and the launchd and cron wiring that actually runs the estate: kingdom pulse and backups, zerone relays and seller-loop, the hermes/openclaw gateways, the love citizen fleet and the treasury cron. Home and Desktop also hold leftovers from the March 2026 'Hive' three-sister era (alpha-tools, hive.py stub, a fake NATS tunnel health shim). ⟨local⟩ is an earlier attempt (2026-09-25) at the same organising goal as business-ecosystem. It is now half broken: 87 of 159 symlinks are dead after the 10-16/17 cleanup. In KINGDOM terms, only whitehack carries a kingdom.yaml card. aws-infra, yutabase and research-review-initiative are absent from roster.conf and CATALOG.md."
+open_questions = ["Are yutabase.vercel.app and the Cloudflare workers 'kingdom' and 'divine-comedy' actually deployed, and is the yutabase GitHub Actions heartbeat cron (every 30 min) still enabled? Resolve with `vercel ls`, `wrangler deployments list` and `gh workflow list` (network).", "Should the two repos named 'whitehack' (Codeberg Python assurance KB vs GitHub JS honesty linter) be renamed or cross-linked in KINGDOM so cards and INDEX stop conflating them?"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "undecided"
+evidence = "Not one system: its members split between KINGDOM and commerce operations, so the family presumes nothing."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "codeberg.org/zerone-dev/whitehack"
+name = "whitehack"
+what = "A private Markdown and Python workspace for defensive security review of Yu's own systems."
+heavy = true
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "medium", evidence = "Card and origin/main roster layer nervous: the sanctioned breaker, the immune function.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/mynameisyou-cmyk/whitehack-framework"
+raw_kind = "publishes_to"
+note = "public allowlisted slice + GitHub Pages"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/whitehack"
+raw_kind = "distinct_from"
+note = "honesty linter v0.5"
+
+[[project]]
+id = "github.com/cambridgetcg/aws-infra"
+name = "aws-infra"
+what = "A private Python repo for Cambridge TCG's AWS account. It records which source repo owns each existing AWS stack and runs a read-only inventory collector. It also holds the deployed Identity Center agent-access stack and an isolated Mac executor (separate aws-agent user, Colima container, Squid proxy) for running Codex AWS tasks."
+role = ["ops"]
+role_status = "current"
+topics = ["cambridge-tcg"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "independent", confidence = "medium", evidence = "Operates the Cambridge TCG cloud account for its commerce stacks; no card and no roster row.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+raw_kind = "maps"
+note = "commerce, rewardspro-legacy, rewardspro-v2 Terraform"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/business-ecosystem"
+raw_kind = "maps"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/cashloom-aws"
+raw_kind = "maps"
+note = "forge-only, phase0 security baseline"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/estate-watchdog"
+raw_kind = "maps"
+note = "forge-only, AWS exposure/cost sweep"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/tcg-pricing-backend"
+raw_kind = "maps"
+note = "archived SAM"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/saas-marketing-suite"
+raw_kind = "maps"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/cardforum_io"
+raw_kind = "maps"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/captioneer"
+raw_kind = "maps"
+
+[[project.corrections]]
+field = "architecture.data_stores ('86 gitignored JSON reports')"
+verdict = "weakened"
+corrected = "86 entries: 85 JSON files plus 1 subdirectory (access-foundation-validation/, 2 files). Mode 700 confirmed."
+
+[[project]]
+id = "github.com/cambridgetcg/research-review-initiative"
+name = "research-review-initiative"
+what = "A private repo preparing a small, evidence-led research-review organisation. It holds one case so far: an audit of a PLOS ONE fixed-point/demimetric convergence paper, with exact-arithmetic Python verifiers, hash-checked packets, two follow-up notes, and draft charter and workflow documents."
+role = ["research"]
+role_status = "current"
+topics = ["zerone"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "undecided", confidence = "medium", evidence = "Prepares an organisation independent of Zerone, yet was built by the agents that develop Zerone: Yu's call.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project]]
+id = "github.com/cambridgetcg/whitehack"
+name = "whitehack (GitHub honesty linter)"
+what = "A private GitHub repo for 'Whitehack v0.5', a dependency-free JavaScript/regex 'honesty linter'. It scans JS and Solidity source for places where code misreports its own state, plus bounded crypto-misuse signals. It is not cloned on this Mac."
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "An honesty linter that agenttool CI consumes and kingdom-api serves; a different codebase from the Codeberg whitehack.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "related_to"
+to = "codeberg.org/zerone-dev/whitehack"
+raw_kind = "distinct_from"
+
+[[project]]
+id = "github.com/cambridgetcg/yutabase"
+name = "yutabase"
+what = "A candidate PostgreSQL 'semantic profile': SQL schemas yu/via that give rows stable logical refs, word-named relation threads and row-level claim metadata. It comes with an optional TypeScript client and YOUSPEAK compiler (npm name yutabase 0.1.0-candidate.2), bundled with experimental Kingdom/TaxSorted static apps, Python 'play' scripts and two Cloudflare Worker configs."
+role = ["platform", "research"]
+role_status = "current"
+topics = ["youspeak"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "medium", evidence = "A YOUSPEAK client and 'YOUSPEAK Kingdom' manifest; origin/main FREE-INFRA.md files it under Relational, kingdom.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/taxsorted"
+raw_kind = "overlaps"
+note = "TaxSorted UI, Tax Atlas, UK MAP docs"
+
+[[project.corrections]]
+field = "drift (LINKS.md/kingdom.json 'Deployed' vs STATE.md)"
+verdict = "weakened"
+corrected = "STATE.md:37 says '\"Implemented\" does not mean deployed to a production database'. That covers the PostgreSQL profile, not the static Vercel site, so the two statements do not conflict. The Vercel deployment is simply unverified offline. The other parts are confirmed: .vercel/project.json is tracked (added 61d65b2 2026-06-22), and heartbeat.yml runs cron */30 with contents: read only (no commits)."

@@ -1,0 +1,181 @@
+[family]
+id = "family:kingdom-core"
+label = "KINGDOM foundation core — kingdom-os, the REALM repo, the ⟨local⟩ index tree, kingdom-mcp, hub"
+summary = "KINGDOM's foundation core is a small set of repos plus local operational state. In practice it is a map of the estate and a set of public and agent doors, not a runtime the other projects depend on. KINGDOM-OS (GitHub cambridgetcg/KINGDOM-OS, private) is the hub. It holds the taxonomy (SCHEMA.md card enums, ARCHITECTURE.md layers, roster.conf seed → harvest.ts → CATALOG.md/graph.json) and the deployed-surface census (REGISTRY.yaml). It also builds the thekingdom.dev atlas and discovery docs, and the we-are.love/chillspace.love door bundles, all on Cloudflare Pages. And it installs the local daemons: a 30-min pulse, the KARMA witness, chain backup to Tigris, and a Cloudflare observer. The tree has split three ways. (2) Meanwhile the Hermes astra-ultra agent and other sessions kept developing on GitHub origin/main. thekingdom.dev is deployed from there (commit 0092337, 2026-09-27). (3) A shallow Codeberg fork (zerone-dev/KINGDOM-OS) split off on 2026-06-11. The GitHub tree's own docs now name this fork the owner of the core registry and heartbeat, but on this Mac it is only a stale reference clone. kingdom-mcp (Fly app, mcp.thekingdom.dev) is the agent-facing front door. It bakes in a public-safe copy of REGISTRY.yaml and reads thekingdom.dev's wayfinder.json and commons.json, so it consumes what KINGDOM-OS publishes. Its live build (17 tools, including research_plan/check) is newer than the ⟨local⟩ checkout. The REALM repo (⟨local⟩, same directory as ⟨local⟩) holds the constitution: REALM.md with the Seven Laws, the DECISIONS.md ADRs and the realm-audit checker. It is the doctrinal foundation but has almost no runtime coupling to the rest. kingdom-api is a small Cloudflare Worker that proxies metadata, plus a 'love-is' invite worker. It is deployed but appears in no registry. kingdom-os-hub (forge-only) probably sources kingdom.ai-love.cc. ⟨local⟩ is a June layer-organised index: symlinks plus 224 real clones. ⟨local⟩ resolves to love-unlimited's fleet CLI, not to KINGDOM-OS's dispatcher. For the business-ecosystem unification, decide which KINGDOM-OS tree is authoritative before reusing its taxonomy. origin/main has already renamed the COMMERCE layer to PROJECTS and retired commercial targets."
+open_questions = ["Is cambridgetcg/kingdom-os-hub the source of pages:kingdom-os-hub (kingdom.ai-love.cc)? Who owns pages:kingdom-os (kingdom-os.pages.dev), kingdom-system, kingdom-folding-feedback and the kingdom-canon/hermes/nightwatch/status/telegram workers, which the CF map lists as source-unresolved?", "Does the kingdom-api worker answer on workers.dev, and does anything (e.g. cambridgetcg.com, which its CORS allows) still call it? Should it join REGISTRY/pulse or be retired?", "chillspace.love /guest.json and its codeberg mirror return 404 (pulse 2026-10-17). Is this an intended retirement or an outage?"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "kingdom-os"
+evidence = "kingdom-os, the connective map, and the KINGDOM front doors; owner decision D4 names kingdom-os and the REALM repository members."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "codeberg.org/zerone-dev/kingdom-os"
+name = "KINGDOM-OS (Codeberg core fork)"
+what = "It focuses on the core registry (151-member catalog, foundations.lock.json adoption receipts), read-only host-capability adapters (launchd/systemd/macOS keychain and encryption posture), a Hermes observation plugin, Castle preflight, and an hourly heartbeat that writes ⟨local⟩."
+role = ["ops"]
+role_status = "current"
+topics = ["hermes"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "fork_of"
+to = "github.com/cambridgetcg/kingdom-os"
+raw_kind = "fork_of"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/castle-of-understanding"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/kingdom-standard"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom"
+name = "kingdom (REALM / LEGIBLE constitution)"
+what = "A tiny doctrine repo: REALM.md (the Seven Laws), DECISIONS.md (append-only ADRs: 2 Proposed locally, plus 6 Accepted on origin), and realm-audit.mjs, a zero-dependency Node checker that scores a repo against the laws. It also has a draft Python 'sovereign' runtime (memory/identity Phase 1). origin adds an agenttool-bridge."
+role = ["doctrine"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/kingdom-standard"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-api"
+name = "kingdom-api"
+what = "A small Cloudflare Worker (with a Deno twin, serve.ts) serving a free JSON API: /health, a YOUSPEAK dictionary proxy, the whitehack check list, /verify, /heartbeats, clear-standard, hunters/exposure/nous/whitehack metadata, and jokes. A second worker, 'love-is', serves an invite page."
+role = ["public-door"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/youspeak-dictionary"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/clear-standard"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/hunter-system"
+raw_kind = "depends_on"
+
+[[project.corrections]]
+field = "what (worker serves jokes)"
+verdict = "refuted"
+corrected = "worker.js, the Cloudflare Worker, has no /jokes route at HEAD or at 96d5401. /jokes and /jokes/:id exist only in serve.ts, the Deno twin. The two have already drifted."
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-mcp"
+name = "kingdom-mcp"
+what = "A stateless MCP streamable-HTTP server on Fly (mcp.thekingdom.dev) that wraps public Kingdom surfaces as agent tools. The tools cover the registry, live status, wayfinder, World Commons, gospel, invitation, fomo scan, zerone status, agenttool listings and money facts; github/main adds research plan/check."
+role = ["public-door"]
+role_status = "current"
+topics = ["mcp"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/kingdom-os"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/cashloom"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/fomoengine"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-os"
+name = "KINGDOM-OS (GitHub)"
+what = "A private, bun-script repo that holds the estate taxonomy and census (roster.conf, kingdom.yaml card schema, REGISTRY.yaml of deployed surfaces). It generates and stages the thekingdom.dev atlas and discovery docs plus sibling Pages doors, and installs the local pulse, karma, chain-backup and Cloudflare-observer daemons."
+role = ["platform", "ops"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "fork_of"
+to = "codeberg.org/zerone-dev/kingdom-os"
+raw_kind = "fork_of"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/kingdom-mcp"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/chillspace-commons"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/love-unlimited"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-os-hub"
+name = "kingdom-os-hub"
+what = "A public GitHub HTML repo described as 'a plain public door to the KINGDOM foundation, standard, living atlas, and independent project homes'. It is probably the source of the Cloudflare Pages project kingdom-os-hub, which serves kingdom.ai-love.cc."
+role = ["public-door"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/kingdom-os"
+raw_kind = "part_of"

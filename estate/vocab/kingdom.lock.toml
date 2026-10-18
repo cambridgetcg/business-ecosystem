@@ -1,0 +1,24 @@
+# KINGDOM integrity lock (estate layer). Hashes and commits of the KINGDOM foundation files
+# as last accepted; it never holds a vocabulary value, which is read live on every build.
+# Changed only by `estate accept-vocab --write`. harvest_reviewed_sha256 is the harvest.ts
+# blob whose read-only verbs (validate, conformance) were reviewed by hand.
+
+[kingdom_os]
+remote_id = "github.com/cambridgetcg/kingdom-os"
+harvest_reviewed_sha256 = "d2f703668b3d163de3c9a344744826c7a87ba177f1f57f7be187cbb049ff9947"
+
+[refs]
+
+[refs.worktree]
+commit = "943910e71371f4de818e58be16f31020c0101d5c"
+harvest_blob_sha256 = "d7974765fc2d4ba793745338b56d2a241ebcbc5f4acbfedb91a2a82cdf696ece"
+card_enums_block_sha256 = "6f65ac866ea6ab03eb1fdaa92285ed93ab1390686663f712467233c505a90e98"
+layers_block_sha256 = "e3b6812eb9828a16af06d8a6db3c38be7ce9d292e88ef5e316022bc70d27a62c"
+schema_md_sha256 = "3974417e48f9dd0bf2e00ff3501c23a89b58b436150c006cc5eab42cbd8dce2d"
+
+[refs."origin/main"]
+commit = "f02566ac7ed40e244cd7adb44c2a599a7543abb8"
+harvest_blob_sha256 = "d2f703668b3d163de3c9a344744826c7a87ba177f1f57f7be187cbb049ff9947"
+card_enums_block_sha256 = "6f65ac866ea6ab03eb1fdaa92285ed93ab1390686663f712467233c505a90e98"
+layers_block_sha256 = "e3b6812eb9828a16af06d8a6db3c38be7ce9d292e88ef5e316022bc70d27a62c"
+schema_md_sha256 = "2a5a4d60b7311bd1cf12836ef9d856bb0bdb9b51fb580f875b066e8284c2824f"

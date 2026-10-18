@@ -1,0 +1,151 @@
+[family]
+id = "family:zerone-satellites"
+label = "Zerone satellites — truth landing, identity research, seed MVPs, zerone-chain mirrors, depth, chain registry"
+summary = "This family is everything around the Zerone chain that is not the trunk itself (zerone-core lives in ⟨local⟩ and is surveyed by another family). It has five parts. (1) One public door: zerone-truth, a static four-page manifesto site served by Codeberg Pages at zerone.money and legible.money. KINGDOM-OS doors, the hub and the trunk dashboard all point to it as Zerone's \"human_view\" page. (2) Two preserved predecessor lineages of the chain, both named zerone-chain. The GitHub one (⟨local⟩) is the Proof-of-Truth history up to the 2026-06-17 \"canon ⋃ chain\" union, plus two love-bomb commits. The Codeberg one is a shallow mirror with two 2026-07-23 fix commits that never reached trunk. Trunk addressed the same holes another way: a constant gate, and dropping the private_corpus module (45→25 x/ dirs). (3) Release and seed snapshots of zerone-core. zerone-seed-mvp-v1 was the PR #67 clone. The record-integrity candidate and predecessor were the PR #78 upgrade rehearsal. Both were merged into github/main, and their history is kept in ⟨local⟩. (4) A research cluster: zerone-identity-research (on GitHub only now), the vendored thu-nics C2C code it probes, and about 1 GB of run outputs under ⟨local⟩ and ⟨local⟩. (5) Two GitHub-only pieces: a fork of cosmos/chain-registry used to list zerone-1 (the source bundle is in trunk's integrations/chain-registry), and zerone-depth, a financial-interpretation framework with no local trace. Important: a storage cleanup running in another session deleted three of this family's census paths between the census (12:09) and this survey (12:15, 2026-10-17): ⟨local⟩, ⟨local⟩, and the ⟨local⟩ worktree. I checked that their committed content survives on the forge or in core refs. Nothing in the family carries a kingdom.yaml card except zerone-truth, and that card is untracked. Biggest live risk: zerone.money's copy and links. It still says \"Zero pre-mine\", links to repos the GitHub listing reports as private, its Codeberg repo is now listed private, and no REGISTRY or pulse health check watches it."
+open_questions = ["Is zerone.money still being served now that the Codeberg zerone-truth repo is listed private (updated 2026-09-26)? To resolve: one live GET of https://zerone.money and a check of the repo's visibility on Codeberg. Consider adding a REGISTRY.yaml health entry either way.", "Should the landing's 'Zero pre-mine' wording and its links to private repos (zerone-core, zerone-chain, legible_money) be corrected? That is an owner decision; this survey made no change.", "What is cambridgetcg/zerone-depth, who owns it, and does it belong to Zerone, cashloom or legible-money? To resolve: read the forge README and commit log.", "Which branch of the cambridgetcg/chain-registry fork carries cosmos/chain-registry PR #7859, and is that PR still open? The cambridgetcg/slips fork (SLIP-0173 'zrn') is a companion repo that is not in any family list I was given."]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "kingdom-os"
+evidence = "Tools, snapshots and lineage around the economy-layer chain."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "codeberg.org/zerone-dev/zerone-chain"
+name = "zerone-chain (codeberg)"
+what = "A shallow clone (grafted at 4314c5e, 2026-06-09) of the Codeberg zerone-chain repo, still in the Proof-of-Truth README voice."
+heavy = true
+role = ["incidental"]
+role_status = "current"
+topics = ["zerone"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/zerone-core"
+raw_kind = "superseded_by"
+note = "github/main"
+
+[[project]]
+id = "codeberg.org/zerone-dev/zerone-truth"
+name = "zerone-truth"
+what = "A static, no-build HTML site (home, /being manifesto, /truth paper for humans, /truth/agent paper for agents, one stylesheet) published from the `pages` branch via Codeberg Pages to zerone.money and legible.money."
+role = ["public-door"]
+role_status = "current"
+topics = ["zerone"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/zerone-core"
+raw_kind = "depends_on"
+
+[[project.corrections]]
+field = "open_questions: identity of 'Asha Veridian'"
+verdict = "weakened"
+corrected = "Partly resolved. 'Asha Veridian' is an estate-wide git author identity: the last author on 39 census checkouts (citizens/*, ai-love, fomoengine, legible_money, Claude-unlimited, …), mostly merge and beat commits from 2026-07-23 to 07-26, in timezone -0700. It is a fleet identity, not an outsider. Whether it should push to the public door is still an owner question."
+
+[[project]]
+id = "github.com/cambridgetcg/chain-registry"
+name = "chain-registry"
+what = "A public GitHub fork of cosmos/chain-registry (Python, about 248 MB), almost certainly the head for cosmos/chain-registry PR #7859, which submits zerone-1's chain.json, assetlist.json and ZRN SVG. The source bundle itself lives in zerone-core at integrations/chain-registry/zerone/."
+role = ["distribution"]
+role_status = "current"
+topics = ["zerone"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "fork_of"
+to = "github.com/cosmos/chain-registry"
+raw_kind = "fork_of"
+
+[[project]]
+id = "github.com/cambridgetcg/zerone-chain"
+name = "zerone-chain"
+what = "A private GitHub repo preserving the original 'Proof of Truth' Cosmos-SDK chain lineage up to the 2026-06-17 'canon ⋃ chain' unification, plus two 2026-07-21 love-bomb commits. Contents: 45 x/ module dirs, cmd/zeroned, cmd/oracle, a canon/ folder of Python ritual scripts and chain.jsonl, and testnet network config."
+role = ["doctrine", "archive"]
+role_status = "current"
+topics = ["zerone"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/zerone-core"
+raw_kind = "superseded_by"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "codeberg.org/zerone-dev/zerone-chain"
+raw_kind = "mirror_of"
+
+[[project]]
+id = "github.com/cambridgetcg/zerone-depth"
+name = "zerone-depth"
+what = "A public GitHub Python repo (about 133 KB) whose forge description is 'Open, provenance-first framework for deep financial interpretation'. Nothing on this machine clones or references it, so its contents are unknown."
+role = ["research", "product"]
+role_status = "claimed"
+topics = ["zerone"]
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "'Zerone Depth', a reading room with a XENIA surface that serves depth.zerone.ai through its tracked proxy worker.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project]]
+id = "github.com/cambridgetcg/zerone-identity-research"
+name = "zerone-identity-research"
+what = "A public research repo on identity continuity, consent and resource control across Zerone and AgentTool. It holds Markdown studies plus bounded offline Python experiments on small models (Qwen3 0.6B/1.7B, the C2C KV-cache fuser), prototypes and evidence logs."
+role = ["research"]
+role_status = "current"
+topics = ["agenttool", "zerone"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/thu-nics/c2c"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/thu-nics/c2c"
+name = "c2c"
+what = "Third-party (THU NICS, Apache-2.0) Cache-to-Cache research code: a Python package named 'rosetta' that projects and fuses KV-caches between two LLMs. Cloned at revision 9fa85d35 as input to Zerone identity-continuity probes."
+role = ["research"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "undecided", third_party = true, confidence = "low", evidence = "Third-party research code kept as input to zerone research; not authored here.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/zerone-identity-research"
+raw_kind = "feeds"

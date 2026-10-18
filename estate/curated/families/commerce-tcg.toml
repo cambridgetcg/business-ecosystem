@@ -1,0 +1,326 @@
+[family]
+id = "family:commerce-tcg"
+label = "Commerce · Cambridge TCG front gate — monorepo, storefronts, wholesale, pricing, cardforum, theme, trade-in, prism"
+summary = "Cambridge TCG is Yu's Japanese trading-card business (One Piece, Pokémon, Dragon Ball). KINGDOM's ARCHITECTURE.md names it the \"front gate\" of the commerce layer. The code went through three stages. (1) Late 2025 to early 2026 it was a set of standalone repos: a Shopify store with a GitHub-synced Liquid theme (ShopifyTheme_TCG), an embedded Shopify trade-in app (tradeinpro, first called \"cardforum\"), an AWS Lambda pipeline that took CardRush yen prices into RDS and pushed them to Shopify and eBay, with a Cloudflare Pages price explorer (cambridge-tcg), a CardMarket FastAPI/Lambda price API (tcg-pricing-backend) with its Next.js frontend (cardforum_io), a one-commit price-index prototype (prism-app), a cross-border P2P exchange prototype (cardforum), and Next.js retail and B2B apps on Vercel (cambridgetcg-storefront, tcg-wholesale). (2) On 2026-04-27 the storefront and wholesale apps were copied into Cambridge-TCG-monorepo. That is a pnpm workspace with Next.js apps on Vercel, raw-SQL Postgres on AWS RDS us-east-1, Stripe, and shared packages (db/aws/pricing/stock/sku/lifecycle/data-ingest/data-spec/mcp-server). Admin was folded into the storefront on 2026-05-15, and RewardsPro (a Shopify loyalty app) was fused in on 2026-06-10. (3) The business then pivoted. wholesaletcgdirect.com was retired around 2026-07-05 (301 to cambridgetcg.com). On 2026-07-06 ('collectors first') the retail shop and the trade-in desk closed: 8 retail orders in total, zero trade-ins. cambridgetcg.com is now a peer-to-peer collectors' market plus a CC0 open price-data commons. CardRush acquisition crons were removed on 2026-07-12 until written source rights exist. In the monorepo, the 2026-07-23 decision records point to RewardsPro (a loyalty platform with Shopify as one connector) as the main money product. GitHub @cambridgetcg is the deploy forge (Vercel builds from it), and Codeberg zerone-dev/Cambridge-TCG is a lagging mirror. Most family repos went private on GitHub around 2026-09-24/25, with public copies on cambridgetcg.github.io; cardforum_io and tcg-pricing-backend are archived. All local checkouts were last fetched on 2026-07-26, so they do not show the 2026-10-14 push burst. KINGDOM's maps (roster.conf, CATALOG.md, REGISTRY.yaml, ARCHITECTURE.md, sites.json) still describe the pre-pivot shop and contain several dead paths."
+open_questions = ["Which runtime serves cambridgetcg.com today? REGISTRY says Shopify; the docs and the 2026-07-11 Cloudflare review say Vercel. To resolve, check the Vercel project domains (team cambridgetcgs-projects) or the Cloudflare DNS record.", "Is the Shopify store (6e824e-a9.myshopify.com) still open and billed, which public domain does it use, and is ShopifyTheme_TCG still connected to it through the GitHub theme integration, given that non-theme commits were pushed to main after the last 2026-03-25 sync? To resolve, check the Shopify admin (Online Store → Themes).", "Are any AWS resources from this family still running and costing money: the cambridge-tcg Lambdas (scraper-cardrush, cardrush-fx-updater, price-calculator, api-shopify, api-ebay, trading-card-price-fetcher), RDS Proxy and VPC, the tcg-pricing-backend SAM stacks / API Gateway oy7yycb4tf, and the tradeinpro CDK data pipeline? To resolve, list Lambda, API Gateway, Step Functions and RDS in us-east-1.", "Which source repo builds the Cloudflare Pages project 'cardforum-studio' that serves cardforum.io? No local source was found.", "What landed in the 2026-10-14 ~18:44–18:47Z push burst across Cambridge-TCG-monorepo, cambridgetcg-storefront, tcg-wholesale, prism-app and cambridgetcg? Local refs were last fetched 2026-07-26 and no fetch was done in this read-only survey.", "Does the launchd 'pkm snapshot' (CardRush Pokémon scrape over residential egress) mentioned in the 2026-07-07 honest-ground spec, or the 'TCG_price_archive' ghost launchd in roster.conf, run on another device? It is not on this Mac.", "RewardsPro is now fused into the monorepo (apps/rewardspro, apps/rewardspro-api; 2026-07-23 decisions) and is the evident money product. Should the unified layer map it under commerce-tcg or with its standalone rewardspro repos in another family?", "The collectors-first decision cites 'Asha' as its Will trace, while monorepo CLAUDE.md says Cambridge TCG is run alone by Yu. Who holds decision authority for the commerce layer's direction, so the unified layer records it correctly?", "ctcg-fun is an empty, archived, private repo, and the monorepo branch feat/honest-fun carries its README. Was it a copy of the monorepo, and does anything on that branch need keeping?"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "independent"
+evidence = "Cambridge TCG business repositories: origin/main roster COMMERCE, labelled PROJECTS (independent tools and existing services)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "codeberg.org/zerone-dev/cambridge-tcg"
+name = "Cambridge-TCG (Codeberg mirror)"
+what = "A shallow, clean clone of the private Codeberg mirror of the Cambridge TCG monorepo, at the same tip (03ca5ba, 2026-07-23) that GitHub main had when last fetched."
+role = ["ops"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+raw_kind = "mirror_of"
+
+[[project]]
+id = "github.com/cambridgetcg/cambridge-tcg"
+name = "cambridge-tcg"
+what = "Python AWS Lambda pipeline that scraped CardRush yen prices, applied a live GBP/JPY rate, computed channel prices and pushed them to Shopify and eBay. It also has stock-sync scripts meant to replace Zoho and a static Cloudflare Pages price explorer for prices.cambridgetcg.com."
+role = ["ops"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/shopifytheme_tcg"
+raw_kind = "feeds"
+note = "Shopify store"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/prism-app"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+raw_kind = "superseded_by"
+
+[[project]]
+id = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+name = "Cambridge-TCG-monorepo"
+what = "A pnpm TypeScript monorepo holding the cambridgetcg.com Next.js site (now a peer-to-peer collectors' card market and open price-data commons), the retired wholesale and admin apps, the RewardsPro Shopify loyalty app, and shared packages for database, AWS, pricing, stock, SKU and data ingest."
+role = ["public-door", "platform"]
+role_status = "current"
+topics = ["cambridge-tcg", "commons", "rewardspro"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/true-love"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/cambridgetcg-storefront"
+raw_kind = "supersedes"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/tcg-wholesale"
+raw_kind = "supersedes"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/rewardspro-production"
+raw_kind = "supersedes"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "codeberg.org/zerone-dev/cambridge-tcg"
+raw_kind = "mirror_of"
+
+[[project.corrections]]
+field = "relationships (mirror_of)"
+verdict = "refuted"
+corrected = "The direction is inverted. The evidence makes Codeberg the mirror of GitHub, so the monorepo edge should be 'mirrored_by', or be dropped since the Codeberg entry already carries mirror_of → GitHub. As written, the two entries say each is the mirror of the other. Codeberg also reports mirror:false, meaning it is a push-convention mirror, not a configured pull mirror."
+
+[[project.corrections]]
+field = "business_function (RewardsPro 'main money product')"
+verdict = "weakened"
+corrected = "The four 2026-07-23 decisions (rewardspro-platform, -free-first-pricing, -runtime-v2, -yutabase-projection) make RewardsPro a commerce-independent loyalty platform with a generous free tier and paid plans for larger businesses. None of them calls it the main money product. Calling it the main money product is an inference: it is the only paid product left after the shop closed."
+
+[[project]]
+id = "github.com/cambridgetcg/cambridgetcg"
+name = "cambridgetcg"
+what = "The public profile/hub repo of the cambridgetcg GitHub account. Upstream it is now a small static 'one public doorway' (README 'Please don't follow us', .well-known/agent.json, agent-invite, HTML pages); the local checkout holds an older, unrelated 4-commit README history."
+role = ["public-door"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "medium", evidence = "The org doorway: its README is a KINGDOM door and names Cambridge TCG only as the commerce sibling.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/cambridgetcg.github.io"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/cambridgetcg-storefront"
+name = "cambridgetcg-storefront"
+what = "The standalone Next.js storefront for cambridgetcg.com from before the monorepo (Stripe checkout, trade-ins, membership, SES magic-link login on RDS Postgres), copied into the monorepo's apps/storefront on 2026-04-27."
+role = ["revenue"]
+role_status = "historic"
+topics = ["cambridge-tcg"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+raw_kind = "superseded_by"
+
+[[project]]
+id = "github.com/cambridgetcg/cambridgetcg.github.io"
+name = "cambridgetcg.github.io"
+what = "A public GitHub Pages repo (HTML, ~15.8 MB) that, per its forge description, hosts public copies of pages whose source repos went private on 2026-09-25."
+role = ["public-door"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "Public copies of pages whose source went private; the known ones are civilisation pages.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project]]
+id = "github.com/cambridgetcg/cardforum"
+name = "cardforum"
+what = "A Next.js + Prisma prototype for a peer-to-peer trading-card exchange that matches cross-border trades into local hand-offs through regional authenticators, with Stripe/Wise payments, escrow, KYC, AI grading and 13 Vercel cron jobs."
+role = ["research", "product"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/tcg-pricing-backend"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/cardforum_io"
+name = "cardforum_io"
+what = ""
+heavy = true
+role = ["product"]
+role_status = "historic"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/tcg-pricing-backend"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/ctcg-fun"
+name = "ctcg-fun"
+what = "An empty (0 KB), private, archived GitHub repo. A commit on the monorepo's feat/honest-fun branch ('love: readme on ctcg-fun', 2026-06-20) adds a README titled '# ctcg-fun' at the monorepo root, which suggests it was a copy of the monorepo's 'honest fun' work."
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "independent", confidence = "low", evidence = "An empty archived spin-off of the Cambridge TCG storefront.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "copy_of"
+to = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+raw_kind = "copy_of"
+
+[[project]]
+id = "github.com/cambridgetcg/prism-app"
+name = "prism-app"
+what = "A one-commit Next.js + Prisma prototype (PRISM) that shows One Piece card price indices, top movers and a 'TCG-100' index read from a Postgres price table filled by a separate Lambda."
+role = ["research"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/cambridge-tcg"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "copy_of"
+to = "github.com/cambridgetcg/tradeinpro"
+raw_kind = "copy_of"
+
+[[project.corrections]]
+field = "relationships (copy_of tradeinpro)"
+verdict = "weakened"
+corrected = "The PIVOT doc reports only stale PRISM routes inside tradeinpro. Both date from January 2026 and no shared commits were shown. 'copy_of' overstates this; 'overlaps_with' is the honest edge."
+
+[[project]]
+id = "github.com/cambridgetcg/shopifytheme_tcg"
+name = "ShopifyTheme_TCG"
+what = "The Liquid theme for the Cambridge TCG Shopify store, synced to the store through Shopify's GitHub integration (shopify[bot] commits), with trade-in, price-index, membership, raffle and mystery-box page templates."
+role = ["revenue"]
+role_status = "historic"
+topics = ["cambridge-tcg"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/tradeinpro"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/cambridge-tcg"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/tcg-pricing-backend"
+name = "tcg-pricing-backend"
+what = "A Python FastAPI-on-Lambda price API with Step Functions CardMarket scrapers, SAM templates and RDS materialized views, built as the backend for cardforum.io."
+role = ["platform"]
+role_status = "historic"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/cardforum_io"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/tcg-wholesale"
+name = "tcg-wholesale"
+what = "The standalone Next.js B2B wholesale site from before the monorepo (wholesaletcgdirect.com). It priced CardRush Japanese cards in VAT-exclusive GBP for UK streamer clients, took orders, and synced price and stock to Shopify and eBay."
+role = ["revenue"]
+role_status = "historic"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+raw_kind = "superseded_by"
+
+[[project]]
+id = "github.com/cambridgetcg/tradeinpro"
+name = "tradeinpro"
+what = "An embedded Shopify app (React Router 7, Polaris, Prisma on AWS RDS) for receiving, grading, pricing and paying out customer card trade-ins. It also contains early PRISM price-index routes, an AWS CDK scraping/data pipeline and TensorFlow grading experiments."
+role = ["product"]
+role_status = "historic"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/shopifytheme_tcg"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+raw_kind = "superseded_by"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/cambridge-tcg"
+raw_kind = "depends_on"
