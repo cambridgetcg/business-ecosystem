@@ -3,7 +3,7 @@
  * Orchestrates parallel and sequential query execution with dependency management
  */
 
-import pino from 'pino';
+import { pino } from 'pino';
 import type { Logger } from 'pino';
 import type { QueryOptions, QueryFn, QueryMeta } from './types.js';
 

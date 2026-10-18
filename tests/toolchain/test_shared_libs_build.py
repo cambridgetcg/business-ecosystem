@@ -1,0 +1,65 @@
+"""Build the shared libraries other packages compile against, then import their ESM output."""
+from pathlib import Path
+import shutil
+import subprocess
+import unittest
+
+ROOT = Path(__file__).resolve().parents[2]
+
+# One synthetic probe per library: it imports dist/index.js in a fresh Node
+# process and calls code that needs no network, database or real credential.
+# @ecosystem/outbox is absent while its build is quarantined (ci/quarantine.json).
+PROBES = {
+    '@ecosystem/health': ('shared/libs/health', '''
+import assert from 'node:assert/strict';
+import { createMemoryHealthCheck, registerHealthCheck, clearHealthChecks } from './dist/index.js';
+const check = createMemoryHealthCheck(90, 'probe');
+assert.equal(check.name, 'probe');
+assert.equal(check.critical, false);
+registerHealthCheck(check);
+clearHealthChecks();
+'''),
+    '@ecosystem/saga': ('shared/libs/saga', '''
+import assert from 'node:assert/strict';
+import { registerSaga, getSagaDefinition, sagaMigrationSQL } from './dist/index.js';
+registerSaga({type: 'toolchain-probe', steps: []});
+assert.equal(getSagaDefinition('toolchain-probe').type, 'toolchain-probe');
+assert.match(sagaMigrationSQL, /CREATE TABLE/);
+'''),
+    '@ecosystem/service-auth': ('shared/libs/service-auth', '''
+import assert from 'node:assert/strict';
+import { createServiceToken, verifyServiceToken } from './dist/index.js';
+const config = {secret: 'synthetic-probe-secret', issuer: 'probe', audience: 'probe'};
+const token = await createServiceToken(config, {
+  serviceId: 'probe', serviceName: 'probe', permissions: ['entity:read'], environment: 'test'
+});
+const identity = await verifyServiceToken(config, token);
+assert.equal(identity.serviceId, 'probe');
+assert.deepEqual(identity.permissions, ['entity:read']);
+'''),
+}
+
+
+class SharedLibraryToolchainTests(unittest.TestCase):
+    def test_shared_libraries_build_and_import_under_node(self):
+        pnpm = shutil.which('pnpm')
+        self.assertIsNotNone(pnpm, 'Install the packageManager version from package.json first.')
+        filters = [arg for name in PROBES for arg in ('--filter', f'{name}...')]
+        build = subprocess.run(
+            [pnpm, *filters, 'run', 'build'],
+            cwd=ROOT, text=True, capture_output=True, timeout=300,
+        )
+        self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
+        for name, (directory, probe) in PROBES.items():
+            with self.subTest(name):
+                package = ROOT / directory
+                self.assertTrue((package / 'dist/index.d.ts').is_file())
+                result = subprocess.run(
+                    ['node', '--input-type=module', '-e', probe],
+                    cwd=package, text=True, capture_output=True, timeout=30,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+
+
+if __name__ == '__main__':
+    unittest.main()

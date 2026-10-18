@@ -10,7 +10,7 @@
  * Includes compensation logic for rollback if any step fails.
  */
 
-import pino from 'pino';
+import { pino } from 'pino';
 import type { Logger } from 'pino';
 
 // Local type definitions matching @ecosystem/saga

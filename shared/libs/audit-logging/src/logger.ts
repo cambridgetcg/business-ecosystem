@@ -2,7 +2,7 @@
  * Structured logger using Pino
  */
 
-import pino from 'pino';
+import { pino } from 'pino';
 import type { Logger as PinoLoggerType } from 'pino';
 import type { AuditLoggerConfig } from './types.js';
 

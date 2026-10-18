@@ -3,7 +3,7 @@
  * Prevents N+1 queries by batching and caching
  */
 
-import pino from 'pino';
+import { pino } from 'pino';
 import type { Logger } from 'pino';
 import type { DataLoaderOptions } from './types.js';
 

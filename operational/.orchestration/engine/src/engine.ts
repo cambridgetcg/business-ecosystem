@@ -3,7 +3,7 @@
  * Main orchestration engine that loads workflows, subscribes to events, and executes
  */
 
-import pino from 'pino';
+import { pino } from 'pino';
 import { randomUUID } from 'crypto';
 import type { DomainEvent, EventHandler } from '@ecosystem/messaging';
 import {

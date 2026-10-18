@@ -3,7 +3,7 @@
  * Generates reports from definitions by fetching data from operational domains
  */
 
-import pino from 'pino';
+import { pino } from 'pino';
 import type {
   ReportDefinition,
   ReportData,

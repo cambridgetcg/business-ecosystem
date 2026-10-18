@@ -3,7 +3,7 @@
  * Type-safe builder for cross-domain queries
  */
 
-import pino from 'pino';
+import { pino } from 'pino';
 import type { Logger } from 'pino';
 import { QueryExecutor } from './query-executor.js';
 import { DataLoader, createEntityLoader } from './data-loader.js';
