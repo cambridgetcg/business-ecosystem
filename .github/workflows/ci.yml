@@ -15,6 +15,8 @@ permissions:
 
 # Package tasks listed in ci/quarantine.json are skipped by every turbo run
 # below; scripts/ci-quarantine.mjs prints the --filter=!<package> arguments.
+# Every job validates the list first: when it is invalid, $(...) prints no
+# filters, and turbo would run unfiltered and fail on a quarantined task.
 # The pnpm exec form matters: `pnpm lint --filter=...` would be read by pnpm.
 
 jobs:
@@ -63,6 +65,8 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Validate the quarantine list
+        run: node scripts/ci-quarantine.mjs check
       - name: Build
         run: pnpm exec turbo run build $(node scripts/ci-quarantine.mjs build)
       - name: Test
@@ -84,6 +88,8 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Validate the quarantine list
+        run: node scripts/ci-quarantine.mjs check
       - name: Build All
         run: pnpm exec turbo run build $(node scripts/ci-quarantine.mjs build)
 
@@ -110,6 +116,8 @@ jobs:
       # Prisma packages' counts depend on the stub client @prisma/client's
       # postinstall writes, which pnpm's side-effects cache does not restore.
       - run: pnpm install --frozen-lockfile --config.side-effects-cache=false
+      - name: Validate the quarantine list
+        run: node scripts/ci-quarantine.mjs check
       - name: Build what quarantined tasks compile against
         run: pnpm exec turbo run build $(node scripts/ci-quarantine.mjs build)
       - name: Re-measure quarantined tasks in touched packages
@@ -136,6 +144,8 @@ jobs:
       # Prisma packages' counts depend on the stub client @prisma/client's
       # postinstall writes, which pnpm's side-effects cache does not restore.
       - run: pnpm install --frozen-lockfile --config.side-effects-cache=false
+      - name: Validate the quarantine list
+        run: node scripts/ci-quarantine.mjs check
       - name: Build what quarantined tasks compile against
         run: pnpm exec turbo run build $(node scripts/ci-quarantine.mjs build)
       - name: Re-measure every quarantined task
