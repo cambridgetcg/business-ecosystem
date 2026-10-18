@@ -129,7 +129,8 @@ from reading under the Desktop folder, and a quietly failing job is worse than n
 
 - `private/ATLAS.html` (reached as `estate/atlas.html`) and `private/ATLAS.md`, the atlas;
 - `private/current/` (the newest run): `PROPOSALS.md`, `DRIFT.md`, `QUEUE.md`, `ATTENTION.md`,
-  `HYGIENE.md`, `portfolio-join.json`, `records.jsonl`, `proposals.jsonl`, `run.json` and `SHA256SUMS`;
+  `HYGIENE.md`, `CAPABILITIES.md`, `portfolio-join.json`, `records.jsonl`, `proposals.jsonl`, `run.json` and
+  `SHA256SUMS`;
 - `private/tree` (reached as `estate/tree`), the symlink tree of canonical checkouts.
 
 The tree has eight axes: `0-foundation` (the kingdom-os and REALM checkouts the taxonomy is read
@@ -202,6 +203,13 @@ names it, keeps rows the import leaves out, and puts local ids and the full evid
 `private/curated/capability.toml` (0600, one copy). QUEUE lists `capability-unassigned` (in scope, nothing
 places it), `capability-candidate` (a run-band value `be.framework_domain` names that the project neither
 holds nor lists as designed), `capability-review-overdue` and `capability-orphan-row` (a row naming no record).
+
+The map is the body of the atlas's Business (secondary) section: per band, each capability with the records
+holding it and their operating claims, who it serves, where it is designed only and which records name it
+as `be.framework_domain` relevance; then the gaps (sell and grow capabilities no record holds as in use,
+worded as a statement about code, not a verdict on the business) and every record in business scope.
+`CAPABILITIES.md` beside the atlas holds the whole map value by value, with each row's private evidence;
+Questions for Yu carries one line for the rows waiting on review.
 
 ## Hygiene: the plan of owner decision D8
 

@@ -422,6 +422,8 @@ class CommandLineCapabilityTests(fixture.EstateTestCase):
         rows = test_e2e.jsonl(os.path.join(cls.run_dir, "records.jsonl"))[1:]
         cls.by_id = {r["id"]: r for r in rows if r.get("presence", "present") == "present"}
         cls.verb = test_e2e.cli(e.layer, "capability")
+        cls.atlas = test_e2e.read_text(os.path.join(cls.run_dir, "ATLAS.md"))
+        cls.full = test_e2e.read_text(os.path.join(cls.run_dir, "CAPABILITIES.md"))
 
     def capability_of(self, pid):
         return self.by_id[pid]["display"]["capability"]
@@ -475,6 +477,62 @@ class CommandLineCapabilityTests(fixture.EstateTestCase):
 
     def cli(self, *argv):
         return test_e2e.cli(self.layer, *argv)
+
+    def section(self, start, end):
+        return self.atlas[self.atlas.index(start):self.atlas.index(end)]
+
+    def test_the_map_is_the_body_of_the_business_section_not_a_second_section(self):
+        business = self.section("\n## Business (secondary)", "\n## Freshness")
+        self.assertEqual(business.count("\n## "), 1)
+        for needle in ("Scope, one population for this whole section", "display field of the Business view",
+                       "### Band: sell", "### Band: own-funds", "alpha-service \\[unknown\\]", "in-use 1",
+                       "### Gaps: no code in use found", "marketing-outreach (grow): no code in use; no record "
+                       "holds it", "says what the code shows, not what the business does by other means",
+                       "### Records in business scope", "CAPABILITIES.md", "QUEUE capability-orphan-row"):
+            self.assertIn(needle, business)
+        self.assertIn("goods-sales (sell): no code in use; no record holds it", business)
+        self.assertNotIn("billing (sell): no code in use", business)  # alpha's billing is in use
+        questions = self.atlas[self.atlas.index("\n## Questions for Yu"):]
+        self.assertIn("Capability map (Business):", questions)
+        self.assertIn("4 curated rows are not yet reviewed", questions)
+
+    def test_capabilities_md_holds_every_value_with_its_evidence_privately(self):
+        self.assertIn("# Capabilities — run ", self.full)
+        self.assertIn("## How a value is read", self.full)
+        self.assertIn("code-unbuilt — source exists", self.full)
+        for value in ALLOWED:
+            self.assertIn("### %s (" % value, self.full)
+        self.assertIn("the full alpha evidence", self.full)  # the private view shows the private text
+        self.assertNotIn("the full alpha evidence", self.atlas)
+        path = os.path.join(self.run_dir, "CAPABILITIES.md")
+        self.assertEqual(stat.S_IMODE(os.lstat(path).st_mode), 0o600)
+        self.assertIn("  CAPABILITIES.md\n", test_e2e.read_text(os.path.join(self.run_dir, safety.SUMS_NAME)))
+        self.assertEqual(self.cli("check")[0] in (0, 10), True)
+
+
+class RenderInputTests(fixture.EstateTestCase):
+
+    def test_a_snapshot_without_the_map_says_so(self):
+        import render
+        layer = fixture.make_layer(self.case_dir("bare"))
+        area = safety.PrivateArea(layer)
+        run_id = "20261018T120000Z-0001"
+        area.mkdir("runs/" + run_id)
+        area.write("runs/%s/%s" % (run_id, safety.RUN_MARKER), run_id + "\n")
+        files = render.render_all(os.path.join(area.root, "runs", run_id), [], [], None, home=layer)
+        self.assertIn("Capability map: not provided to the renderer.", test_e2e.read_text(files["CAPABILITIES.md"]))
+        self.assertIn("Capability map: not provided to the renderer.", test_e2e.read_text(files["ATLAS.md"]))
+
+    def test_a_mirror_is_not_counted_twice(self):
+        import render
+        projects = {G + "trunk": project(G + "trunk", family="commerce-tcg"),
+                    G + "mirror": project(G + "mirror", family="commerce-tcg")}
+        rows, _ = index({"id": G + "trunk", "values": ["goods-sales"], "operating": {"goods-sales": "unknown"}})
+        capability.resolve_projects(projects, rows, {G + "mirror": [G + "trunk"]})
+        records = [dict(p, presence="present") for p in projects.values()]
+        view = render.View({"records": records, "capability": {}}, [], None, None, test_model.VOCAB, None, None, "x", "/")
+        self.assertEqual([p["id"] for p, _e in render._holders(view)["goods-sales"]], [G + "trunk"])
+        self.assertEqual(field(projects, G + "mirror")["basis"], capability.MIRROR)
 
 
 if __name__ == "__main__":  # pragma: no cover

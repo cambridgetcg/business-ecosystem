@@ -1590,8 +1590,9 @@ def cmd_capability(ctx, args):
                                                                        for f in fields.values()).items())),
         ", ".join("%s %d" % kv for kv in sorted(Counter(f.get("basis") or "missing" for f in fields.values()).items())),
         sum(1 for f in fields.values() if f.get("scope"))))
+    own = [f for f in fields.values() if f.get("basis") != capability.MIRROR]  # a mirror is not counted twice
     for band, members in capability.bands(facets).items():
-        say("  %s: %s" % (band, " · ".join("%s %d" % (v, sum(1 for f in fields.values() if v in (f.get("values") or [])))
+        say("  %s: %s" % (band, " · ".join("%s %d" % (v, sum(1 for f in own if v in (f.get("values") or [])))
                                           for v in members)))
     unassigned = sorted(pid for pid, f in fields.items() if f.get("status") == capability.UNASSIGNED)
     say("unassigned projects in business scope: %d" % len(unassigned))

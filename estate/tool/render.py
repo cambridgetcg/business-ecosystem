@@ -1,5 +1,6 @@
 """Views of one estate build (spec section 7): ATLAS.md, ATLAS.html, PROPOSALS.md, DRIFT.md,
-QUEUE.md, ATTENTION.md, HYGIENE.md (owner decision D8) and portfolio-join.json.
+QUEUE.md, ATTENTION.md, HYGIENE.md (owner decision D8), CAPABILITIES.md (the business capability map)
+and portfolio-join.json.
 
 Every view is a projection of the snapshot model.build_records() returned and the proposals
 proposals.propose() returned. Nothing here measures, resolves or decides: a value the model left
@@ -28,7 +29,7 @@ import sphere
 
 
 VIEW_FILES = ("ATLAS.md", "ATLAS.html", "PROPOSALS.md", "DRIFT.md", "QUEUE.md", "ATTENTION.md",
-              "HYGIENE.md", "HYGIENE.html", "portfolio-join.json")
+              "HYGIENE.md", "HYGIENE.html", "CAPABILITIES.md", "portfolio-join.json")
 JOIN_SCHEMA = "estate.portfolio-join/1"
 # Spec 7, plus base-uri and form-action, which default-src does not cover.
 CSP = "default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"
@@ -406,6 +407,7 @@ class View:
         self.navigation = list(nav or model.NAVIGATION)
         self.hygiene = snapshot.get("hygiene") or {"status": "not provided", "reason": "not provided to the renderer"}
         self.hygiene_href = "HYGIENE.md"  # render_all sets the run's own file: URL
+        self.capabilities_href = "CAPABILITIES.md"  # likewise
 
     def kind(self, kind):
         return sorted((r for r in self.present if r.get("kind") == kind), key=lambda r: r["id"])
@@ -496,6 +498,10 @@ class View:
             facet = facet_of(project, name)
             rows.append((name, facet_text(facet), "%s %s" % (facet.get("basis") or "—", facet.get("src") or ""),
                          facet.get("at")))
+        field = capability_of(project)
+        if field:
+            rows.append(("capability (business)", facet_text(field), "%s %s" % (field.get("basis") or "—",
+                                                                             field.get("src") or ""), field.get("at")))
         for key, value in sorted((project.get("measures") or {}).items()):
             rows.append(("measure %s" % key, value, "src:census", None))
         rows.append(("checkouts", ["%s (%s)" % (self.rel(c), (self.by_id.get(c) or {}).get("checkout_role"))
@@ -1157,7 +1163,167 @@ def _schedulers(doc, v):
                "caveat"), rows)
 
 
+def capability_of(project):
+    """The business capability display field of a project ({} when it has none)."""
+    return (project.get("display") or {}).get("capability") or {}
+
+
+def _capability_vocab(v):
+    """(bands {band: [values]}, {value: definition}) from vocab/facets.toml, else from the snapshot."""
+    facets = v.vocab.get("facets") or {}
+    info = v.snapshot.get("capability") or {}
+    definitions = ((facets.get("business") or {}).get("capability") or {}).get("values") or {}
+    return capability.bands(facets) or dict(info.get("bands") or {}), definitions
+
+
+def _holders(v):
+    """{value: [(project, its reading)]}: the projects that hold each value by their own row or
+    packages. A mirror holds its project's values again and is not counted twice."""
+    out = {}
+    for project in v.projects:
+        field = capability_of(project)
+        if field.get("basis") == capability.MIRROR:
+            continue
+        for value in field.get("values") or []:
+            out.setdefault(value, []).append((project, (field.get("by_value") or {}).get(value) or {}))
+    return out
+
+
+def _reading(entry):
+    """impl and operating of one holder, the impl only when it is not code."""
+    impl = entry.get("impl") or capability.DEFAULTS["impl"]
+    operating = entry.get("operating") or capability.DEFAULTS["operating"]
+    return operating if impl == capability.DEFAULTS["impl"] else "%s, %s" % (impl, operating)
+
+
+def _designers(v):
+    """{value: [projects that list it as designed only]}."""
+    out = {}
+    for project in v.projects:
+        for value in capability_of(project).get("designed") or []:
+            out.setdefault(value, []).append(project)
+    return out
+
+
+def _capability_lead(doc, v):
+    info = v.snapshot.get("capability")
+    if info is None:
+        doc.p("Capability map: not provided to the renderer.")
+        return False
+    fields = [capability_of(p) for p in v.projects]
+    scoped = [f for f in fields if f.get("scope")]
+    doc.p("The capability map: what the business has code for, or does by hand (a dated manual claim). It is a "
+          "display field of the Business view, not a navigation facet; only an owner decision makes it one. A "
+          "capability that is only documented or designed is listed as designed, never as a value; an idea is never "
+          "a value. operating is a claim as of its row, reviewed = false until Yu reviews it.")
+    doc.p("In business scope: %d present projects, %d with capabilities, %d curated as having none, %d unassigned. "
+          "All %d present projects by basis: %s. Curated rows: %d, %d not yet reviewed, %d past their review date, "
+          "%d naming no record of this run." % (
+              len(scoped), sum(1 for f in scoped if f.get("status") == capability.SET),
+              sum(1 for f in scoped if f.get("status") == capability.NONE),
+              sum(1 for f in scoped if f.get("status") == capability.UNASSIGNED), len(fields),
+              ", ".join("%s %d" % kv for kv in sorted(Counter(f.get("basis") or "missing" for f in fields).items()))
+              or "none", info.get("rows", 0), len(info.get("unreviewed") or []), len(info.get("overdue") or []),
+              len(info.get("unmatched") or [])))
+    return True
+
+
+def _capability_bands(doc, v, level, full=False):
+    """One table per band: per value the projects holding it with their operating claim, the
+    claims counted, who it serves, the projects where it is designed only, and the projects whose
+    be.framework_domain names it (relevance). full: one table per value, with each row's evidence."""
+    bands, definitions = _capability_vocab(v)
+    holders, designers = _holders(v), _designers(v)
+    relevant = {}
+    for project in v.projects:
+        for value in (project.get("display") or {}).get("be.framework_domain") or []:
+            relevant.setdefault(value, []).append(project)
+    for band, members in bands.items():
+        doc.h(level, "Band: %s" % band)
+        if not full:
+            rows = []
+            for value in members:
+                held = holders.get(value) or []
+                claims = Counter(e.get("operating") or capability.DEFAULTS["operating"] for _p, e in held)
+                serves = Counter(e.get("serves") or capability.DEFAULTS["serves"] for _p, e in held)
+                rows.append((value, "; ".join("%s [%s]" % (v.name(p["id"]), _reading(e)) for p, e in held) or "none",
+                             ", ".join("%s %d" % kv for kv in sorted(claims.items())) or "—",
+                             ", ".join("%s %d" % kv for kv in sorted(serves.items())) or "—",
+                             ", ".join(v.name(p["id"]) for p in designers.get(value) or []) or "—",
+                             ", ".join(v.name(p["id"]) for p in relevant.get(value) or []) or "—"))
+            doc.table(("capability", "records [operating]", "operating claims", "serves", "designed only",
+                       "relevant by be.framework_domain"), rows)
+            continue
+        for value in members:
+            held = holders.get(value) or []
+            doc.h(level + 1, "%s (%d)" % (value, len(held)))
+            doc.p(definitions.get(value) or "—")
+            doc.table(("project", "impl", "operating", "serves", "basis", "reviewed", "as of", "evidence"),
+                      [(v.name(p["id"]), e.get("impl"), e.get("operating"), e.get("serves"), capability_of(p).get("basis"),
+                        capability_of(p).get("reviewed"), capability_of(p).get("at"),
+                        clip(capability_of(p).get("evidence_full") or capability_of(p).get("evidence"), 400))
+                       for p, e in held])
+            if designers.get(value):
+                doc.p("Designed only: %s." % ", ".join(v.name(p["id"]) for p in designers[value]))
+
+
+def _capability_gaps(doc, v, level):
+    """The sell and grow values that no record holds as in use, said as a statement about code."""
+    bands, _definitions = _capability_vocab(v)
+    holders, designers = _holders(v), _designers(v)
+    doc.h(level, "Gaps: no code in use found")
+    doc.p("The sell and grow capabilities that no record holds as in use. The map counts code and dated manual claims, "
+          "so each line says what the code shows, not what the business does by other means.")
+    lines = []
+    for band in ("sell", "grow"):
+        for value in bands.get(band) or []:
+            held = holders.get(value) or []
+            if any((e.get("operating") or "") == "in-use" for _p, e in held):
+                continue
+            claims = Counter(e.get("operating") or capability.DEFAULTS["operating"] for _p, e in held)
+            lines.append("%s (%s): no code in use; %s; designed only on %d" % (
+                value, band, ("held by %d record%s (%s)" % (len(held), "" if len(held) == 1 else "s", ", ".join(
+                    "%s %d" % kv for kv in sorted(claims.items())))) if held else "no record holds it",
+                len(designers.get(value) or [])))
+    doc.ul(lines)
+
+
+def _capability_scope(doc, v, level):
+    """Every present project in business scope, with its capabilities, why it is in scope, and the
+    other business fields, so the one population is visible as a whole."""
+    scoped = sorted((p for p in v.projects if capability.business_scope(p)), key=v.name_key)
+    doc.h(level, "Records in business scope (%d)" % len(scoped))
+    rows = []
+    for project in scoped:
+        field = capability_of(project)
+        zones = sorted({z for s in project.get("surfaces") or [] for z in (v.by_id.get(s) or {}).get("zone_ids") or []})
+        rows.append((project.get("name") or project["id"], ", ".join(field.get("values") or []) or field.get("status")
+                     or "—", "%s%s" % (field.get("basis") or "—", " via " + field["via"] if field.get("via") else ""),
+                     "; ".join(capability.business_scope(project)), facet_text(facet_of(project, "layer")),
+                     (project.get("display") or {}).get("purpose_group"),
+                     (project.get("display") or {}).get("be.framework_domain") or [],
+                     project.get("surfaces") or [], zones))
+    doc.table(("project", "capabilities", "basis", "why in scope", "layer", "purpose group", "be.framework_domain",
+               "surfaces", "zones"), rows)
+
+
+def _capability_waiting(doc, v):
+    info = v.snapshot.get("capability") or {}
+    for key, label in (("unassigned", "Unassigned in business scope (QUEUE capability-unassigned)"),
+                       ("unmatched", "Curated rows naming no record of this run (QUEUE capability-orphan-row)")):
+        if info.get(key):
+            doc.p("%s: %s." % (label, ", ".join(info[key])))
+    if info.get("overdue"):
+        doc.p("Curated rows past their review date (QUEUE capability-review-overdue): %s." % ", ".join(
+            "%s (%s)" % item for item in info["overdue"]))
+    if info.get("problems"):
+        doc.p("Capability problems:", "warn")
+        doc.ul(info["problems"])
+
+
 def _business(doc, v):
+    """The Business view: one business population (capability.business_scope), the legal entity
+    state, and the capability map as its body; CAPABILITIES.md holds the map in full."""
     doc.h(2, "Business (secondary)", "business")
     scoped = [p for p in v.projects if capability.business_scope(p)]
     doc.p("Scope, one population for this whole section (capability.business_scope): %s. %d present projects "
@@ -1168,22 +1334,39 @@ def _business(doc, v):
     question = next((q for q in all_questions(v) or [] if q.get("id") == LEGAL_QUESTION), None)
     if question:
         doc.p("Open question %s: %s" % (question["id"], clip(question.get("text"), 600)))
-    by_domain = {}
-    for project in scoped:
-        domains = (project.get("display") or {}).get("be.framework_domain") or ["(no framework domain)"]
-        for domain in domains:
-            by_domain.setdefault(domain, []).append(project)
-    for domain in sorted(by_domain):
-        doc.h(3, "unassigned entity · %s" % domain)
-        rows = []
-        for project in sorted(by_domain[domain], key=v.name_key):
-            zones = sorted({z for s in project.get("surfaces") or [] for z in (v.by_id.get(s) or {}).get("zone_ids") or []})
-            rows.append((project.get("name") or project["id"], facet_text(facet_of(project, "layer")),
-                         (project.get("display") or {}).get("purpose_group"),
-                         "; ".join(capability.business_scope(project)), project.get("surfaces") or [], zones))
-        doc.table(("project", "layer", "purpose group", "why in scope", "surfaces", "zones"), rows)
-    if not scoped:
-        doc.p("No record is in business scope.")
+    if not _capability_lead(doc, v):
+        return
+    doc.link("CAPABILITIES.md: every value with its records, readings and evidence", v.capabilities_href)
+    _capability_bands(doc, v, 3)
+    _capability_gaps(doc, v, 3)
+    _capability_scope(doc, v, 3)
+    _capability_waiting(doc, v)
+
+
+def capability_doc(v):
+    """CAPABILITIES.md: the whole capability map, value by value with each holder's reading and
+    evidence, the gaps, the business population and what waits on curation or review."""
+    doc = Doc()
+    doc.h(1, "Capabilities — run %s" % v.run_id)
+    doc.p("Private view: the evidence column holds the private text of each curated row; never commit or publish "
+          "it.", "warn")
+    if not _capability_lead(doc, v):
+        return doc
+    doc.p("Business scope (capability.business_scope): %s." % capability.scope_rule())
+    facets = v.vocab.get("facets") or {}
+    doc.h(2, "How a value is read")
+    for name in ("capability_impl", "capability_operating", "capability_serves"):
+        table = (facets.get("vocab") or {}).get(name) or {}
+        doc.p("%s: %s" % (name.split("_", 1)[1], table.get("rule") or "—"))
+        doc.ul("%s — %s" % kv for kv in (table.get("values") or {}).items())
+    _capability_bands(doc, v, 2, full=True)
+    _capability_gaps(doc, v, 2)
+    _capability_scope(doc, v, 2)
+    doc.h(2, "Waiting on curation or review")
+    info = v.snapshot.get("capability") or {}
+    doc.p("Rows not yet reviewed (reviewed = false): %s." % (", ".join(info.get("unreviewed") or []) or "none"))
+    _capability_waiting(doc, v)
+    return doc
 
 
 def _freshness(doc, v):
@@ -1297,6 +1480,17 @@ def _questions(doc, v):
               "code take a sphere at all?), %d zones and %d surfaces are undecided; %d sphere values rest on rows Yu "
               "has not reviewed." % (kinds["project"], third, kinds["zone"], kinds["surface"], unreviewed))
         doc.link("KINGDOM OS: the undecided list, with why", "#kingdom-os")
+    info = v.snapshot.get("capability")
+    if info is not None:
+        unknown = sorted(v.name(p["id"]) for p in v.projects if capability_of(p).get("basis") != capability.MIRROR
+                         and ((capability_of(p).get("by_value") or {}).get("goods-sales") or {}).get("operating")
+                         == "unknown")
+        doc.p("Capability map (Business): %d projects in business scope are unassigned and %d curated rows are not yet "
+              "reviewed (reviewed = false).%s" % (
+                  len(info.get("unassigned") or []), len(info.get("unreviewed") or []),
+                  " goods-sales reads operating unknown for %s: which channel sells today?" % ", ".join(unknown)
+                  if unknown else ""))
+        doc.link("Business: the capability map", "#business")
     items = (v.hygiene or {}).get("items") or []
     if items:
         waiting = [i for i in items if i["plan"].get("needs_yu") is True and i.get("status") not in hygiene.CLOSED]
@@ -2107,7 +2301,7 @@ def run_area(run_dir, layer_dir=None):
 
 def render_all(run_dir, snapshot, props, run_meta=None, curated=None, vocab=None, portfolio=None,
                prev_props=None, layer_dir=None, home=None):
-    """Write the seven views into run_dir. snapshot: model.build_records() (a bare record list is
+    """Write the views (VIEW_FILES) into run_dir. snapshot: model.build_records() (a bare record list is
     accepted); props: proposals.propose(); run_meta: {run_id, mode, state, degraded_reasons, lock
     (kingdom.compare_lock), tree (tree.build_tree result), mirror_drift, first_run}; curated:
     model.load_curated() (disputes, questions, legal); vocab: model.load_vocab(); portfolio: the
@@ -2120,6 +2314,7 @@ def render_all(run_dir, snapshot, props, run_meta=None, curated=None, vocab=None
     view = View(snapshot, props, run_meta, curated, vocab, portfolio, prev_props,
                 (run_meta or {}).get("run_id") or os.path.basename(run_rel), home)
     view.hygiene_href = "file://" + urllib.parse.quote(os.path.join(os.path.realpath(run_dir), "HYGIENE.html"))
+    view.capabilities_href = "file://" + urllib.parse.quote(os.path.join(os.path.realpath(run_dir), "CAPABILITIES.md"))
     atlas = atlas_doc(view)
     hygiene_view = hygiene_doc(view)
     outputs = {
@@ -2131,6 +2326,7 @@ def render_all(run_dir, snapshot, props, run_meta=None, curated=None, vocab=None
         "ATTENTION.md": to_markdown(attention_doc(view)),
         "HYGIENE.md": to_markdown(hygiene_view),
         "HYGIENE.html": hygiene_html(hygiene_view),
+        "CAPABILITIES.md": to_markdown(capability_doc(view)),
         "portfolio-join.json": json.dumps(portfolio_join(view), indent=1, sort_keys=True, ensure_ascii=False,
                                           default=str) + "\n",
     }
