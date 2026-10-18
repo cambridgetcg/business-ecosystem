@@ -16,11 +16,22 @@
 
 ## Known release blockers
 
-The source baseline at `1acdc555e799f27607b94210d9e15bbaf92a1a8b` fails the gateway
-build dependency chain in unchanged shared libraries: logging has TS2349 Pino
-call-signature errors, and logging/health declaration builds report TS5074.
+Measured on 2026-10-17 with
+`pnpm exec turbo run build --filter=@ecosystem/gateway --continue`: none of the
+five tasks in the gateway build chain succeeds.
+
+- Shared libraries: logging reports TS2349 Pino call-signature errors; the
+  logging, health, observability and service-auth declaration builds report
+  TS5074, and observability also reports TS6307. Repairing logging alone leaves
+  the other three failing.
+- The gateway's own source does not compile. `tsc --noEmit` reports undeclared
+  request properties (`correlationId`, `requestId`), a `user` declaration that
+  conflicts with `@fastify/jwt`, untyped JWT claims in `src/middleware/auth.ts`
+  and a possibly-undefined access in `src/index.ts`. Its declaration build also
+  reports TS5074 and TS6307.
+
 Workspace inclusion reveals this chain; it does not repair or waive those gates.
-Re-run the normal build/typecheck/test gates after their owners' fixes land.
+Re-run the normal build/typecheck/test gates after these fixes land.
 
 The gateway itself still needs runtime and security acceptance. In particular:
 
