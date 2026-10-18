@@ -49,7 +49,8 @@ INCIDENTAL_PROVENANCE = ("vendored", "generated")
 LEGAL_QUESTION = "q:legal-entities"
 QUEUE_ORDER = ("uncurated", "family-unassigned", "role-unknown", "unmapped-tag", "topic-below-threshold",
                "orphaned-curation", "local-forge-migration", "local-alias", "review-overdue",
-               "family-unreviewed", "what-heavy")
+               "family-unreviewed", "what-heavy", "capability-unassigned", "capability-candidate",
+               "capability-review-overdue", "capability-orphan-row")
 # ATTENTION order of spec 7; risks not named there follow alphabetically.
 ATTENTION_ORDER = tuple(curate.RISKS[key] for key in (
     "unsaved", "unpushed", "single", "partial", "lender", "borrower", "prunable", "secret-path",
