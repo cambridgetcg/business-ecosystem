@@ -56,8 +56,8 @@ export class BaseServiceClient {
     path: string,
     options?: {
       body?: unknown;
-      headers?: Record<string, string>;
-      correlationId?: string;
+      headers?: Record<string, string> | undefined;
+      correlationId?: string | undefined;
     }
   ): Promise<T> {
     if (this.isCircuitOpen()) {
@@ -84,7 +84,7 @@ export class BaseServiceClient {
         const response = await fetch(url, {
           method,
           headers,
-          body: options?.body ? JSON.stringify(options.body) : undefined,
+          ...(options?.body ? { body: JSON.stringify(options.body) } : {}),
         });
 
         if (!response.ok) {

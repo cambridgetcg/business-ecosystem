@@ -9,7 +9,7 @@ import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { FastifyInstrumentation } from '@opentelemetry/instrumentation-fastify';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { PgInstrumentation } from '@opentelemetry/instrumentation-pg';
-import { trace, Tracer, Span, SpanStatusCode } from '@opentelemetry/api';
+import { trace, type Tracer, type Span, SpanStatusCode } from '@opentelemetry/api';
 import type { ObservabilityConfig } from './types.js';
 
 let sdk: NodeSDK | null = null;
@@ -74,4 +74,5 @@ export function shutdownTracer(): Promise<void> {
   return sdk?.shutdown() ?? Promise.resolve();
 }
 
-export { trace, Span, SpanStatusCode };
+export { trace, SpanStatusCode };
+export type { Span };

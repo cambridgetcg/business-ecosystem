@@ -23,9 +23,9 @@ export class PinoLogger implements Logger {
     this.pinoInstance = pino({
       name: config.serviceName,
       level: config.logLevel || 'info',
-      transport: config.prettyPrint
-        ? { target: 'pino-pretty', options: { colorize: true } }
-        : undefined,
+      ...(config.prettyPrint
+        ? { transport: { target: 'pino-pretty', options: { colorize: true } } }
+        : {}),
       base: {
         service: config.serviceName,
         environment: config.environment,

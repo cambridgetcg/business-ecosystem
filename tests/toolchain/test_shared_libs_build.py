@@ -37,6 +37,43 @@ const identity = await verifyServiceToken(config, token);
 assert.equal(identity.serviceId, 'probe');
 assert.deepEqual(identity.permissions, ['entity:read']);
 '''),
+    '@ecosystem/audit-logging': ('shared/libs/audit-logging', '''
+import assert from 'node:assert/strict';
+import { InMemoryAuditTrailService } from './dist/index.js';
+const trail = new InMemoryAuditTrailService({serviceName: 'toolchain-probe', environment: 'test'});
+await trail.log('CREATE', 'synthetic', 'example', {userId: 'probe', userEmail: undefined});
+const [entry] = await trail.query({userId: 'probe'});
+assert.equal(entry.resourceId, 'example');
+assert.equal(entry.success, true);
+'''),
+    '@ecosystem/contracts-entity': ('shared/contracts/entity', '''
+import assert from 'node:assert/strict';
+import { corporateStructureNodeSchema } from './dist/index.js';
+const leaf = {entityId: '00000000-0000-4000-8000-000000000002', name: 'Leaf', type: 'llc',
+  ownershipPercentage: 100};
+const root = {entityId: '00000000-0000-4000-8000-000000000001', name: 'Root', type: 'corporation',
+  ownershipPercentage: 100, children: [leaf]};
+assert.deepEqual(corporateStructureNodeSchema.parse(root), root);
+const invalid = {...root, children: [{...leaf, ownershipPercentage: 101}]};
+assert.equal(corporateStructureNodeSchema.safeParse(invalid).success, false);
+'''),
+    '@ecosystem/observability': ('shared/libs/observability', '''
+import assert from 'node:assert/strict';
+import { createRequestContext, runWithContext, getCorrelationId, SpanStatusCode } from './dist/index.js';
+const ctx = createRequestContext('toolchain-probe', {correlationId: 'synthetic-correlation'});
+assert.equal(runWithContext(ctx, () => getCorrelationId()), 'synthetic-correlation');
+assert.equal(typeof SpanStatusCode.ERROR, 'number');
+'''),
+    '@ecosystem/service-client': ('shared/libs/service-client', '''
+import assert from 'node:assert/strict';
+import { BaseServiceClient, createServiceClients } from './dist/index.js';
+const clients = createServiceClients(
+  {secret: 'synthetic-probe-secret', issuer: 'probe', audience: 'probe'},
+  {serviceId: 'probe', serviceName: 'probe', permissions: [], environment: 'test'},
+  {accounting: 'http://127.0.0.1:9'},
+);
+assert.ok(clients.accounting instanceof BaseServiceClient);
+'''),
 }
 
 
