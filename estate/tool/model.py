@@ -19,6 +19,7 @@ import re
 import tomllib
 from collections import Counter
 
+import capability
 import census
 import curate
 import decisions
@@ -612,7 +613,7 @@ class _Join:
         self.projects, self.surfaces, self.schedulers, self.zones = {}, {}, {}, {}
         self.groups, self.families, self.relations, self.artifacts = {}, {}, {}, {}
         self.repo, self.roster, self.fleet = {}, {}, {}
-        self.sphere, self.hygiene = {}, {}
+        self.sphere, self.hygiene, self.capability = {}, {}, {}
         priv = (self.curated.get("private") or {}).get("estate") or {}
         self.private_estate = priv
         self.private_projects = (self.curated.get("private") or {}).get("projects") or {}
@@ -1779,6 +1780,13 @@ class _Join:
                                          "stands until Yu reviews it" % (item["value"], item["project"],
                                                                          item["project_value"])})
 
+    def capabilities(self):
+        """The business capability map (capability.py) on every project's display: unassigned when
+        the project is in business scope (capability.business_scope), else none."""
+        facets = self.vocab.get("facets")
+        capability.resolve_projects(self.projects)
+        self.capability = capability.summary(self.projects, capability.values(facets), capability.bands(facets))
+
     def _curation(self, pid, project):
         row = (self.curated.get("projects") or {}).get(pid)
         group_rows = [self.groups[g] for g in project["group_ids"] if g in self.groups]
@@ -2703,6 +2711,7 @@ def build_records(census_data, foundation, srcs, curated, vocab, prev=None, cfg=
     j.group_claims()
     j.build_relations()
     j.spheres()
+    j.capabilities()
     j.risks()
     j.expectations()
     j.source_entries()
@@ -2729,7 +2738,8 @@ def build_records(census_data, foundation, srcs, curated, vocab, prev=None, cfg=
                                                     "runtime": e.get("runtime"), "repo": e.get("repo"),
                                                     "status": e.get("status")} for e in j.registry]},
         "foundation": foundation_summary(foundation),
-        "authority": j.authority, "sphere": j.sphere, "hygiene": j.hygiene, "decision_effects": j.decision_effects(),
+        "authority": j.authority, "sphere": j.sphere, "capability": j.capability, "hygiene": j.hygiene,
+        "decision_effects": j.decision_effects(),
         "problems": j.problems + list((curated or {}).get("problems") or []),
     }
     snapshot["reconcile"] = reconcile(prev, snapshot, now)

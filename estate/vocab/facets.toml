@@ -372,6 +372,54 @@ insurance = "insurance"
 intellectual-property = "intellectual property"
 data-privacy = "data privacy"
 
+# ── the business capability map (a display field of the Business view, not navigation) ──────
+
+[business.capability]
+owner = "curated"
+basis = "curated"
+multi = true
+statuses = ["unassigned", "none"]
+companion = "capability_extra"
+bases = ["curated:project", "derived:packages", "mirror", "none"]
+rule = "The business capabilities a project has code for, or does by hand (a dated manual claim). It is a display field of the Business view, not a navigation facet: only an owner decision makes it one. A project takes, in order: its curated row (curated/capabilities.toml, under its id or an alias); else the union of its packages that have code (derived:packages, once package records exist); else the values of the one project it is a mirror_of or copy_of; else status unassigned when it is in business scope and none otherwise. A curated row with no values says the project has no business capability (status none). Business scope is one population for the whole Business view: a KINGDOM layer commerce or economy, a purpose group business_operations, payments_finance or commerce_marketplaces, a family commerce-tcg, commerce-ventures, economy-ventures or business-ecosystem, the role revenue, or the KINGDOM kind venture. Each value names its impl, operating claim, serves and reviewed flag in capability_extra.by_value. A capability that is only documented or designed is listed under designed and is never a value; an idea is never a value. be.framework_domain is relevance only: a run-band value it names that no row holds waits in QUEUE (capability-candidate)."
+
+[business.capability.values]
+goods-sales = "selling own stock to buyers: storefront, cart and checkout, wholesale quotes, orders"
+marketplace = "letting others trade with each other: listings, bids and offers, escrow, settlement, seller payouts, disputes"
+stock-sourcing = "acquiring stock: supplier buy lists and purchases, customer trade-in quotes and payouts"
+catalogue-channels = "the product catalogue, SKUs and stock levels, and their sync to sales channels such as Shopify and eBay"
+market-pricing = "collecting market prices and exchange rates, computing buy and sell prices, fees and price indices"
+billing = "charging customers for the business's own software or membership: plans, usage charges, per-call payments"
+agent-commerce = "selling to or through software agents: MCP doors, x402 per-call APIs, agent marketplace listings"
+marketing-outreach = "reaching new customers: outreach campaigns, app store listing work, landing pages and content made to acquire users"
+customer-messaging = "contacting known customers: transactional email, campaigns and CRM sync"
+customer-loyalty = "loyalty programmes: points, store credit, tiers, gift cards, rewards and prize promotions"
+business-analytics = "measuring sales, usage and funnels: dashboards, metrics and reports for decisions"
+accounting = "the general ledger: chart of accounts, double-entry journals, periods, reversals, journal import, financial reports"
+banking-treasury = "bank accounts, payment processors and payouts, reconciliation, cash position, wallets and currency conversion"
+tax = "tax obligations and calculation: VAT and sales tax, corporation tax, filings, tax guidance"
+compliance = "regulatory obligations register, filing calendar, audit findings and compliance status"
+entity-governance = "legal entities, officers, shareholders, resolutions and statutory filings"
+kyc-identity = "knowing who customers and counterparties are: identity checks, sanctions and PEP flags, trust and reputation records"
+contracts-legal = "contracts, templates, e-signature, obligations, revenue recognition schedules, disputes and litigation"
+data-privacy = "personal data handling: consent, data subject requests, erasure webhooks, breach register"
+insurance = "insurance policies, coverage, claims and certificates"
+intellectual-property = "trademarks, patents, copyrights, licences, domain names and their deadlines"
+corporate-security = "the corporate security programme: access control, key custody, incident response, continuity"
+own-account-trading = "trading the business's own funds and the research behind it: prediction markets, betting exchanges"
+
+# Display grouping (the order of the values above is the band order). The run band is exactly the
+# eleven be.framework_domain ids, so business-ecosystem's own domain packages join it by name.
+[business.capability.bands]
+sell = ["goods-sales", "marketplace", "stock-sourcing", "catalogue-channels", "market-pricing", "billing", "agent-commerce"]
+grow = ["marketing-outreach", "customer-messaging", "customer-loyalty", "business-analytics"]
+run = ["accounting", "banking-treasury", "tax", "compliance", "entity-governance", "kyc-identity", "contracts-legal", "data-privacy", "insurance", "intellectual-property", "corporate-security"]
+own-funds = ["own-account-trading"]
+
+[capability_candidates]
+values = ["customer-support"]
+rule = "Below the grounding threshold (one record has it); they wait and are never admitted silently, as topic candidates do."
+
 # ── claim-only projections (shown in DRIFT, never navigation) ─────────────────────────────
 
 [claim.realm_tier]
@@ -500,6 +548,34 @@ current_source_document = "a current maintained document names the source: a REG
 historical_source_evidence = "dated historical evidence, such as the 2026-10-01 portfolio map"
 candidate_only = "a candidate without current evidence, or competing sources"
 unresolved = "no source known"
+
+[vocab.capability_impl]
+rule = "How a capability exists in one record. Measured for packages once package records exist; curated for whole projects. A capability that is only documented or designed has no impl: it is listed under designed."
+
+[vocab.capability_impl.values]
+code = "tracked source implements it at the measured commit (for a whole repository, a curated reading of its code)"
+code-unbuilt = "source exists, but its package is on the build or typecheck quarantine list at the same commit"
+stub = "tracked source exists, but a curated row marks it a placeholder (for example a server that only answers health and info)"
+manual = "a dated, curated claim that the business does this by hand, with no code (for example app store listing work)"
+unread = "the files exist but the reader may not open them (deny list) or could not: unknown, never absent"
+
+[vocab.capability_operating]
+rule = "A dated CLAIM about whether the business uses the capability now, as of its row; curated, reviewed = false until Yu reviews it, and never derived from code."
+
+[vocab.capability_operating.values]
+in-use = "the business uses it now"
+paused = "switched off on purpose and reversible, for example an interlock that refuses new checkouts"
+retired = "deliberately ended"
+never = "code exists but the business has never used it"
+unknown = "no dated claim"
+
+[vocab.capability_serves]
+rule = "Who the capability serves; self unless a row says otherwise."
+
+[vocab.capability_serves.values]
+self = "the business itself"
+customers = "sold or offered to customers as a product (for example loyalty offered to merchants)"
+both = "used by the business and offered to customers"
 
 [vocab.surface_health.values]
 up = "pulse observed it up"

@@ -17,6 +17,7 @@ import re
 import urllib.parse
 from collections import Counter
 
+import capability
 import curate
 import decisions
 import hygiene
@@ -43,8 +44,6 @@ UNSET_UNREAD = "unset, no checkout here"
 # for a record (QUEUE orphaned-curation), not a project measured as unplaced.
 ORPHANED = "orphaned curation"
 TRAILING_ROWS = ("contested", "roster-fallback", "off-enum-only", "unset", UNSET_UNREAD, ORPHANED)
-BUSINESS_LAYERS = ("commerce", "economy")
-BUSINESS_GROUPS = ("business_operations", "payments_finance", "commerce_marketplaces")
 CITIZEN_FAMILY = "fleet-citizens"
 INCIDENTAL_PROVENANCE = ("vendored", "generated")
 LEGAL_QUESTION = "q:legal-entities"
@@ -1159,13 +1158,9 @@ def _schedulers(doc, v):
 
 def _business(doc, v):
     doc.h(2, "Business (secondary)", "business")
-    doc.p("Scope: commerce and economy members, plus purpose groups %s." % ", ".join(BUSINESS_GROUPS))
-    scoped = []
-    for project in v.projects:
-        layers = set(model.contested_values(facet_of(project, "layer")))
-        group = (project.get("display") or {}).get("purpose_group")
-        if layers & set(BUSINESS_LAYERS) or group in BUSINESS_GROUPS:
-            scoped.append(project)
+    scoped = [p for p in v.projects if capability.business_scope(p)]
+    doc.p("Scope, one population for this whole section (capability.business_scope): %s. %d present projects "
+          "are in it." % (capability.scope_rule(), len(scoped)))
     legal = (v.curated.get("legal") or {}) if v.curated else {}
     doc.p("Legal entity: %s for every record (curated legal status %s); candidates live only in the private "
           "curation and are never derived here." % ("unassigned", legal.get("status") or "not provided"))
@@ -1183,8 +1178,9 @@ def _business(doc, v):
         for project in sorted(by_domain[domain], key=v.name_key):
             zones = sorted({z for s in project.get("surfaces") or [] for z in (v.by_id.get(s) or {}).get("zone_ids") or []})
             rows.append((project.get("name") or project["id"], facet_text(facet_of(project, "layer")),
-                         (project.get("display") or {}).get("purpose_group"), project.get("surfaces") or [], zones))
-        doc.table(("project", "layer", "purpose group", "surfaces", "zones"), rows)
+                         (project.get("display") or {}).get("purpose_group"),
+                         "; ".join(capability.business_scope(project)), project.get("surfaces") or [], zones))
+        doc.table(("project", "layer", "purpose group", "why in scope", "surfaces", "zones"), rows)
     if not scoped:
         doc.p("No record is in business scope.")
 
