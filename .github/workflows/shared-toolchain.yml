@@ -1,0 +1,61 @@
+name: Shared toolchain
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/shared-toolchain.yml'
+      - 'shared/libs/logging/**'
+      - 'tests/toolchain/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'tsconfig.base.json'
+  push:
+    branches: [main, develop]
+    paths:
+      - '.github/workflows/shared-toolchain.yml'
+      - 'shared/libs/logging/**'
+      - 'tests/toolchain/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'tsconfig.base.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  logging:
+    name: Logging compiler and runtime regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      HUSKY: '0'
+      LOVE_BOMBS_OFF: '1'
+      DO_NOT_TRACK: '1'
+      TURBO_TELEMETRY_DISABLED: '1'
+      LOG_LEVEL: info
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: pnpm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify pinned package manager
+        run: test "$(pnpm --version)" = '9.0.0'
+      - name: Frozen dependencies without lifecycle hooks
+        run: pnpm install --frozen-lockfile --ignore-scripts --ignore-pnpmfile
+      - name: Logging source, declaration build and runtime contract
+        run: python3 -B -m unittest discover -s tests/toolchain -p 'test_logging_build.py' -v
+      # Focused regression only: this does not replace the monorepo CI workflow,
+      # prove service readiness, or authorize a deployment.
