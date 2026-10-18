@@ -1,0 +1,8 @@
+name: business-ecosystem
+kind: venture
+layer: commerce
+owner_sister: none
+domain: commerce
+state: active
+purpose: Enterprise legal/finance/compliance platform
+dependsOn: []
