@@ -192,6 +192,14 @@ class FixtureProposalTests(fixture.EstateTestCase):
         p16 = find(self.props, "P16")
         self.assertEqual((p16["target"]["owner"], p16["proposed"]["note"]), ("pr1-owner", "A short doc note."))
 
+    def test_an_applied_upstream_note_is_not_proposed_again(self):
+        original = type(self).curated
+        type(self).curated = dict(original, upstream_notes=[dict(n, status="applied") for n in original["upstream_notes"]])
+        try:
+            self.assertEqual(by_rule(self.run_queue(), "P16"), [])
+        finally:
+            type(self).curated = original
+
     def test_foundation_divergence_and_vocab_drift(self):
         divergence = [p for p in by_rule(self.props, "P15") if p["proposed"].get("decision") == "foundation-divergence"]
         self.assertEqual(len(divergence), 1)
