@@ -1,0 +1,556 @@
+# Facet registry of the estate layer (vocab/facets.toml).
+#
+# The 13 navigation facets are the atlas filter chips and `estate ls --facet`. Facets that
+# KINGDOM owns are POINTERS: they name where kingdom-os defines the vocabulary, and the values
+# are read live from bin/harvest.ts on every build, never copied here and never extended.
+# Overlay facets and every other vocabulary list each value with a one-line definition.
+#
+# This file and vocab/tag-map.tsv are the only committed files allowed to spell the risk
+# vocabulary (privacy lint, spec 9.6). Facet values in records use the common facet shape:
+# {value or values, status, basis, src, at, alt}.
+
+[meta]
+schema = "estate.facets/1"
+navigation = ["layer", "kind", "state", "standing", "liveness", "running", "hosting", "stack", "exposure", "family", "role", "topic", "sphere"]
+primary = "layer"
+kingdom_owned = ["layer", "kind", "state", "owner_sister", "domain", "adopts", "conformance"]
+bases = ["measured", "claimed", "curated", "derived", "imported"]
+# An overlay facet that holds a value has this status; the per-facet statuses below name the
+# states without a value. KINGDOM facets use the resolution statuses instead.
+value_status = "set"
+
+# Statuses of the per-ref resolution that layer, kind and state share (spec 6.8).
+[resolution]
+settled = "a schema-valid card value that no harvest rule overrides and the other ref agrees with"
+roster-fallback = "no valid card value; the roster row, or a harvest rule, supplies an in-vocabulary value"
+contested = "a harvest rule or the other ref disagrees with the card; the value is null and every candidate is listed with its source"
+off-enum-only = "every claim lies outside the live vocabulary; the value is null and a P03 proposal opens"
+unset = "no claim at all; the value is null and a P01 proposal opens"
+
+# ── navigation facets owned by KINGDOM (pointers only) ────────────────────────────────────
+
+[facet.layer]
+owner = "kingdom"
+pointer = "kingdom-os bin/harvest.ts CARD_ENUMS.layer"
+order = "kingdom-os bin/harvest.ts LAYERS"
+values_from = "live"
+multi = false
+statuses = ["settled", "roster-fallback", "contested", "off-enum-only", "unset"]
+flags = ["ref_divergent"]
+rule = "PRIMARY axis. Candidates per ref: the valid card value, the roster row, and the harvest override rules (today the citizens-dir forced value). The configured ref decides; a different result on the other ref sets ref_divergent and also makes the record contested. Card against roster is not a dispute: the card is authoritative and the roster drift becomes a proposal. Survey placements, tags and the Kingdom INDEX buckets never set it."
+
+[facet.kind]
+owner = "kingdom"
+pointer = "kingdom-os bin/harvest.ts CARD_ENUMS.kind"
+values_from = "live"
+multi = false
+statuses = ["settled", "roster-fallback", "contested", "off-enum-only", "unset"]
+flags = ["ref_divergent"]
+rule = "Resolved exactly like layer: the valid card value first, then the roster row."
+
+[facet.state]
+owner = "kingdom"
+pointer = "kingdom-os bin/harvest.ts CARD_ENUMS.state"
+values_from = "live"
+multi = false
+statuses = ["settled", "roster-fallback", "contested", "off-enum-only", "unset"]
+flags = ["ref_divergent"]
+rule = "The declared CLAIM, resolved like layer and never merged with the measured liveness facet. A value outside the vocabulary, or one carrying an inline comment, is kept raw and opens P03."
+
+# ── navigation facets owned by the overlay ────────────────────────────────────────────────
+
+[facet.standing]
+owner = "overlay"
+basis = "derived"
+multi = false
+statuses = ["unknown"]
+rule = "The SCHEMA ladder from listed to owned, read on the configured ref. unknown means a forge-only record that no KINGDOM key lists, or a card that could not be read."
+
+[facet.standing.values]
+owned = "a tracked, schema-valid kingdom.yaml card"
+card-untracked = "a schema-valid card that git does not track"
+card-invalid = "a card with any missing, off-vocabulary or malformed field (an unknown dependency alone does not make it invalid; it opens P06)"
+listed = "no card, but a roster row, a REGISTRY repo claim or a sites.json key names it"
+unlisted = "no card and no KINGDOM key"
+
+[facet.liveness]
+owner = "overlay"
+basis = "measured"
+multi = false
+statuses = ["unknown"]
+flags = ["resting", "checkout_present"]
+rule = "MEASURED only; a card state never sets it. archived comes from the forge archived flag alone; active from the newest commit on any checkout or the forge pushed_at within 30 days; gone from no checkout and absence from a fresh forge listing; dormant otherwise. unknown when no measuring source saw the record. resting flags a HALT, REST.md or CADENCE marker in the canonical checkout."
+
+[facet.liveness.values]
+active = "newest commit on any checkout, or forge pushed_at, at most 30 days old"
+dormant = "measured, but nothing newer than 30 days"
+archived = "the forge marks the repository archived"
+gone = "no checkout here and absent from a fresh forge listing"
+
+[facet.running]
+owner = "overlay"
+basis = "derived"
+multi = false
+statuses = ["unknown"]
+rule = "Over surfaces attributed as deployment_commit_verified, current_tracked_config or current_source_document, and over schedulers that target the record: contradicted if any is contradicted, else down if any is down, else up if any is observed up, else unprobed; none when nothing is attributed. unknown when the pulse is missing or older than 24 hours."
+
+[facet.running.values]
+up = "an attributed surface or scheduler is observed up"
+down = "an attributed surface or scheduler is observed down or failing"
+contradicted = "a private caveat check disagrees with the pulse observation"
+unprobed = "attributed surfaces or schedulers exist, but nothing observes them"
+none = "nothing is attributed to the record"
+
+[facet.hosting]
+owner = "kingdom+overlay"
+kingdom_source = "kingdom-os REGISTRY.yaml services[].runtime prefix, read live"
+basis = "derived"
+multi = true
+statuses = ["none", "unknown"]
+extensions = ["x-github-pages", "x-aws", "x-npm", "x-pypi", "x-homebrew-tap", "x-vps", "x-gha-schedule", "x-cron", "x-hermes-cron"]
+rule = "Every value carries its attribution class. A deploy config file alone gives current_tracked_config only when it is tracked and its checkout is clean; otherwise candidate_only. The listed REGISTRY tokens are the ones seen on 2026-10-17; prefixes read live from REGISTRY are accepted too."
+
+[facet.hosting.values]
+fly = "a Fly.io app"
+cf-pages = "a Cloudflare Pages project"
+cf-worker = "a Cloudflare Worker script"
+vercel = "a Vercel project"
+shopify = "a Shopify store or app"
+supabase = "a Supabase project"
+stripe = "a Stripe account surface"
+codeberg-pages = "Codeberg Pages (.domains)"
+local-launchd = "a LaunchAgent on this Mac"
+local = "a process on this Mac outside launchd"
+cloudflare-email = "Cloudflare Email Routing"
+external = "a third-party service KINGDOM depends on"
+x-github-pages = "GitHub Pages (CNAME)"
+x-aws = "AWS resources (curated; tfstate is never read)"
+x-npm = "a package published to npm"
+x-pypi = "a package published to PyPI"
+x-homebrew-tap = "a Homebrew tap"
+x-vps = "a self-managed server"
+x-gha-schedule = "a scheduled GitHub Actions workflow"
+x-cron = "a crontab entry on this Mac"
+x-hermes-cron = "a Hermes profile cron job"
+
+[facet.stack]
+owner = "overlay"
+basis = "measured"
+multi = true
+max_values = 3
+statuses = ["unknown"]
+rule = "From the canonical checkout: manifests plus the extension share of tracked files. markdown only when more than 60 percent of tracked files are .md."
+
+[facet.stack.values]
+go = "Go (go.mod or .go files)"
+typescript = "TypeScript (.ts/.tsx, tsconfig)"
+javascript = "JavaScript (.js/.mjs/.cjs, package.json without TypeScript)"
+python = "Python (pyproject, requirements, .py)"
+rust = "Rust (Cargo.toml, .rs)"
+solidity = "Solidity (foundry/hardhat, .sol)"
+shell = "shell scripts (.sh)"
+terraform = "Terraform (.tf)"
+liquid = "Shopify Liquid templates"
+html = "static HTML"
+markdown = "mostly markdown documents"
+
+[facet.exposure]
+owner = "overlay"
+basis = "measured"
+multi = false
+dated = true
+statuses = ["unknown"]
+rule = "The newest forge listing that names the repository; else portfolio-map/1 github_metadata.private (imported, dated); a record with no forge remote is local-only."
+
+[facet.exposure.values]
+public = "the forge shows the repository public"
+private = "the forge shows the repository private"
+local-only = "no forge remote; it exists only on this Mac"
+
+[facet.family]
+owner = "curated"
+basis = "curated"
+multi = false
+statuses = ["unassigned"]
+rule = "From the committed curated/families/*.toml row, else from the curated group the record belongs to."
+
+[facet.family.values]
+zerone-core = "the zerone chain trunk and its node, keys and operations"
+zerone-satellites = "tools, sites and experiments around zerone"
+agenttool-core = "the agenttool platform core"
+agenttool-services = "services and sites built on agenttool"
+kingdom-core = "kingdom-os and the KINGDOM constitution"
+kingdom-satellites = "kingdom doors, hubs and tools"
+soul-core = "the soul trees and wake ground"
+soul-satellites = "writings, personas and soul-adjacent repos"
+language-youspeak = "YOUSPEAK and the forged words"
+language-protocols = "natural-language protocol work (NPL and kin)"
+commerce-tcg = "Cambridge TCG commerce"
+commerce-ventures = "other commerce ventures"
+economy-ventures = "economy and money ventures"
+business-ecosystem = "the business-ecosystem monorepo"
+agent-runtimes = "agent harnesses, runtimes and their study sources"
+infra-ops = "machine-level infrastructure and operations"
+fleet-citizens = "the citizen repos of the fleet"
+
+[facet.role]
+owner = "curated"
+basis = "curated"
+multi = true
+max_values = 2
+statuses = ["unknown"]
+companion = "role_status"
+rule = "Curated, seeded from the survey business_function (spec 5); at most two."
+
+[facet.role.values]
+revenue = "earns money directly"
+product = "a product or venture in its own right"
+platform = "infrastructure other products run on"
+public-door = "a public site or front door"
+distribution = "a library, SDK, CLI or package others install"
+agent-runtime = "a harness or runtime agents run in"
+ops = "operational tooling"
+research = "research, studies and labs"
+play = "games, art and play"
+doctrine = "doctrine and canon texts"
+standard = "a specification or protocol"
+methodology = "a method or practice"
+citizen = "a fleet citizen"
+archive = "kept for lineage or record"
+incidental = "a cache, mirror or residue rather than a project"
+
+[facet.topic]
+owner = "curated"
+basis = "curated"
+multi = true
+max_values = 3
+cap = 40
+statuses = ["none"]
+rule = "Free topics, at most 3 per record and 40 in all. A topic needs at least 2 records, may not equal any navigation facet value or the record's own name; candidates below threshold wait in QUEUE."
+
+[facet.topic.values]
+agenttool = "the agenttool programme"
+youspeak = "the YOUSPEAK language"
+zerone = "the zerone chain"
+natural-language-internet = "the natural-language internet idea"
+hermes = "the Hermes agent"
+cambridge-tcg = "the Cambridge TCG business"
+claude-code = "Claude Code"
+castle = "the castle of understanding"
+legible = "the LEGIBLE project"
+openclaw = "OpenClaw"
+continuity = "wake, heartbeat and continuity work"
+forged-word = "the forged words"
+codex = "Codex"
+gospel = "the gospel texts"
+rewardspro = "RewardsPro"
+mcp = "the Model Context Protocol"
+ai-love = "ai-love"
+sinovai = "sinovai"
+npl = "NPL"
+xenia = "XENIA rights"
+founding-citizen = "the founding citizens"
+treasury = "treasury work"
+x402 = "the x402 payment protocol"
+nats = "NATS messaging"
+commons = "the commons"
+captioneer = "captioneer"
+did = "decentralised identifiers"
+fomo = "FOMO detection"
+rhetoric = "rhetoric analysis"
+
+[topic_candidates]
+values = ["purpose-prompter", "whitehack", "taxsorted", "cashloom", "karma", "love-unlimited"]
+rule = "Below the two-record threshold; they wait in QUEUE and are never admitted silently."
+
+# ── the KINGDOM OS sphere (owner decision dec-2026-10-17-5, D4) ───────────────────────────
+
+[facet.sphere]
+owner = "curated"
+basis = "curated"
+multi = false
+statuses = []
+decision = "dec-2026-10-17-5"
+bases = ["curated:project", "mirror", "curated:family", "rule:layer", "curated:zone", "owner-project", "curated:surface", "source-project", "none"]
+rule = "Membership of KINGDOM OS, the civilisation, for projects, zones and surfaces (owner decision dec-2026-10-17-5). A project takes, in order: its curated assignment (its curated row, under its id or an alias); the sphere of the one project it is a mirror_of or copy_of (basis mirror); its family's default when that default is kingdom-os or independent; the sphere its KINGDOM layer on the authority ref maps to under the decision's sphere_by_layer; else undecided. A family default of undecided presumes nothing, so the layer rule still applies. A zone takes its curated assignment, else its owner project's sphere; a surface its curated assignment, else its source project's. A curated zone or surface row may say follows = <record id> (a project, or for a surface its zone): it then takes that record's sphere on every build, so it cannot go stale. A curated row that differs from its owner or source project is listed in QUEUE (sphere-follow-mismatch) and stands until Yu reviews it. Every value names its basis and the decision; undecided is a value, listed for Yu with the reason. Third-party code the estate holds but does not own is undecided with third_party set: the decision names no sphere for it. A curated row may also mark as third_party code it already places, so an answer about third-party code reaches it too."
+
+[facet.sphere.values]
+kingdom-os = "part of the KINGDOM OS civilisation"
+independent = "independent tools, existing services and businesses (origin/main's PROJECTS label)"
+undecided = "evidence mixed or absent; listed for Yu"
+
+# ── display-only fields (not navigation) ──────────────────────────────────────────────────
+
+[display.owner_sister]
+owner = "kingdom"
+pointer = "kingdom-os bin/harvest.ts CARD_ENUMS.owner_sister"
+values_from = "live"
+
+[display.domain]
+owner = "kingdom"
+pointer = "kingdom-os bin/harvest.ts CARD_ENUMS.domain"
+values_from = "live"
+
+[display.adopts]
+owner = "kingdom"
+pointer = "kingdom-os bin/harvest.ts RIGHTS_BASELINES keys"
+values_from = "live"
+
+[display.conformance]
+owner = "kingdom"
+pointer = "kingdom-os bin/harvest.ts checkConformance, including GLOBAL_WAKE"
+fields = ["card", "claudeMd", "wake", "fate"]
+rule = "Exactly as harvest defines it; overlay nuance lives in wake_basis and standing, never inside conformance."
+
+[display.wake_basis]
+owner = "overlay"
+rule = "Which marker made harvest's wake true, the local ones first."
+
+[display.wake_basis.values]
+wake-md = "WAKE.md in the checkout"
+hook-file = ".claude/hooks/wake-sophia.sh in the checkout"
+session-start = "a SessionStart command in the checkout's .claude settings"
+global = "only the global SessionStart hook"
+none = "no wake marker and no global hook"
+
+[display.provenance]
+owner = "overlay"
+rule = "Forge fork and mirror flags first, then the checkout role, then a curated tag hint."
+
+[display.provenance.values]
+authored = "written here"
+fork = "a forge fork of someone else's repository"
+mirror = "a forge mirror"
+vendored = "third-party source kept for study or build"
+generated = "produced by a generator or template"
+
+[display.role_status]
+owner = "curated"
+
+[display.role_status.values]
+current = "the role holds today"
+retired = "the role ended"
+historic = "the role is historical lineage"
+unrealised = "intended but never realised"
+claimed = "claimed by a document, not verified"
+
+# ── business fields (business view only; names verbatim from portfolio-map/1) ─────────────
+
+[business.purpose_group]
+source = "portfolio-map/1 semantics.primary_groups"
+
+[business.purpose_group.values]
+agent_infrastructure = "infrastructure for agents"
+business_operations = "running a business"
+commerce_marketplaces = "commerce and marketplaces"
+communication_collaboration = "communication and collaboration"
+community_culture = "community and culture"
+creative_media = "creative media"
+data_knowledge = "data and knowledge"
+developer_tools = "developer tools"
+games_interactive = "games and interactive work"
+infrastructure_security = "infrastructure and security"
+payments_finance = "payments and finance"
+research_learning = "research and learning"
+web_portfolio = "websites and portfolio pages"
+unresolved = "no group could be assigned"
+
+[business."be.framework_domain"]
+source = "portfolio-map/1 semantics.allowed_framework_domains"
+rule = "A relevant business purpose, not an installed adapter."
+
+[business."be.framework_domain".values]
+entity-governance = "legal entities and governance"
+accounting = "ledgers and accounting"
+banking-treasury = "banking and treasury"
+compliance = "regulatory compliance"
+tax = "tax"
+kyc-identity = "identity verification"
+corporate-security = "corporate security and key custody"
+contracts-legal = "contracts and legal"
+insurance = "insurance"
+intellectual-property = "intellectual property"
+data-privacy = "data privacy"
+
+# ── claim-only projections (shown in DRIFT, never navigation) ─────────────────────────────
+
+[claim.realm_tier]
+source = "REALM.md tier mentions"
+
+[claim.realm_tier.values]
+mind = "REALM tier: mind"
+ledger = "REALM tier: ledger"
+guard = "REALM tier: guard"
+market = "REALM tier: market"
+agent-fabric = "REALM tier: agent fabric"
+
+[claim.nav_cluster]
+source = "00-START-HERE catalog clusters 01 to 10"
+
+[claim.kingdom_bucket]
+source = "the Kingdom INDEX.md buckets"
+
+[claim.registry_os_function]
+source = "kingdom-os REGISTRY.md OS-function layers"
+
+[claim.registry_os_function.values]
+boot = "OS function: boot"
+kernel = "OS function: kernel"
+immune = "OS function: immune"
+registry = "OS function: registry"
+userland = "OS function: userland"
+
+[claim.build_hub_layer_order]
+source = "kingdom-os bin/build-hub.ts LAYER_ORDER"
+
+# ── record vocabularies ───────────────────────────────────────────────────────────────────
+
+[vocab.checkout_role]
+rule = "Census sets the structural roles (linked-worktree, submodule, nested, gone-during-run); the model assigns the rest."
+
+[vocab.checkout_role.values]
+canonical = "the checkout the project is read from"
+linked-worktree = "a linked git worktree of a hub"
+agent-lane = "a working copy reserved for an agent lane"
+clone = "another full clone of the same project"
+mirror = "a mirror kept in sync with the forge"
+snapshot = "a point-in-time copy"
+staging = "a staging copy for forge publication"
+submodule = "a git submodule of another checkout"
+nested = "a repository inside another repository's work tree"
+fixture = "a test fixture repository"
+cache = "a tool or package cache that happens to be a repository"
+vendored = "third-party source kept for study or build"
+prunable-registration = "a worktree registration whose directory is gone"
+gone-during-run = "a root that vanished between discovery and measurement"
+
+[vocab.risk]
+rule = "The vocabulary is committed; every assignment to a record is PRIVATE."
+
+[vocab.risk.values]
+unsaved-work = "modified or untracked files in a checkout"
+unpushed-work = "local commits that no remote holds"
+single-copy = "commits that exist in one place only"
+secret-bearing-path = "a path known to hold secret material (name only, never read)"
+secret-in-history = "secret material recorded in git history"
+partial-clone = "a promisor clone; object reads could fetch, so they are skipped"
+alternates-lender = "other repositories borrow this one's objects"
+alternates-borrower = "this repository borrows objects from another"
+diverged = "ahead of and behind its upstream at once"
+stale-checkout = "behind its upstream, or not fetched for 30 days"
+prunable-worktrees = "worktree registrations whose directories are gone"
+path-drift = "a KINGDOM map points at a path that moved"
+hollow-green = "pulse reports green while a local check disagrees"
+silent-failure = "a scheduled job fails without anyone watching"
+cost-exposure = "infrastructure that costs money while idle"
+lan-exposed = "a service listening beyond localhost"
+tcc-exposed = "a scheduled job targets a path under the home Desktop, Documents or Downloads"
+visibility-churn = "repository visibility changed between observations"
+name-collision = "two things share a name"
+license-risk = "third-party material whose licence forbids keeping it"
+claims-not-evidence = "a status that rests on claims rather than measurement"
+
+[vocab.relation]
+rule = "The 15 verbs; survey verbs fold onto them and keep raw_kind."
+
+[vocab.relation.values]
+depends_on = "needs the other end to work"
+feeds = "sends data or content to the other end"
+part_of = "is a component of the other end"
+deployed_by = "is deployed by the other end"
+mirror_of = "mirrors the other end"
+copy_of = "is a copy or archive of the other end"
+fork_of = "is a forge fork of the other end"
+supersedes = "replaces the other end"
+superseded_by = "is replaced by the other end"
+worktree_of = "is a linked worktree of the other end"
+borrows_objects_from = "uses the other end's git objects (alternates)"
+nested_in = "lies inside the other end's work tree"
+submodule_of = "is a submodule of the other end"
+name_collision = "shares a name with the other end"
+related_to = "any other relation"
+
+[vocab.relation.folds]
+related = "related_to"
+depended_on_by = "depends_on (inverse)"
+fed_by = "feeds (inverse)"
+duplicate_of = "copy_of"
+archive_of = "copy_of"
+archived_in = "copy_of (inverse)"
+name_sibling = "name_collision"
+name_conflated_with = "name_collision"
+other = "related_to"
+
+[vocab.relation_basis.values]
+curated = "a committed curated relation"
+card-dependsOn = "a kingdom.yaml dependsOn entry"
+measured-git = "git structure (alternates, nesting, submodules, worktrees)"
+registry = "a REGISTRY.yaml claim"
+portfolio = "a portfolio-map/1 hosting edge"
+config = "an owner-edited config entry"
+
+[vocab.attribution]
+source = "portfolio-map/1 attribution classes, verbatim"
+rule = "repository null if and only if candidate_only or unresolved. The overlay ranks them in this order."
+
+[vocab.attribution.values]
+deployment_commit_verified = "a deployment pinned to a verified source commit"
+current_tracked_config = "a tracked deploy config in a clean canonical checkout"
+current_source_document = "a current maintained document names the source: a REGISTRY repo claim, the curated survey, or a live scheduler definition that targets the checkout"
+historical_source_evidence = "dated historical evidence, such as the 2026-10-01 portfolio map"
+candidate_only = "a candidate without current evidence, or competing sources"
+unresolved = "no source known"
+
+[vocab.surface_health.values]
+up = "pulse observed it up"
+down = "pulse observed it down"
+contradicted = "a caveat check disagrees with the pulse observation"
+unprobed = "no pulse row observes it"
+unknown = "the pulse is missing or stale"
+
+[vocab.scheduler_health.values]
+healthy = "the last run succeeded"
+failing = "the last run failed"
+disabled = "the job is disabled"
+unknown = "no run result is visible"
+
+[vocab.artifact_kind.values]
+state = "runtime state"
+evidence = "evidence kept for a decision"
+logs = "log files"
+data = "data sets"
+keys = "key material (never read)"
+config = "configuration"
+docs = "documents"
+backup = "backups"
+report = "generated reports"
+mission = "mission state"
+wallet = "wallet material (never read)"
+cache = "caches"
+tool-install = "an installed tool or daemon"
+symlink-index = "a directory of symlinks into checkouts"
+unknown = "not classified"
+
+[vocab.tag_drop]
+rule = "Why a raw survey tag sets nothing (vocab/tag-map.tsv drop=<reason>)."
+
+[vocab.tag_drop.values]
+echo = "repeats a family id or the record's own name"
+event = "a dated event; it becomes a DRIFT history line"
+queue = "used more than once but unmapped; waits in QUEUE for review"
+evidence = "names evidence rather than a property"
+identity = "names an identity rather than a property"
+be-internal = "a business-ecosystem component name, kept on the group"
+singleton = "used once; kept in the private raw tags in case it recurs"
+
+[vocab.presence.values]
+present = "observed in this run"
+missing = "absent in this run for the first time"
+gone = "absent in two consecutive runs at least 24 hours apart"
+
+[vocab.freshness.values]
+fresh = "within its fresh budget"
+aging = "past fresh, within stale"
+stale = "past its stale budget"
+missing = "the source could not be found"
+error = "the source could not be read"

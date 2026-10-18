@@ -1,0 +1,208 @@
+[family]
+id = "family:agent-runtimes"
+label = "Agent runtimes & harnesses — hermes, openclaw workspaces, codex, agent-workbench, vendored SDK/Claude Code study sources"
+summary = "This family is the machinery that runs Yu's AI agents on the Mac Studio. It is not product code. Three harnesses are live today. It serves the default and astra-ultra profiles. astra-ultra runs gpt-6-astra through the ChatGPT subscription and two unattended cron lanes, both of which ran today: Zerone motifs every 120 min and Zerone living claims daily at 09:00. (2) OpenClaw 2026.6.11 is an npm-global package, not a git checkout. It runs under launchd ai.openclaw.gateway on ⟨ip⟩:18789 and drives a Codex app-server child. Its git-tracked workspace ⟨local⟩ is the 'Gamma' hive instance home, with 12 hermes-* agent registrations. (3) Codex CLI 0.156.1 (⟨local⟩) and Claude Code (⟨local⟩) are the interactive harnesses. Agent Workbench (⟨local⟩, a private cambridgetcg repo) is the glue between them. The chain is Hermes, then Workbench, then ⟨local⟩, so Hermes' model access depends on that bridge. hermes-device-setup packages the astra-ultra profile for other devices. agenttool-collab 0.5.0 is the shared coordination MCP registered in all three harness configs. Local inference has collapsed: ⟨local⟩ has been empty since the 2026-10-17 cleanup, and ollama :cloud tags are paywalled. The OpenClaw agent fallbacks, the Hermes local fallback and the hive listener therefore point at models that do not exist. The OpenClaw NATS hive bridge has been failing since at least 2026-09-03. \"hermes\" names five different things here: the Nous runtime, the openclaw hermes-* agents, the openclaw tools/hermes.py zsh alias, the Informal Systems IBC relayer in ⟨local⟩, and the forge-only cambridgetcg/hermes-agents (Hermes 3 model staff). In KINGDOM terms, the harnesses sit in the runtime layer, Workbench, collab and hive in nervous, and the OpenClaw workspace in fleet (domain gamma). None of the live runtimes appears in REGISTRY.yaml, and roster.conf points two of its rows at paths that no longer exist."
+open_questions = ["Should the four live launchd agent surfaces (ai.hermes.gateway, ai.openclaw.gateway, com.openclaw.hive-bridge, com.openclaw.fly-keepwarm) get REGISTRY.yaml entries so pulse witnesses them? Owner decision.", "The roster.conf rows for hermes-agent, openclaw and agenttool-cli need correcting, and agent-workbench, hermes-device-setup and the OpenClaw workspace need rows or cards. That is a write action for the owner, not this survey."]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "kingdom-os"
+evidence = "The harnesses and runtimes the household's agents run in (origin/main roster RUNTIME and REFERENCES rows)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "github.com/anthropics/claude-agent-sdk-python"
+name = "claude-agent-sdk-python"
+what = "A pinned read-only clone of Anthropic's Python Claude Agent SDK. It was fetched for Agent Workbench's 2026-09-25 Claude Code source and extension audit."
+role = ["research"]
+role_status = "current"
+topics = ["claude-code"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "undecided", third_party = true, confidence = "low", evidence = "A third-party pinned clone used as input to a Workbench audit; not authored here.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/agent-workbench"
+raw_kind = "part_of"
+note = "claude-research-20260925 state"
+
+[[project]]
+id = "github.com/anthropics/claude-agent-sdk-typescript"
+name = "claude-agent-sdk-typescript"
+what = "A pinned read-only clone of Anthropic's TypeScript Agent SDK repo (examples and release info only; no main SDK source), used in the same 2026-09-25 audit."
+role = ["research"]
+role_status = "current"
+topics = ["claude-code"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "undecided", third_party = true, confidence = "low", evidence = "A third-party pinned clone used as input to a Workbench audit; not authored here.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/agent-workbench"
+raw_kind = "part_of"
+note = "claude-research-20260925 state"
+
+[[project]]
+id = "github.com/anthropics/claude-code"
+name = "claude-code (official)"
+what = "A pinned read-only clone of the official anthropics/claude-code repo (plugins, examples, and a 1,203-file mods/ tree), used for the Workbench study of Claude Code customization surfaces."
+role = ["research"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "undecided", third_party = true, confidence = "low", evidence = "A third-party pinned clone of the official repository for a Workbench study; not the roster's claude-code row.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/agent-workbench"
+raw_kind = "part_of"
+note = "claude-research-20260925 state"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/yasasbanukaofficial/claude-code"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/agent-workbench"
+name = "agent-workbench"
+what = "A stdlib-only Python CLI and cross-harness plugin for Codex, Claude Code and Hermes."
+heavy = true
+role = ["platform"]
+role_status = "current"
+topics = ["hermes", "claude-code", "codex"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "Load-bearing for the Hermes runtime, but it declares no KINGDOM membership: functional, low.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/hermes-agent"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/hermes-device-setup"
+raw_kind = "part_of"
+
+[[project]]
+id = "github.com/cambridgetcg/hermes-agent"
+name = "hermes-agent"
+what = "A local checkout of NousResearch's Hermes Agent (Python/TS agent runtime with CLI, gateway, cron, skills, plugins). It is the live runtime behind the ai.hermes.gateway launchd job, with a cambridgetcg fork remote carrying local feature branches."
+role = ["platform"]
+role_status = "current"
+topics = ["zerone", "hermes"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "fork_of"
+to = "github.com/nousresearch/hermes-agent"
+raw_kind = "fork_of"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agent-workbench"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/business-ecosystem"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/hermes-agents"
+name = "hermes-agents"
+what = "Per its forge description, the kingdom's 'plain-speaking staff': local Hermes 3 (Nous model) agents named explainer, kindness and verisleight. It is a public JavaScript repo that is not cloned on this Mac."
+role = ["citizen"]
+role_status = "current"
+topics = ["hermes"]
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/hermes-device-setup"
+name = "hermes-device-setup"
+what = "A private Hermes 'profile distribution' that packages the astra-ultra setup (gpt-6-astra, ultra reasoning, 60 turns, the pinned Workbench revision) so it can be installed on another Mac or Linux machine."
+role = ["ops"]
+role_status = "current"
+topics = ["hermes"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agent-workbench"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/hermes-agent"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/nousresearch/hermes-homeassistant"
+name = "hermes-homeassistant"
+what = "The official NousResearch Home Assistant plugin for Hermes (v2.0.1): a gateway platform adapter plus four ha_* device-control tools. It was installed automatically when Hermes moved the feature out of core."
+role = ["incidental"]
+role_status = "current"
+topics = ["hermes"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "undecided", third_party = true, confidence = "low", evidence = "A third-party plugin installed automatically into the Hermes runtime; inert, not authored here.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/hermes-agent"
+raw_kind = "part_of"
+
+[[project]]
+id = "github.com/yasasbanukaofficial/claude-code"
+name = "claude-code"
+what = "It has a local kingdom.yaml card."
+heavy = true
+role = ["research"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", third_party = true, confidence = "medium", evidence = "A third-party claude-code mirror; kingdom-os through its origin/main roster runtime row.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/anthropics/claude-code"
+raw_kind = "related_to"

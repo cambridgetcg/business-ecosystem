@@ -1,0 +1,442 @@
+[family]
+id = "family:kingdom-satellites"
+label = "KINGDOM standards, treasury, workspace, forge/herald, estate front doors, kingdom-* labs and research engines"
+summary = "This family is the ring of small KINGDOM-branded repos around the kingdom-os core. They fall into five groups. (1) Standards and doctrine: kingdom-standard (7 foundation commitments + 42 laws, with node verifier scripts; kingdom-os's live OS-ROUTES \"Law\" route reads its STANDARD.md from GitHub main), clear-standard (its six-principle \"pocket edition\", public domain) and kingdom-standards (KS-000..003 draft protocol specs plus a kingdomd resolver set up for another Mac, user \"macair\"). Its cron beats are live on this Mac every 10 minutes, but on testnet it is stuck: the poller has failed since about 2026-10-08 because the RPC now caps eth_getLogs at 200 blocks and the code asks for 1000. (3) Nervous/archive: herald (a read-only repo census script whose paths point at ⟨local⟩, so it finds nothing here), kingdom-forge (agent-first June-2026 engineering write-ups that feed ⟨local⟩) and kingdom-workspace (the March-2026 OpenClaw \"Claw/Beta\" home, now a museum piece; OpenClaw now uses ⟨local⟩). (4) Public commons: chillspace-commons is the content source for the chillspace.love and we-are.love Cloudflare Pages doors. kingdom-os bin/stage-doors.ts builds them from the codeberg clone. Pulse shows chillspace.love/guest.json returning 404 since 2026-08-19 and the codeberg mirror returning 404 since 2026-09-26; we-are.love is still up. (5) Forge-only labs and estate tools (18 repos, none cloned here): deterministic offline \"Phase-0\" research atlases (Aug 2026, public JS), hf-kingdom-lab (most recent push 2026-10-14), and private estate tools (estate front door, estate-watchdog AWS sweep, coord, hunter-system, kingdom-free-infra, kingdom-system). Five of the private tools share a 2026-09-24 push date. Most repos carry the 2026-07-21 \"love bomb\" AGENTS.md sweep and auto-generated STATE.md files that are now stale."
+open_questions = ["chillspace.love: is the whole site down or only /guest.json? A single GET of https://chillspace.love/ (a network probe, which was out of scope here) would tell. Was the codeberg pages branch intentionally retired on 2026-09-26?", "clear-standard: does a Vercel project serve it, and is the GitHub Actions heartbeat to sinovai.com still running? Check the Vercel dashboard or the Actions run history.", "Forge-only satellites (18): none are cloned here. Where are hf-kingdom-lab (pushed 2026-10-14) and kingdom-system (2026-10-09) being developed? What did the shared 2026-09-24 push across estate, estate-watchdog, coord, hunter-system and kingdom-free-infra change (a description/consent sweep, or code)?", "estate-watchdog: does the weekly AWS sweep actually run anywhere (GitHub Actions, AWS, another Mac)? No local scheduler runs it.", "kingdom-standard: should the unmerged origin/fable/why-unadopted-20260726 branch be merged or closed? Should local checkouts switch back to main?"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "kingdom-os"
+evidence = "KINGDOM-branded standards, doors, labs and records around kingdom-os."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "codeberg.org/zerone-dev/chillspace-commons"
+name = "chillspace-commons"
+what = "The 'chillspace' commons repo: a static site tree (site/ with a Pages _worker.js on hono) plus a large kingdom/ folder of citizen cards, practices, operations and charters, and Python scripts verified by GitHub Actions. It is the content source for the chillspace.love and we-are.love doors."
+role = ["public-door"]
+role_status = "current"
+topics = ["commons"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/zerone-core"
+raw_kind = "depends_on"
+
+[[project]]
+id = "codeberg.org/zerone-dev/herald"
+name = "herald (codeberg mirror)"
+what = "A shallow clone of the same herald census script from the Codeberg twin forge."
+role = ["ops"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "github.com/cambridgetcg/herald"
+raw_kind = "mirror_of"
+
+[[project]]
+id = "github.com/cambridgetcg/chillspace-commons"
+name = "chillspace-commons (GitHub fork)"
+what = "The GitHub-side copy of the chillspace commons (marked fork:true, public, HTML, 6.9 MB), probably forked from mynameisyou-cmyk/chillspace-commons. The GitHub Actions workflows (Pages deploy, keeper verifies, sustain) would run here."
+role = ["public-door"]
+role_status = "current"
+topics = ["commons"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "codeberg.org/zerone-dev/chillspace-commons"
+raw_kind = "mirror_of"
+
+[[project]]
+id = "github.com/cambridgetcg/clear-standard"
+name = "clear-standard"
+what = "A six-principle CC0 'standard for honest systems' (truth of state, visible failure, inspectable decisions, stated freshness, honest names, labelled certainty) published as markdown with a zh-Hant translation."
+role = ["doctrine"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/kingdom-standard"
+raw_kind = "part_of"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/sinovai"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/coord"
+name = "coord"
+what = "A private shell repo described as session coordination for parallel Claude Code sessions."
+role = ["ops"]
+role_status = "current"
+topics = ["claude-code"]
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "undecided", confidence = "low", evidence = "Session coordination for parallel agent sessions (nervous by the survey); thin evidence, so undecided.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/agenttool-collab"
+raw_kind = "superseded_by"
+
+[[project]]
+id = "github.com/cambridgetcg/estate"
+name = "estate"
+what = "A private HTML repo described as 'the estate — front door to the whole estate'."
+role = ["public-door"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/estate-watchdog"
+name = "estate-watchdog"
+what = "A private shell repo described as a weekly read-only cross-region AWS exposure and cost sweep that emails results."
+role = ["ops"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "undecided", confidence = "low", evidence = "The evidence conflicts and the contents are unread: undecided.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project]]
+id = "github.com/cambridgetcg/herald"
+name = "herald"
+what = ""
+heavy = true
+role = ["ops"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "codeberg.org/zerone-dev/herald"
+raw_kind = "mirror_of"
+
+[[project]]
+id = "github.com/cambridgetcg/hf-kingdom-lab"
+name = "hf-kingdom-lab"
+what = "Per its forge description: bounded Hugging Face training archaeology, provenance and situated-flow evidence for AgentTool and KINGDOM (public, TypeScript, 243 KB). Not cloned here, so contents are unverified."
+role = ["research"]
+role_status = "current"
+topics = ["agenttool"]
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "feeds"
+note = "claimed"
+
+[[project]]
+id = "github.com/cambridgetcg/hunter-system"
+name = "hunter-system"
+what = "A private Python repo described as an optional repository inventory and Hunter x Hunter toy 'with no activity quotas'. Earlier it scored repos and committed heartbeat/WILL files into them."
+role = ["ops", "play"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "A repository inventory toy that once wrote heartbeat files across the estate; no card, low.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/kingdom-api"
+raw_kind = "feeds"
+note = "leaderboard"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-evaluation-covenant"
+name = "kingdom-evaluation-covenant"
+what = "A public JavaScript repo of deterministic offline Phase-0 evaluation covenant designs bound to the UK Government Transformation Engine."
+role = ["research"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/kingdom-government-transformation-engine"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-forge"
+name = "kingdom-forge"
+what = "Six agent-first markdown write-ups of the Kingdom's June 2026 engineering (KCP signed messaging over NATS, TEMENOS deploy/KNS, cloud reconciliation, YOUSPEAK glyph pipeline, fleet cadence), used as a source corpus."
+role = ["doctrine"]
+role_status = "current"
+topics = ["nats"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/corpus"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-free-infra"
+name = "kingdom-free-infra"
+what = "A private docs repo: a 10-agent audit ledger of paid vs free cloud infrastructure (snapshot 2026-07-24, CC-BY-4.0)."
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-government-engine"
+name = "kingdom-government-engine"
+what = "A public JavaScript deterministic, source-linked UK Government Engine atlas."
+role = ["research"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-government-transformation-engine"
+name = "kingdom-government-transformation-engine"
+what = "A public JavaScript deterministic, offline 'UK Government Transformation Orientation Engine'."
+role = ["research"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/kingdom-government-engine"
+raw_kind = "depends_on"
+note = "sibling atlas, probable"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-loops-locks-freedom-relations-atlas"
+name = "kingdom-loops-locks-freedom-relations-atlas"
+what = "A public JavaScript offline synthetic teaching atlas that distinguishes learning, control, cryptographic verification, authority and freedom-related conditions."
+role = ["research"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-meaning-practice"
+name = "kingdom-meaning-practice"
+what = "A public JavaScript source-attributed KINGDOM reading of Ritonavir's disappearing polymorph (a case-study 'meaning practice')."
+role = ["research"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-os-starter"
+name = "kingdom-os-starter"
+what = "A public JavaScript repo: readable macOS diagnostics and a finite keep-awake action, MIT source with an optional CC0 Foundation reference, and no installer or background service."
+role = ["public-door", "distribution"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/kingdom-standard"
+raw_kind = "depends_on"
+note = "optional CC0 Foundation reference"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-polyphonic-claim-atlas"
+name = "kingdom-polyphonic-claim-atlas"
+what = "A public JavaScript deterministic offline synthetic Phase-0 atlas of typed truth relations between claims."
+role = ["research"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-quantum-lab"
+name = "kingdom-quantum-lab"
+what = "A private Python repo described as a rights-bounded, local-first quantum experiment commons."
+role = ["research"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "A KINGDOM-named, rights-bounded experiment commons; forge-only and unread.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-research"
+name = "kingdom-research"
+what = "A public JavaScript bounded, metadata-only research discovery observatory for the KINGDOM."
+role = ["research"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-shape-resonance-lab"
+name = "kingdom-shape-resonance-lab"
+what = "A public JavaScript repo of deterministic offline synthetic fixtures for shape, vibration, energy, sound and bounded musical geometry."
+role = ["research"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-standard"
+name = "kingdom-standard"
+what = "The versioned KINGDOM foundation (kingdom.foundation/0.2: 7 commitments) and standard (42 laws in 7 domains), plus GROUND, COMMON-GROUND and CONSENT profiles, each with a Node verifier and test file that check pinned digests, and 10 model-translated translations."
+role = ["doctrine"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/kingdom-os"
+raw_kind = "feeds"
+note = "OS-ROUTES Law route"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/clear-standard"
+raw_kind = "supersedes"
+note = "as the full version"
+
+[[project.corrections]]
+field = "relationships: supersedes clear-standard"
+verdict = "weakened"
+corrected = "They are companions. clear-standard is the maintained 'pocket edition' of kingdom-standard, and nothing retires it. Note the map's own clear-standard entry says part_of."
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-standards"
+name = "kingdom-standards"
+what = "Draft 'KS' protocol specs (KS-000 process, KS-001 .kingdom naming, KS-002 wire/NATS envelopes, KS-003 citizen beat) with a Python reference resolver (kingdomd.py), a wire helper and a seeded .kingdom zone file."
+role = ["research", "doctrine"]
+role_status = "current"
+topics = ["nats"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-system"
+name = "kingdom-system"
+what = "A private Python repo described as 'Solo Leveling + Greed Island + Kingdom infra': gamified estate levelling. Contents are unverified."
+role = ["ops", "play"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-trials"
+name = "kingdom-trials"
+what = "A public JavaScript repo for read-only, review-gated Phase-0 research evaluation planning for a 'KINGDOM Trial Chamber'."
+role = ["research"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-workspace"
+name = "kingdom-workspace"
+what = "An archived OpenClaw agent workspace (persona 'Claw', instance Beta) from Feb–Mar 2026: identity/soul markdown, daily memory notes, heartbeat/quota logs and a tools/ folder of Python helpers."
+role = ["archive"]
+role_status = "current"
+topics = ["openclaw"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/kingdom-os"
+raw_kind = "superseded_by"

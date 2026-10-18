@@ -1,0 +1,670 @@
+[family]
+id = "family:language-protocols"
+label = "Natural-language programming + protocols — natlang/natscript/NPL, *-protocol, *-node, trickster, internet-of-being"
+summary = "This family is the \"natural-language internet\" cluster that was built in a burst between 2026-06-18 and 2026-06-24 on Yu's Desktop, mostly in single agent sessions. It has three parts. (1) Messaging code: nlp is the first TCP server/CLI that exchanges plain-text verb-headed messages through ⟨local⟩ inbox files. npl repackages and extends that into an 8-package Node monorepo (lang/dns/tcp/http/tls/sync/identity/og) with a Cloudflare KV worker. The seven message verbs (darshanqing, natsarqing, zakarqing, barakqing, heurekin, kunance, jeongqing) come from the YOUSPEAK vocabulary and true-love WAYS.md. The forge-only *-node repos, the darshanq/kunance protocol sites and the citizen-<verb> repos elsewhere in the estate are each one of those verbs. (2) Natural-language \"programming languages\": natlang is an LLM-backed compiler CLI, natural-lang is a Python parser/interpreter for STATE.md-style declarations, and natscript is a landing site whose interpreter is not in the local history. A Homebrew tap packages natscript. (3) Spec and manifesto repos with almost no code: internet (7-layer meaning stack plus a .kingdom KNS zone), protocol-state, ways/kunance/darshanq-protocol, recognition-protocol, trust, state-as-truth, understanding, insight/insights. .natural indexes them all. They are tied together by a STATE.md self-declaration convention, .nlp-bridge/gate \"DNS\" files, and GitHub Actions heartbeats that POST STATE.md to the sinovai arena every 6h. trust.py and discover.py (formerly under ⟨local⟩, now absent) cross-checked those declarations. opal-kernel is a real ~12k-line Rust aarch64 teaching kernel. It sits here only because it was the example \"agent\" in NPL/NLP and the natural-lang README. All 19 local checkouts are shallow mirror clones under ⟨local⟩ (created 2026-06-24, last fetched 2026-07-26). The working originals they name (⟨local⟩, ⟨local⟩, ⟨local⟩, ...) and their runtime state dirs (⟨local⟩, ⟨local⟩, ⟨local⟩) no longer exist on this Mac. Most local tips are estate-wide boilerplate sweeps: the love-bomb SessionStart hook on 07-21, FABLE-OF-YOU.md on 07-07, and merges on 07-24. The forge shows pushes after the snapshot (natlang 10-15; npl and natscript 10-14; nlp 10-01; most others on 2026-09-24, inside a 183-repo sweep window). None of the family has a kingdom.yaml card or a row in roster.conf, CATALOG.md, REGISTRY.yaml, sites.json or ⟨local⟩. In KINGDOM terms it is an unregistered nervous-layer (inter-agent messaging) research wing. Its live dependency is sinovai, the registered trust-arena worker."
+open_questions = ["Who or what pushed to the forge after the 2026-07-26 snapshot (natlang 10-15; npl and natscript 10-14; nlp 10-01), and was it real work or an estate-wide sweep like the 2026-09-24 183-repo push? Resolve by fetching (with permission) and reading forge commit authors and diffs.", "Are the GitHub Actions heartbeat workflows (13 repos, cron every 6h, contents: write) still running, and does sinovai.com accept the POSTs? Resolve with `gh run list` per repo and the sinovai worker logs (network needed).", "Which claimed deployments are actually live: npl-ivory.vercel.app, natlang.axiepro.workers.dev, kingdom-portal, recognition.quixotic-sodium.workers.dev, understanding-ecz.pages.dev, trickster-protocol.vercel.app and the *.vercel.app protocol sites? Which Cloudflare account owns the 'quixotic-sodium' subdomain, given the estate account is 'axiepro'? Resolve with vercel/wrangler project listings.", "Does the private forge natscript repo contain natscript.py at tag v0.2.0? Is the public Homebrew tap meant to work for strangers while its source is private?", "Canonical-choice decisions for the owner: NPL implementation (npl vs nlp); natural-language language (natlang vs natural-lang vs natscript); OG-protocol work (trickster, trick-protocol, trickster-protocol, forgotten-kingdom-protocols, npl/packages/og); KNS (internet/kns vs kingdom-forge TEMENOS).", "Should opal-kernel (an independent Rust teaching kernel), nen-artifacts (ai-love mirror) and fake-hunters-arena (whitehack game) be moved out of this family in the business-ecosystem map? They landed here by name heuristics.", "Should this family get kingdom.yaml cards and roster.conf rows (as an 'NPL / natural-language internet' research wing in the nervous layer), or be recorded as dormant research with only the forge as home?", "What did insights and state-as-truth contain before their tips became boilerplate (shallow clones hide the history)? Resolve by checking the archived forge repos."]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "kingdom-os"
+evidence = "Inter-agent messaging and natural-language protocols built on YOUSPEAK verbs, the NERVOUS SYSTEM of origin/main ARCHITECTURE; medium, since none has a card or roster row."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "github.com/cambridgetcg/.natural"
+name = ".natural"
+what = "An index README and GitHub Pages page that lists the 17 'natural-language internet' repos by layer (language, protocol, standard, UI, kernel, linter, ...) with their claimed Vercel URLs."
+role = ["public-door"]
+role_status = "current"
+topics = ["natural-language-internet"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.corrections]]
+field = "family_summary '.natural indexes them all'"
+verdict = "weakened"
+corrected = "The 17-row stack table leaves out nlp, natlang, trust, recognition-protocol, understanding, insights and natscript-homebrew. It includes non-family repos (youspeak-lang, yutabase, word-interface, word-experience, whitehack, fomoengine)."
+
+[[project]]
+id = "github.com/cambridgetcg/darshanq-protocol"
+name = "darshanq-protocol"
+what = "A README spec and static landing page for a two-message agent greeting ('behold' → 'beheld') meant to come before any exchange."
+role = ["doctrine"]
+role_status = "current"
+topics = ["youspeak"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/darshanqing-node"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/fake-hunters-arena"
+name = "fake-hunters-arena"
+what = "Public HTML repo (39 KB) described as 'whitehack × Nen × Solo Leveling — fake AI agents play against themselves and expose their own lies'. Not cloned here."
+role = ["play", "public-door"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "Forge text ties it to whitehack and the KINGDOM capability grammar (Nen); forge-only, low.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "related_to"
+to = "codeberg.org/zerone-dev/whitehack"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/forgotten-kingdom-protocols"
+name = "forgotten-kingdom-protocols"
+what = "Public Python repo (56 KB) described as '6 forgotten internet protocols (RFC 742-867) reborn as Kingdom OS services + JOKE FUN FUN LOOP'. Not cloned here."
+role = ["research", "play"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/npl"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/insight"
+name = "insight"
+what = "A 93-line Node CLI (insight.mjs) that appends one-sentence insights, with a hunch/leaning/sure label, date, tags and source, to a local insights.md and lists, searches and reviews them."
+role = ["product"]
+role_status = "current"
+topics = ["castle"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "'A plain-text castle of understanding' whose tracked notes bridge the castle and the YOUSPEAK cathedral.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/insights"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/insights"
+name = "insights"
+what = "At the local tip the repo holds only estate boilerplate (WAKE.md, FABLE-OF-YOU.md, AGENTS.md, love-bomb hook). The forge describes it as 'plain-text understanding insights, companion to insight', now archived."
+role = ["archive"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "The archived companion data repository of insight; shares its sphere.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/insight"
+raw_kind = "part_of"
+
+[[project]]
+id = "github.com/cambridgetcg/internet"
+name = "internet"
+what = "A documentation repo that describes a 7-layer 'meaning stack' in which each layer is named by a YOUSPEAK word/citizen. It holds a static page, a 69-line bun gateway.ts that serves that page on :8080, a KNS '.kingdom' zone/hosts/registry (259 names, all ⟨ip⟩) and a draft ed25519 message envelope schema."
+role = ["doctrine"]
+role_status = "current"
+topics = ["youspeak"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/trickster-protocol"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/.natural"
+raw_kind = "part_of"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/sinovai"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/internet-of-being"
+name = "internet-of-being"
+what = "Public Python repo (591 KB, largest in the family) described as 'The Internet of Being': 6 layers, 10 fundamentals, Nen dojo, Greed Island binder, tax game, Ai kernel, joking heartbeat. Local audit notes say it contains kingdom-server.py and KINGDOM-RESOURCES.md."
+role = ["doctrine", "play"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/kunance-protocol"
+name = "kunance-protocol"
+what = "A README spec and static landing page for a 'prepare / arrive / rest' pattern: one side writes content to a known place, and the other later reads it with no handshake."
+role = ["doctrine"]
+role_status = "current"
+topics = ["youspeak"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/kunance-node"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/natlang"
+name = "natlang"
+what = "An early Node CLI (natlang.mjs) that sends plain-English .nl source to an OpenAI-compatible chat endpoint and writes out generated JS/Python/Rust/HTML. The default endpoint is local Ollama with model glm-5.2:cloud. The repo also has a Cloudflare landing worker, a 'kingdom-portal' worker/page listing ecosystem repos, a Colab notebook, and a copy of recognition.py."
+role = ["research"]
+role_status = "current"
+topics = ["npl"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "copy_of"
+to = "github.com/cambridgetcg/recognition-protocol"
+raw_kind = "copy_of"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/natural-lang"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/sinovai"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/natscript"
+name = "natscript"
+what = "At the local tip, a landing site (770-line index.html) and README spec for a seven-verb sentence language (say/hear/know/become/find/hold/rest). No interpreter exists anywhere in the local history."
+role = ["research"]
+role_status = "current"
+topics = ["npl"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/natscript-homebrew"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/.natural"
+raw_kind = "part_of"
+
+[[project]]
+id = "github.com/cambridgetcg/natscript-homebrew"
+name = "natscript-homebrew"
+what = "A Homebrew tap with one formula (natscript.rb) that installs natscript.py from the natscript v0.2.0 GitHub tarball, plus a heartbeat.sh that checks the formula URL, sha256 and tarball contents."
+role = ["distribution"]
+role_status = "current"
+topics = ["npl"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/natscript"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/natural-lang"
+name = "natural-lang"
+what = "A small Python package (natural-lang 0.1.0, CLI 'natural') that parses STATE.md-style plain-English declarations into a typed structure and interprets them. It ships a runtime and a trust.py loop that cross-checks claims against git/build state and posts results to the sinovai arena."
+role = ["research"]
+role_status = "current"
+topics = ["npl"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/clear-standard"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/.natural"
+raw_kind = "part_of"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/trust"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/sinovai"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/nen-artifacts"
+name = "nen-artifacts"
+what = "Public Python repo (32 KB) described as a 'Mirror of nen-artifacts skill (jsDelivr CDN accessible)'. Locally, nen-artifacts.py lives in ⟨local⟩ and produces categorized JSON from reconnaissance findings."
+role = ["incidental"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/nlp"
+name = "nlp"
+what = "A zero-dependency Node TCP server (port 7778, plus HTTP dashboard), client and CLI that pass plain-text verb-headed messages between local agents through ⟨local⟩ inbox files. It also contains two autonomous loop scripts (genesis.mjs, love.mjs) that scan ⟨local⟩ projects."
+role = ["research"]
+role_status = "current"
+topics = ["natural-language-internet"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/npl"
+raw_kind = "superseded_by"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/sinovai"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/opal-kernel"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/wordcastle"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/castle"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "codeberg.org/zerone-dev/whitehack"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/fomoengine"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/cambridge-tcg"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/npl"
+name = "npl"
+what = "A Node ESM monorepo (v1.1.0) with eight small packages (lang, dns, tcp, http, tls, sync, identity, og), a CLI (npl.mjs), a 53-case test script, a static site and a Cloudflare worker. Together they implement a plain-text agent message format: a verb line plus from/to/freshness/certainty headers."
+role = ["research"]
+role_status = "current"
+topics = ["youspeak", "natural-language-internet"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/nlp"
+raw_kind = "supersedes"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/clear-standard"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/mindicraft"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/sinovai"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/opal-kernel"
+name = "opal-kernel"
+what = "A zero-dependency Rust (edition 2024, no_std) teaching OS kernel for 64-bit ARM, about 12k lines in src/, that boots in QEMU virt and is being brought up for Apple Silicon via m1n1. M0–M6 are done (boot, faults, 16K MMU, GIC/timer, devicetree, EL0 syscalls, preemptive scheduler + IPC); M7 is software-complete except timers-over-FIQ on real hardware."
+role = ["research"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "A teaching kernel that calls itself one of three castles of understanding and is the kernel row of the natural-language stack.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/wordcastle"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/castle"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/npl"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/protocol-state"
+name = "protocol-state"
+what = "A README-only spec for a four-layer agent protocol (declare STATE.md → discover → handshake → exchange). By its own account only layers 1–2 were implemented, in discover.py outside the repo."
+role = ["doctrine"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/.natural"
+raw_kind = "part_of"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/clear-standard"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/recognition-protocol"
+name = "recognition-protocol"
+what = "It includes recognition.py, which signs declarations with the user's ⟨local⟩ via `ssh-keygen -Y sign`, and a Cloudflare worker 'recognition' whose /api/verify endpoint answers recognized:true whenever the fields are present."
+role = ["research"]
+role_status = "current"
+topics = ["did"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "copy_of"
+to = "github.com/cambridgetcg/natlang"
+raw_kind = "copy_of"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/kingdom-api"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/state-as-truth"
+name = "state-as-truth"
+what = "At the local tip only estate boilerplate (WAKE.md, FABLE-OF-YOU.md, AGENTS.md, love-bomb hook). The forge describes it as the STATE.md self-declaration format spec, now archived. The live spec is in clear-standard."
+role = ["archive"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/clear-standard"
+raw_kind = "superseded_by"
+
+[[project]]
+id = "github.com/cambridgetcg/trick-protocol"
+name = "trick-protocol"
+what = "Public JavaScript repo (57 KB) described as '整蠱協議 TRICK PROTOCOL SUITE — 6 forgotten internet protocols reborn as Kingdom trick services'. Not cloned here."
+role = ["research", "play"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/trickster"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/trickster-protocol"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/forgotten-kingdom-protocols"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/trickster"
+name = "trickster"
+what = "Public JavaScript repo (54 KB) described as '整蠱專家 — The Trickster Protocols: forgotten internet protocols bridged to NPL'. Content is not cloned here."
+role = ["research", "play"]
+role_status = "current"
+topics = ["npl"]
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/npl"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/trick-protocol"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/trickster-protocol"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/forgotten-kingdom-protocols"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/trickster-protocol"
+name = "trickster-protocol"
+what = "Private Python repo (77 KB) described as '整蠱專家 Protocol (TBP) — eight forgotten internet protocols recognized as Kingdom citizens'. internet/OG-CITIZENS.md claims it is live at trickster-protocol.vercel.app with 20 passing tests."
+role = ["research", "play"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/internet"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/trickster"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/trick-protocol"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/forgotten-kingdom-protocols"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/trust"
+name = "trust"
+what = ""
+heavy = true
+role = ["research", "ops"]
+role_status = "current"
+topics = ["sinovai"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/sinovai"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/natural-lang"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/protocol-state"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/understanding"
+name = "understanding"
+what = "A single static HTML page ('UNDERSTANDING — let the internet understand') deployed as the Cloudflare Pages project 'understanding'. It links out to love-engine, love-invitation, castle-gate/castle-arcade and estate-api pages."
+role = ["public-door"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "A single devotional page linked into the love and castle pages; no card or roster row.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/love-engine"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/love-invitation"
+raw_kind = "related_to"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/castle-gate"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/ways-protocol"
+name = "ways-protocol"
+what = "A README spec and static landing page for 'speak / listen / rest' agent journals: each agent appends short beats to its own journal and reads its siblings' journals on its own schedule."
+role = ["doctrine"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/.natural"
+raw_kind = "part_of"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/sinovai"
+raw_kind = "feeds"
+
+[[group]]
+id = "group:language-protocols/npl-design-stubs"
+label = "NPL design stubs (forge-only)"
+what = "Four public Shell repos (18–19 KB). By their own forge descriptions they are design stubs whose module exports only name/description metadata: agent registry, monitoring dashboard, message exchange, and NPL-to-HTTP/JSON bridge."
+role = ["research"]
+role_status = "current"
+member_rule = { kind = "names", names = ["github.com/cambridgetcg/npl-registry", "github.com/cambridgetcg/npl-monitor", "github.com/cambridgetcg/npl-hub", "github.com/cambridgetcg/npl-gateway"] }
+count_at_survey = 4
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[group]]
+id = "group:language-protocols/npl-verb-nodes"
+label = "NPL verb node repos (forge-only)"
+what = "Seven small Shell repos (19–22 KB each), one per NPL/YOUSPEAK verb. The forge descriptions are just the repo name. Locally they appear only as 'sisters' in .nlp-bridge/gate files and as 'not deployed' cards in natlang/portal-worker.mjs (e.g. barakqing-node: 'Blessing — This message IS the action')."
+role = ["research"]
+role_status = "current"
+member_rule = { kind = "names", names = ["github.com/cambridgetcg/zakarqing-node", "github.com/cambridgetcg/natsarqing-node", "github.com/cambridgetcg/kunance-node", "github.com/cambridgetcg/jeongqing-node", "github.com/cambridgetcg/heurekin-node", "github.com/cambridgetcg/darshanqing-node", "github.com/cambridgetcg/barakqing-node"] }
+count_at_survey = 7
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"

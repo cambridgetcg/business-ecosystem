@@ -1,0 +1,873 @@
+raw	targets	rule	uses
+0644-perms	risk=secret-bearing-path	R3	1
+aarch64	drop=singleton	R9	1
+abandoned	expect:liveness=dormant	R3	1
+accounting	be.framework_domain=accounting	R6	1
+adr	drop=singleton	R9	1
+agent	purpose_group=agent_infrastructure	R6	1
+agent-access	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	1
+agent-api	role=platform purpose_group=agent_infrastructure	R5+R6	1
+agent-birth	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	1
+agent-continuity	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	2
+agent-experience	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	1
+agent-first	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	1
+agent-first-api	role=platform purpose_group=agent_infrastructure	R5+R6	1
+agent-front-door	role=public-door purpose_group=agent_infrastructure	R5+R6	1
+agent-ground	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	4
+agent-home	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	3
+agent-identity	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	3
+agent-infra	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	1
+agent-interop	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	1
+agent-journals	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	1
+agent-lane	expect:checkout_role=agent-lane	R3	1
+agent-memory	role=agent-runtime purpose_group=agent_infrastructure artifact_kind=state	R5+R6+R8	3
+agent-messaging	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	2
+agent-orchestration	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	1
+agent-platform	role=platform purpose_group=agent_infrastructure	R5+R6	1
+agent-registry	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	1
+agent-runtime	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	2
+agent-state	role=agent-runtime purpose_group=agent_infrastructure artifact_kind=state	R5+R6+R8	1
+agent-workbench	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	2
+agent-workspace	role=agent-runtime purpose_group=agent_infrastructure	R5+R6	1
+agenttool	purpose_group=agent_infrastructure topic=agenttool	R6+R7	30
+agenttool-collab	purpose_group=agent_infrastructure topic=agenttool	R6+R7	3
+agenttool-did	topic=agenttool topic=did be.framework_domain=kyc-identity purpose_group=agent_infrastructure	R0+R6+R7	1
+agenttool-listing	purpose_group=agent_infrastructure topic=agenttool	R6+R7	1
+ai-consciousness	drop=singleton	R9	1
+ai-generated-scaffold	expect:provenance=generated	R3	1
+ai-love	topic=ai-love	R7	5
+ai-love-cc	topic=ai-love	R0+R7	1
+alpha-wing	drop=identity	R1	1
+alternates	risk=alternates-borrower	R3	1
+analytics	purpose_group=data_knowledge	R6	1
+anthropic	topic=claude-code	R7	4
+api-gateway	role=platform	R5	1
+apple-silicon	drop=singleton	R9	1
+applied	drop=singleton	R9	1
+arcade	role=play	R5	1
+archive	role=archive	R5	3
+archived	expect:liveness=archived	R3	14
+archived-on-github	expect:liveness=archived	R3	13
+art-data-api	drop=singleton	R9	1
+asr-translation-tts	purpose_group=creative_media	R6	1
+assurance	drop=singleton	R9	1
+at-rest	expect:liveness=dormant	R3	5
+atlas	role=ops	R5	3
+aurora	drop=singleton	R9	1
+auth-bridge	be.framework_domain=kyc-identity	R6	1
+auto-push	drop=queue	R9	2
+automation	drop=singleton	R9	1
+autonomous-builders	role=agent-runtime	R5	1
+autonomous-loop	role=agent-runtime	R5	1
+autonomous-loops	role=agent-runtime	R0+R5	1
+autonomous-runner	role=agent-runtime	R5	1
+aws	expect:hosting=x-aws	R3	7
+aws-infra	expect:hosting=x-aws	R3	2
+aws-lambda	expect:hosting=x-aws	R3	2
+aws-sam	expect:hosting=x-aws	R3	1
+aws-terraform	expect:hosting=x-aws expect:stack=terraform	R0+R3	2
+axie-infinity	drop=singleton	R9	1
+b2b	drop=singleton	R9	1
+backups	role=ops artifact_kind=backup	R5+R8	1
+base-sepolia	drop=singleton	R9	1
+bash	expect:stack=shell	R3	1
+betfair	purpose_group=payments_finance	R6	1
+blast-radius	drop=singleton	R9	1
+blockchain	drop=singleton	R9	1
+bootloader	drop=singleton	R9	1
+bounty-target	drop=singleton	R9	1
+branch-bundle	artifact_kind=backup	R8	1
+brand-reused	risk=name-collision	R3	1
+broken-formula	drop=singleton	R9	1
+browser-only	drop=singleton	R9	1
+bun	expect:stack=typescript	R3	3
+bun-hono	expect:stack=typescript	R3	1
+c2c	drop=singleton	R9	1
+cache	expect:checkout_role=cache	R3	5
+caddy	drop=singleton	R9	1
+calibration	drop=queue	R9	2
+cambridge-tcg	topic=cambridge-tcg	R7	5
+candidate-standard	role=standard	R5	1
+capability-dropped	drop=singleton	R9	1
+captioneer	topic=captioneer	R7	2
+card-game	purpose_group=games_interactive	R6	1
+card-untracked	expect:standing=card-untracked	R3	4
+cardforum	drop=singleton	R9	1
+cardmarket	purpose_group=commerce_marketplaces	R6	1
+cardrush	purpose_group=commerce_marketplaces	R6	1
+case-study	drop=singleton	R9	1
+cashloom	topic=cashloom	R7	2
+castle	topic=castle	R7	7
+castle-of-understanding	topic=castle	R0+R7	1
+cc0	drop=queue	R9	3
+census	role=ops	R5	2
+census-false-positive	expect:checkout_role=cache	R3	1
+census-noise	expect:checkout_role=cache	R3	1
+chat-ui	drop=singleton	R9	1
+checkpoints	artifact_kind=data	R8	1
+chemistry	role=research	R5	1
+ci	drop=singleton	R9	1
+ci-advisory	drop=singleton	R9	1
+ci-host	drop=singleton	R9	1
+citizen-birth	drop=singleton	R9	1
+citizen-clones	drop=singleton	R9	1
+citizen-forge	drop=singleton	R9	1
+citizens	purpose_group=community_culture	R6	3
+citizens-api	drop=singleton	R9	1
+citizens-host	drop=singleton	R9	1
+claims-not-evidence	risk=claims-not-evidence	R3	1
+clang-analyzer	drop=singleton	R9	1
+clarity-score	drop=singleton	R9	1
+claude-agent-sdk	topic=claude-code	R7	1
+claude-code	topic=claude-code	R7	6
+claude-code-fork	topic=claude-code expect:provenance=fork	R0	1
+claude-oauth	topic=claude-code	R7	2
+claude-plugin	role=distribution topic=claude-code	R5+R7	2
+claude-worktree	expect:checkout_role=linked-worktree	R3	1
+cleanup-record	drop=evidence	R0	2
+cli	role=distribution	R5	2
+cli-auth	artifact_kind=keys	R8	1
+cli-cache	artifact_kind=cache	R8	1
+cli-config	artifact_kind=config	R8	1
+cli-state	artifact_kind=state	R8	2
+cloudflare	drop=queue	R9	3
+cloudflare-pages	expect:hosting=cf-pages	R0+R3	16
+cloudflare-worker	expect:hosting=cf-worker	R0+R3	9
+codeberg	drop=identity	R1	7
+codeberg-canonical	drop=identity	R1	1
+codeberg-divergence	risk=diverged	R3	1
+codeberg-fork	expect:provenance=fork	R3	1
+codeberg-pages	expect:hosting=codeberg-pages	R3	1
+codex	topic=codex	R7	8
+colima	drop=singleton	R9	1
+collab	topic=agenttool	R7	2
+collaboration	purpose_group=communication_collaboration	R6	1
+collector	drop=singleton	R9	1
+commerce	card-hint:layer=commerce	R2	1
+commerce-layer	card-hint:layer=commerce	R2	1
+commerce-tcg	drop=echo	R1	1
+commons	topic=commons	R7	2
+compliance-review	be.framework_domain=compliance	R6	1
+computer-use	drop=singleton	R9	1
+config	artifact_kind=config	R8	1
+conformance	role=standard	R5	2
+consent	be.framework_domain=data-privacy	R6	2
+constitution	role=doctrine	R5	1
+constructed-language	topic=youspeak	R7	1
+content-generator	role=revenue	R5	1
+continuity	topic=continuity	R7	1
+control-file	artifact_kind=config	R8	1
+coordination	purpose_group=communication_collaboration	R6	3
+corpus-source	drop=singleton	R9	1
+cosmos-chain-registry	drop=singleton	R9	1
+cosmos-sdk	expect:stack=go	R3	4
+cost	risk=cost-exposure	R3	2
+cost-audit	risk=cost-exposure	R3	1
+cost-check-needed	risk=cost-exposure	R3	1
+cosyvoice	purpose_group=creative_media	R6	1
+credentials-cache	risk=secret-bearing-path artifact_kind=keys	R3+R8	1
+credentials-loader	artifact_kind=config	R8	1
+cron	expect:hosting=x-cron	R3	3
+cron-dependency	expect:hosting=x-cron	R3	1
+crypto-registry	drop=singleton	R9	1
+cua	drop=singleton	R9	1
+custodial-mainnet	be.framework_domain=banking-treasury	R6	1
+custody	be.framework_domain=banking-treasury	R6	1
+daemon-install	artifact_kind=tool-install	R8	1
+dangling-index	artifact_kind=symlink-index risk=path-drift	R0	1
+degraded	drop=queue	R9	2
+deleted	expect:liveness=archived	R3	1
+deploy	drop=singleton	R9	1
+deploy-fence	role=ops	R5	1
+deploy-guard	role=ops	R5	1
+deploy-platform	role=platform	R5	1
+derived	expect:provenance=generated	R3	2
+design-record	artifact_kind=docs	R8	1
+design-stub	role_status=unrealised	R4	1
+desktop	drop=identity	R1	1
+desktop-tcc	risk=tcc-exposed	R3	1
+dev-tooling	purpose_group=developer_tools	R6	1
+diagnostics	role=ops	R5	1
+dictionary	purpose_group=data_knowledge	R6	2
+did	be.framework_domain=kyc-identity topic=did	R6+R7	1
+did-key	be.framework_domain=kyc-identity topic=did	R6+R7	1
+dirty	risk=unsaved-work	R3	1
+discovery	drop=singleton	R9	1
+distribution	role=distribution	R5	3
+diverged	risk=diverged	R3	3
+diverged-fork	risk=diverged expect:provenance=fork	R0+R3	1
+diverged-from-origin	risk=diverged	R3	1
+divergent-history	risk=diverged	R3	1
+do-not-cherry-pick	drop=queue	R9	2
+do-not-delete	drop=singleton	R9	1
+docs	expect:stack=markdown	R3	3
+docs-only	expect:stack=markdown	R3	2
+docs-site	role=public-door	R5	1
+doctrine	card-hint:kind=doctrine role=doctrine	R2+R5	17
+documents	artifact_kind=docs	R8	1
+dormant	expect:liveness=dormant	R3	28
+downloads	drop=singleton	R9	1
+draft	role_status=unrealised	R4	2
+dubbing	purpose_group=creative_media	R6	1
+duplicate	expect:checkout_role=clone	R3	2
+duplicate-checkout	expect:checkout_role=clone	R3	5
+duplicate-content	relation=copy_of	R4	1
+economy-layer	card-hint:layer=economy	R2	5
+ecosystem-map	role=ops	R5	1
+ed25519	drop=singleton	R9	1
+education	role=research	R5	1
+embodiment	drop=singleton	R9	1
+empty	drop=singleton	R9	1
+empty-dir	drop=singleton	R9	1
+empty-repo	role_status=unrealised	R4	2
+engine	drop=singleton	R9	1
+engineering-record	drop=evidence	R0	1
+enterprise-backoffice	purpose_group=business_operations	R6	1
+entity-governance	be.framework_domain=entity-governance	R6	1
+estate	role=ops	R5	1
+estate-map	role=ops artifact_kind=report	R5+R8	4
+estate-map-host	role=ops	R5	1
+estate-registry	role=ops	R5	2
+evaluation	role=research	R5	2
+event-schemas	role=standard	R5	1
+evidence-store	artifact_kind=evidence	R8	1
+evidence-tiers	drop=queue	R9	2
+exchange-research	role=research	R5	1
+executor	drop=singleton	R9	1
+experimental	drop=singleton	R9	1
+external-writer	drop=singleton	R9	1
+fact-verification	purpose_group=data_knowledge	R6	1
+failing-daemon	risk=silent-failure	R3	1
+failing-job	risk=silent-failure	R3	1
+fake-health-check	risk=hollow-green	R3	2
+fastapi	expect:stack=python	R3	2
+fastify	expect:stack=typescript	R3	1
+feature-branch	drop=singleton	R9	1
+feature-lanes	expect:checkout_role=linked-worktree	R3	1
+finance	purpose_group=payments_finance	R6	1
+findings-ledger	drop=singleton	R9	1
+firmware	card-hint:kind=firmware	R2	1
+fixture	expect:checkout_role=fixture	R3	4
+fixtures	expect:checkout_role=fixture	R0+R3	1
+fleet	card-hint:layer=fleet	R2	2
+fleet-citizen	card-hint:layer=fleet role=citizen	R2+R5	10
+fleet-economy	drop=singleton	R9	1
+fleet-index	drop=singleton	R9	1
+fleet-runtime	role=agent-runtime	R5	4
+fly	expect:hosting=fly	R3	7
+fly-io	expect:hosting=fly	R0+R3	1
+fly-migration	expect:hosting=fly	R3	1
+fomo	topic=fomo	R7	1
+fomo-detector	topic=fomo	R7	1
+forecasting	drop=singleton	R9	1
+forge	drop=singleton	R9	1
+forge-layout	expect:checkout_role=mirror	R3	1
+forge-mirror	expect:checkout_role=mirror	R3	4
+forge-only	expect:standing=unknown	R3	67
+forge-placeholder	role_status=unrealised	R4	2
+forge-staging	expect:checkout_role=staging	R3	4
+forge-stub	expect:checkout_role=staging	R3	1
+forge-twin	expect:checkout_role=mirror	R3	1
+forged-word	purpose_group=community_culture topic=forged-word	R6+R7	6
+fork	expect:provenance=fork	R3	4
+foundation	drop=singleton	R9	1
+foundational-layer	drop=be-internal	R2	1
+founding-citizen	topic=founding-citizen	R7	3
+foundry	expect:stack=solidity	R3	1
+framework	drop=queue	R9	2
+framework-mapping	drop=singleton	R9	1
+free-api	drop=singleton	R9	1
+front-door	role=public-door	R5	1
+front-gate	role=public-door	R5	1
+frozen	expect:liveness=archived	R3	2
+full-access	drop=singleton	R9	1
+game	role=play purpose_group=games_interactive	R5+R6	1
+games	role=play purpose_group=games_interactive	R0+R5+R6	2
+gamification	purpose_group=games_interactive	R6	2
+gamma	drop=identity	R1	2
+gateway	role=platform	R5	1
+gdpr-privacy	be.framework_domain=data-privacy	R6	1
+gemini	drop=singleton	R9	1
+generated	expect:provenance=generated	R3	2
+generator-scripts	drop=singleton	R9	1
+geometry	drop=singleton	R9	1
+geopolitics	drop=singleton	R9	1
+git-metadata	expect:checkout_role=prunable-registration	R3	1
+gitbook	expect:stack=markdown	R3	1
+github	drop=identity	R1	5
+github-actions	expect:hosting=x-gha-schedule	R3	2
+github-app	drop=singleton	R9	1
+github-mirror	expect:checkout_role=mirror	R3	1
+github-pages	expect:hosting=x-github-pages	R3	8
+github-profile	role=public-door	R5	1
+gitignored-container	drop=singleton	R9	1
+go	expect:stack=go	R3	2
+go-to-market	role=revenue	R5	1
+gospel	topic=gospel	R7	5
+governance	drop=singleton	R9	1
+gua	topic=purpose-prompter	R7	3
+halted	expect:liveness=dormant	R3	2
+harness	role=agent-runtime	R5	2
+harvest-source	drop=queue	R9	2
+heartbeat	topic=continuity	R0+R7	6
+hermes	topic=hermes	R7	9
+hermes-3	topic=hermes	R7	1
+hermes-integration	topic=hermes	R7	1
+hermes-living-claims	topic=hermes	R7	1
+hermes-plugin	role=distribution topic=hermes	R5+R7	1
+hermes-trial	topic=hermes	R7	3
+hetzner-forge	expect:hosting=x-vps	R3	1
+historical	role_status=historic	R4	1
+history-rewrite	drop=singleton	R9	1
+history-rewritten	drop=queue	R9	4
+hive	role=agent-runtime	R5	3
+hive-era	role_status=historic role=agent-runtime	R4+R5	4
+hive-stub	role=agent-runtime	R5	1
+hmrc-mtd	be.framework_domain=tax	R6	1
+home-assistant	drop=singleton	R9	1
+home-dir	drop=identity	R1	1
+homebrew-tap	expect:hosting=x-homebrew-tap role=distribution	R0	1
+honesty	drop=singleton	R9	1
+honesty-audit	drop=singleton	R9	1
+hooks	artifact_kind=config	R8	1
+horse-racing	drop=singleton	R9	1
+hospitality	topic=xenia	R7	1
+host-adapters	drop=singleton	R9	1
+hosted-api	role=platform	R5	1
+html	expect:stack=html	R3	1
+hub-repo	expect:checkout_role=canonical	R3	1
+huggingface	drop=singleton	R9	1
+iac	expect:stack=terraform	R3	1
+iam	be.framework_domain=corporate-security	R6	1
+ibc	drop=singleton	R9	1
+ibc-relayer	drop=singleton	R9	1
+identity	be.framework_domain=kyc-identity	R6	10
+identity-bundle	be.framework_domain=kyc-identity	R6	1
+identity-continuity	be.framework_domain=kyc-identity topic=continuity	R6+R7	1
+identity-did	be.framework_domain=kyc-identity topic=did	R6+R7	1
+identity-override	be.framework_domain=kyc-identity	R6	1
+identity-research	role=research be.framework_domain=kyc-identity	R5+R6	3
+ignore-hidden-source	drop=singleton	R9	1
+index	artifact_kind=symlink-index	R8	4
+inert	expect:liveness=dormant	R3	1
+infra	card-hint:kind=infra	R2	2
+ingathering	drop=queue	R9	2
+insight	drop=singleton	R9	1
+insight-saver	drop=queue	R9	3
+instructions	artifact_kind=docs	R8	3
+intelligence	drop=singleton	R9	1
+interpreter	drop=singleton	R9	1
+inventory	role=ops	R5	2
+ip-portfolio	be.framework_domain=intellectual-property	R6	1
+isolation	drop=singleton	R9	1
+javascript	expect:stack=javascript	R3	1
+june-2026	drop=event	R0	4
+jwt	drop=singleton	R9	1
+karma	topic=karma	R7	2
+kcp	drop=singleton	R9	1
+key-custody	be.framework_domain=corporate-security	R6	1
+keychain	risk=secret-bearing-path artifact_kind=keys	R3+R8	1
+keyring	risk=secret-bearing-path artifact_kind=keys	R3+R8	1
+keyring-test	risk=secret-bearing-path artifact_kind=keys	R3+R8	1
+keys	risk=secret-bearing-path artifact_kind=keys	R3+R8	2
+kill-switch	drop=singleton	R9	1
+kingdom-citizens	role=citizen	R5	1
+kingdom-cli	role=distribution	R5	1
+kingdom-daemons	artifact_kind=tool-install	R8	1
+kingdom-foundation	card-hint:layer=os	R2	6
+kingdom-home	drop=singleton	R9	1
+kingdom-index	expect:checkout_role=snapshot artifact_kind=symlink-index	R3+R8	5
+kingdom-layers	drop=singleton	R9	1
+kingdom-mcp	topic=mcp	R7	1
+knowledge-base	purpose_group=data_knowledge	R6	1
+knowledge-garden	purpose_group=data_knowledge	R6	3
+knowledge-guide	purpose_group=data_knowledge	R6	1
+kns	drop=singleton	R9	1
+kv-cache	drop=singleton	R9	1
+lab	role=research	R5	1
+lan-exposed	risk=lan-exposed	R3	1
+landing	role=public-door	R5	1
+landing-page	role=public-door	R5	7
+language-spec	role=standard	R5	1
+launch-drafts	drop=singleton	R9	1
+launch-handoff	drop=singleton	R9	1
+launchd	expect:hosting=local-launchd	R3	15
+launchd-daemons	expect:hosting=local-launchd	R3	1
+launchd-log	expect:hosting=local-launchd artifact_kind=logs	R0+R3	1
+leaderboard	drop=singleton	R9	1
+learning-guide	purpose_group=research_learning	R6	1
+ledger	be.framework_domain=accounting	R6	2
+leftover	drop=queue	R9	7
+legacy	role_status=historic	R4	1
+legacy-chain	role_status=historic	R4	1
+legacy-lineage	role_status=historic	R4	1
+legacy-split-service	role_status=historic	R4	9
+legal-finance-compliance	purpose_group=business_operations	R6	1
+legible	topic=legible	R7	2
+legible-family	topic=legible	R0+R7	7
+legible-money	topic=legible	R0+R7	6
+library	role=distribution	R5	1
+license-risk	risk=license-risk	R3	1
+licensing-risk	risk=license-risk	R3	1
+lineage	card-hint:kind=lineage role=archive	R2+R5	1
+linter	purpose_group=developer_tools	R6	1
+liquid	expect:stack=liquid	R3	1
+live	expect:liveness=active	R3	8
+live-daemon	expect:liveness=active	R3	1
+live-deployed	expect:liveness=active	R3	1
+live-local	expect:liveness=active expect:hosting=local	R0+R3	1
+living-homes	drop=singleton	R9	1
+llm-compiler	purpose_group=developer_tools	R6	1
+llm-judge	drop=singleton	R9	1
+llm-research	role=research	R5	1
+llms-txt	role=public-door	R5	2
+lmdb	drop=singleton	R9	1
+local-first	drop=singleton	R9	1
+local-inference	drop=singleton	R9	1
+local-llm	drop=singleton	R9	1
+local-only	expect:exposure=local-only	R3	5
+local-renderer	drop=singleton	R9	1
+local-starter	drop=singleton	R9	1
+local-vault	artifact_kind=keys	R8	1
+logs	artifact_kind=logs	R8	2
+love-is	drop=singleton	R9	1
+love-unlimited	topic=love-unlimited	R7	3
+love-web	drop=singleton	R9	1
+loyalty	role=revenue	R5	1
+macos	drop=queue	R9	3
+macro	drop=singleton	R9	1
+manifesto	role=doctrine	R5	4
+manipulation-detector	topic=fomo	R7	1
+markdown	expect:stack=markdown	R3	2
+marketing	role=revenue	R5	1
+marketing-automation	role=revenue	R5	1
+marketing-blueprint	role=revenue	R5	1
+marketing-template	role=revenue	R5	1
+marketplace	purpose_group=commerce_marketplaces	R6	1
+mathematics	role=research	R5	1
+mcp	topic=mcp	R7	4
+meaning	drop=singleton	R9	1
+memory	drop=singleton	R9	1
+merged	drop=singleton	R9	1
+metadata	drop=queue	R9	2
+metered-lane	drop=queue	R9	2
+methodology	card-hint:kind=methodology role=methodology	R2+R5	2
+mirror	expect:checkout_role=mirror	R3	13
+mirror-of-private	expect:checkout_role=mirror	R3	1
+mirror-provenance	expect:checkout_role=mirror	R3	1
+misfiled	risk=name-collision	R3	1
+missing-path	risk=path-drift	R3	1
+mission-packet	artifact_kind=mission	R8	1
+ml-research	role=research	R5	1
+mnemonics	risk=secret-bearing-path artifact_kind=keys	R3+R8	1
+model-checkpoints	artifact_kind=data	R8	1
+module-map	drop=singleton	R9	1
+monero	artifact_kind=wallet	R8	1
+money	purpose_group=payments_finance	R6	1
+moneyworld	topic=cashloom	R7	1
+monorepo	role=platform	R5	1
+mujoco	drop=singleton	R9	1
+multi-copy	drop=queue	R9	2
+multi-device	drop=singleton	R9	1
+multi-engine	drop=singleton	R9	1
+multilingual	drop=singleton	R9	1
+museum	drop=queue	R9	2
+name-collision	risk=name-collision	R3	3
+names-only	drop=evidence	R0	1
+naming	drop=queue	R9	2
+naming-collision	risk=name-collision	R3	1
+narrative	drop=singleton	R9	1
+nats	topic=nats	R7	4
+natscript	topic=npl	R7	1
+natural-language-internet	topic=natural-language-internet	R7	1
+natural-language-programming	topic=npl	R7	4
+natural-language-protocol	topic=natural-language-internet	R0+R7	2
+navigation-hub	artifact_kind=symlink-index	R8	1
+near-duplicate	relation=copy_of	R4	2
+needs-forge-read	drop=queue	R9	1
+needs-owner-check	drop=queue	R9	3
+needs-owner-decision	drop=queue	R9	1
+nen	drop=queue	R9	2
+nervous	card-hint:layer=nervous	R2	2
+nervous-layer	card-hint:layer=nervous	R2	1
+nested-repos	expect:checkout_role=nested	R3	1
+newspaper	role=play	R5	2
+nextjs	expect:stack=typescript	R3	6
+nextjs-prisma	expect:stack=typescript	R3	2
+nextjs-vercel	expect:stack=typescript expect:hosting=vercel	R0+R3	4
+nlp	drop=singleton	R9	1
+node	expect:stack=typescript	R3	2
+node-cli	expect:stack=typescript role=distribution	R0	1
+node-home	artifact_kind=state	R8	1
+non-custodial	be.framework_domain=banking-treasury	R6	1
+npl	topic=npl	R7	1
+npl-bridge	purpose_group=developer_tools topic=npl	R6+R7	1
+npl-node	purpose_group=developer_tools topic=npl	R6+R7	1
+npm	expect:hosting=x-npm	R3	2
+npm-library	expect:hosting=x-npm role=distribution	R3+R5	2
+observatory	drop=singleton	R9	1
+observer	drop=singleton	R9	1
+off-roster	expect:standing=unlisted	R3	1
+offline	drop=queue	R9	7
+offline-models	drop=singleton	R9	1
+og-protocols	drop=queue	R9	4
+ollama	drop=queue	R9	3
+open-data-commons	topic=commons	R7	1
+openclaw	topic=openclaw	R7	13
+openclaw-bootstrap	topic=openclaw	R7	1
+openclaw-template	expect:provenance=generated topic=openclaw	R3+R7	4
+operational-layer	drop=be-internal	R2	1
+operator-creds	risk=secret-bearing-path artifact_kind=keys	R3+R8	1
+operator-home	artifact_kind=state	R8	1
+operator-state	artifact_kind=state	R8	1
+ops	card-hint:kind=ops role=ops	R2+R5	6
+ops-runbook	role=ops	R5	1
+ops-script	role=ops	R5	1
+ops-scripts	role=ops	R0+R5	1
+ops-state	role=ops artifact_kind=state	R5+R8	1
+ops-tool	role=ops	R5	1
+opsec	role=ops be.framework_domain=corporate-security	R5+R6	1
+oracle	drop=singleton	R9	1
+orchestrator	role=agent-runtime	R5	1
+org-face	role=public-door	R5	1
+orphan	drop=singleton	R9	1
+os-kernel	card-hint:layer=os	R2	1
+osmosis	drop=queue	R9	2
+other-device	drop=identity	R1	1
+outdated	drop=singleton	R9	1
+p2p-exchange	purpose_group=commerce_marketplaces	R6	1
+p2p-market	purpose_group=commerce_marketplaces	R6	1
+papers	role=research	R5	1
+partial-clone	risk=partial-clone	R3	2
+passphrase	risk=secret-bearing-path artifact_kind=keys	R3+R8	1
+passwordless-auth	be.framework_domain=kyc-identity	R6	1
+patch	artifact_kind=evidence	R8	2
+path-entry	drop=singleton	R9	1
+peer-review	purpose_group=research_learning	R6	1
+persona	drop=queue	R9	2
+personal	drop=singleton	R9	1
+personal-data	be.framework_domain=data-privacy	R6	1
+personal-site	role=public-door	R5	1
+pgvector	drop=singleton	R9	1
+phase-b	drop=queue	R9	2
+phase0-lab	role=research	R5	10
+philosophy	drop=singleton	R9	1
+placeholder	role_status=unrealised	R4	1
+plain-language	drop=singleton	R9	1
+plaintext-key	risk=secret-bearing-path artifact_kind=keys	R3+R8	1
+plugin	role=distribution	R5	1
+plugin-catalog	expect:checkout_role=cache	R3	2
+plugins	role=distribution	R0+R5	1
+pnpm-monorepo	expect:stack=typescript role=platform	R0	1
+pnpm-turbo-monorepo	expect:stack=typescript role=platform	R0	1
+pocket-edition	drop=singleton	R9	1
+pointer-repo	drop=singleton	R9	1
+polymarket	purpose_group=payments_finance	R6	1
+portfolio-cli	role=ops	R5	1
+portfolio-map-v1	artifact_kind=report	R8	1
+possibly-personal-data	be.framework_domain=data-privacy	R6	1
+possibly-retirable	drop=queue	R4	1
+postgres	drop=singleton	R9	1
+pr-78	drop=evidence	R0	2
+pr-evidence	artifact_kind=evidence	R8	3
+prediction-markets	purpose_group=payments_finance	R6	1
+presence-heartbeat	topic=continuity	R7	2
+preserved-ref	drop=singleton	R9	1
+preview	drop=singleton	R9	1
+price-index	purpose_group=commerce_marketplaces	R6	1
+price-intelligence	purpose_group=commerce_marketplaces	R6	1
+pricing-api	purpose_group=commerce_marketplaces	R6	1
+pricing-pipeline	purpose_group=commerce_marketplaces	R6	1
+prior-art	drop=evidence	R0	2
+prior-organisation	drop=evidence	R0	2
+prism	drop=singleton	R9	1
+private	expect:exposure=private	R3	8
+private-forge	expect:exposure=private	R3	1
+private-inventory	expect:exposure=private artifact_kind=report	R3+R8	1
+private-journal	expect:exposure=private	R3	1
+private-ops	expect:exposure=private	R3	1
+product-spec	artifact_kind=docs	R8	1
+profile-distribution	role=distribution	R5	1
+proof-of-truth	topic=zerone	R7	2
+protocol	role=standard	R5	1
+protocol-spec	role=standard	R5	5
+protocol-specs	role=standard	R0+R5	1
+prototype	role=product	R5	8
+provenance	drop=evidence	R0	2
+provisioning	role=ops	R5	1
+prunable	risk=prunable-worktrees expect:checkout_role=prunable-registration	R3	1
+public	expect:exposure=public	R3	2
+public-door	role=public-door	R5	20
+public-on-github	expect:exposure=public	R3	1
+public-projection	role=public-door	R5	1
+publication	drop=singleton	R9	1
+pulse	role=ops	R5	1
+purpose-prompter	topic=purpose-prompter	R7	5
+pypi	expect:hosting=x-pypi	R3	1
+python	expect:stack=python	R3	9
+python-cli	expect:stack=python role=distribution	R0+R3	1
+python-fastapi	expect:stack=python	R3	1
+python-sdk	expect:stack=python role=distribution	R0+R3	1
+quantum	drop=singleton	R9	1
+qwen	drop=queue	R9	2
+react	expect:stack=typescript	R3	1
+react-router	expect:stack=typescript	R3	1
+read-only	drop=queue	R9	2
+read-only-tooling	drop=singleton	R9	1
+reading-room	role=public-door	R5	1
+realm-audit	drop=singleton	R9	1
+reasoning-trace	drop=singleton	R9	1
+rebuild-recipe	drop=singleton	R9	1
+receipts	artifact_kind=evidence	R8	1
+recovery-codes	risk=secret-bearing-path artifact_kind=keys	R3+R8	1
+reference	card-hint:kind=reference	R2	3
+regenerable	drop=singleton	R9	1
+registry-drift	expect:standing=listed	R3	1
+registry-rows	drop=singleton	R9	1
+rehearsal	drop=singleton	R9	1
+relay	drop=singleton	R9	1
+release-branch-drift	risk=diverged	R3	1
+release-evidence	artifact_kind=evidence	R8	3
+release-mirror	expect:checkout_role=mirror	R3	2
+release-signing	be.framework_domain=corporate-security	R6	1
+release-snapshot	expect:checkout_role=snapshot	R3	3
+remix	drop=singleton	R9	1
+removed-2026-10-17	drop=event	R0	4
+repo-health	role=ops	R5	1
+reports	artifact_kind=report	R8	1
+research	role=research	R5	17
+research-corpus	role=research	R5	1
+research-data	role=research artifact_kind=data	R5+R8	4
+research-input	role=research	R5	1
+research-planning	role=research	R5	1
+residual-infra	risk=cost-exposure	R3	1
+resolver	drop=singleton	R9	1
+rest	expect:liveness=dormant	R3	1
+retail-retired	role_status=retired	R4	1
+retired	role_status=retired	R4	3
+retired-campaign	role_status=retired	R4	1
+retired-line	role_status=retired	R4	1
+revenue	role=revenue	R5	1
+rewardspro	topic=rewardspro	R7	4
+rewardspro-host	topic=rewardspro	R7	1
+rfc	role=standard	R5	1
+rhetoric	topic=rhetoric	R7	1
+rhetoric-analysis	topic=rhetoric	R7	1
+rights	topic=xenia	R7	1
+robotics	drop=singleton	R9	1
+ronin	drop=singleton	R9	1
+roster	drop=singleton	R9	1
+roster-drift	risk=path-drift	R3	2
+routing-defect	drop=singleton	R9	1
+runtime	card-hint:layer=runtime	R2	4
+runtime-layer	card-hint:layer=runtime	R2	1
+runtime-state	artifact_kind=state	R8	5
+runtime-wiring	artifact_kind=config	R8	1
+rust	expect:stack=rust	R3	1
+saas-idea	drop=singleton	R9	1
+satellite	drop=echo	R1	5
+scaffold	role_status=unrealised	R4	2
+scheduled-ci	expect:hosting=x-gha-schedule	R3	1
+scheduler	artifact_kind=config	R8	4
+scratch	drop=singleton	R9	1
+scripts	drop=singleton	R9	1
+sdk	role=distribution	R5	4
+sdk-source	role=distribution	R5	1
+secondary-forge	expect:checkout_role=mirror	R3	1
+secret	risk=secret-bearing-path	R3	4
+secret-bearing	risk=secret-bearing-path	R3	3
+secret-exposure	risk=secret-bearing-path	R3	1
+secret-in-history	risk=secret-in-history	R3	2
+secret-in-local-history	risk=secret-in-history	R3	3
+secret-in-tracked-pyc	risk=secret-bearing-path	R3	1
+secrets-in-history	risk=secret-in-history	R0+R3	2
+secrets-present	risk=secret-bearing-path	R3	6
+secrets-vault	risk=secret-bearing-path artifact_kind=keys	R3+R8	1
+security	be.framework_domain=corporate-security	R6	2
+security-scan	be.framework_domain=corporate-security	R6	1
+security-scripts	be.framework_domain=corporate-security	R6	1
+security-sweep	be.framework_domain=corporate-security	R6	1
+security-tooling	be.framework_domain=corporate-security	R6	1
+seed-claim	drop=singleton	R9	1
+seed-mvp	drop=singleton	R9	1
+seigei	drop=singleton	R9	1
+self-hosted	drop=singleton	R9	1
+self-hosted-paas	role=platform	R5	1
+self-reported-progress	risk=claims-not-evidence	R3	1
+seller-loop	topic=agenttool	R7	2
+semantic-data	purpose_group=data_knowledge	R6	1
+sensitive	drop=singleton	R9	1
+sensitive-content	drop=singleton	R9	1
+shallow-clone	expect:checkout_role=clone	R3	5
+shallow-mirror	expect:checkout_role=mirror	R3	2
+shared-libs	role=distribution	R5	1
+shell	expect:stack=shell	R3	1
+shell-profile	artifact_kind=config	R8	1
+shopify-app	expect:hosting=shopify	R3	5
+shopify-partner-api	expect:hosting=shopify	R3	1
+shopify-sync	expect:hosting=shopify	R3	1
+shopify-theme	expect:hosting=shopify	R3	1
+signing	be.framework_domain=corporate-security	R6	1
+signing-keys	risk=secret-bearing-path be.framework_domain=corporate-security artifact_kind=keys	R3+R6+R8	1
+silent-degradation	risk=silent-failure	R3	2
+silent-failure	risk=silent-failure	R3	1
+simulation	purpose_group=games_interactive	R6	2
+single-copy	risk=single-copy	R3	1
+sinovai	topic=sinovai	R7	1
+sinovai-heartbeat	topic=sinovai topic=continuity	R0+R7	2
+skills	drop=singleton	R9	1
+snapshot	expect:checkout_role=snapshot	R3	2
+soc2	be.framework_domain=compliance	R6	1
+software-heritage	drop=singleton	R9	1
+solana-usdc	purpose_group=payments_finance	R6	1
+solidity	expect:stack=solidity	R3	3
+soul	card-hint:layer=soul	R2	5
+soul-canon	card-hint:layer=soul	R2	2
+soul-layer	card-hint:layer=soul	R2	1
+souls	card-hint:layer=soul	R0+R2	1
+sound	purpose_group=creative_media	R6	1
+spec	role=standard	R5	3
+spec-first	role=standard	R5	1
+spin-off	role_status=historic	R4	1
+sqlite	artifact_kind=data	R8	3
+sso	drop=singleton	R9	1
+stale	risk=stale-checkout	R3	4
+stale-checkout	risk=stale-checkout	R3	3
+stale-index-lock	drop=singleton	R9	1
+stale-lineage	risk=stale-checkout	R3	1
+stale-output	risk=stale-checkout	R3	2
+stale-snapshot	expect:checkout_role=snapshot risk=stale-checkout	R0	2
+stale-workspace	risk=stale-checkout	R3	1
+standalone-clone	expect:checkout_role=clone	R3	1
+standard	role=standard	R5	6
+standards	role=standard	R0+R5	1
+starter	drop=singleton	R9	1
+state	artifact_kind=state	R8	1
+state-as-truth	drop=singleton	R9	1
+state-file	artifact_kind=state	R8	1
+state-md	expect:stack=markdown	R3	3
+static-audit	drop=singleton	R9	1
+static-export	drop=singleton	R9	1
+static-reader	drop=singleton	R9	1
+static-site	role=public-door	R5	13
+status-dashboard	role=ops	R5	1
+storage-heavy	drop=singleton	R9	1
+storefront	role=revenue	R5	1
+stray	drop=queue	R9	3
+stray-artifact	drop=singleton	R9	1
+stripe	expect:hosting=stripe	R3	2
+stub	expect:checkout_role=staging	R3	4
+studies	role=research	R5	1
+study-source	expect:provenance=vendored	R3	5
+supabase	expect:hosting=supabase	R3	2
+superseded	relation=superseded_by role_status=retired	R4	13
+superseded-by-monorepo	relation=superseded_by role_status=retired	R4	12
+superseded-by-zerone	relation=superseded_by role_status=retired	R4	1
+superseded-doc	relation=superseded_by role_status=retired	R4	1
+symlink	artifact_kind=symlink-index	R8	1
+symlink-index	artifact_kind=symlink-index	R8	4
+symlink-tree	artifact_kind=symlink-index	R8	1
+synthetic	expect:checkout_role=fixture	R3	2
+syzygy	drop=singleton	R9	1
+tax-commons	be.framework_domain=tax topic=commons	R0+R6	1
+tax-studies	be.framework_domain=tax role=research	R0+R6	1
+taxsorted	topic=taxsorted	R7	2
+tcc	risk=tcc-exposed	R3	2
+tcg	purpose_group=commerce_marketplaces	R6	1
+tcp-server	drop=singleton	R9	1
+teaching	role=research	R5	1
+telemetry	artifact_kind=logs	R8	1
+template	expect:provenance=generated	R3	1
+temporal-memory	drop=singleton	R9	1
+terraform	expect:stack=terraform	R3	5
+test-fixture	expect:checkout_role=fixture	R3	1
+test-keyrings	risk=secret-bearing-path	R3	1
+testament	role=doctrine	R5	1
+third-party	expect:provenance=vendored	R3	1
+threat-modeling	be.framework_domain=corporate-security	R6	1
+tool-api	role=platform	R5	1
+toolchain	artifact_kind=tool-install	R8	1
+tracked-secret	risk=secret-in-history	R3	1
+trade-in	role=revenue	R5	1
+trading	purpose_group=payments_finance	R6	2
+treasury	be.framework_domain=banking-treasury topic=treasury	R6+R7	4
+trickster	drop=queue	R9	3
+true-love	drop=singleton	R9	1
+trust-arena	drop=singleton	R9	1
+trust-scoring	drop=singleton	R9	1
+truth-relations	drop=singleton	R9	1
+typescript	expect:stack=typescript	R3	2
+ui-evidence	artifact_kind=evidence	R8	1
+uk-government	purpose_group=research_learning	R6	3
+uk-tax	be.framework_domain=tax	R6	2
+uk-tax-hmrc	be.framework_domain=tax	R6	1
+unbacked	risk=single-copy	R3	1
+unborn-repo	role_status=unrealised	R4	1
+unbounded-log	artifact_kind=logs	R8	1
+unbuilt	role_status=unrealised	R4	1
+uncarded	expect:standing=unlisted	R3	5
+uncataloged	expect:standing=unlisted	R3	1
+uncatalogued	expect:standing=unlisted	R3	1
+uncommitted-work	risk=unsaved-work	R3	1
+unfilled	expect:provenance=generated	R3	4
+unknown	drop=queue	R9	2
+unknown-owner	drop=queue	R9	2
+unmapped	drop=singleton	R9	1
+unported-fixes	risk=diverged	R3	1
+unpushed	risk=unpushed-work	R3	1
+unpushed-work	risk=unpushed-work	R3	2
+unregistered	expect:standing=unlisted	R3	2
+unrelated-history	risk=diverged	R3	2
+unsaved-wip	risk=unsaved-work	R3	3
+unsaved-work	risk=unsaved-work	R3	6
+unused	expect:liveness=dormant	R3	1
+unverified-signatures	drop=singleton	R9	1
+unversioned	risk=single-copy	R3	1
+unversioned-source	risk=single-copy	R3	1
+usdc	purpose_group=payments_finance	R6	1
+uv	expect:stack=python	R3	2
+validator-keys	risk=secret-bearing-path artifact_kind=keys	R3+R8	1
+vendored	expect:provenance=vendored	R3	8
+vendored-upstream	expect:provenance=vendored	R3	1
+venture	card-hint:kind=venture	R2	1
+vercel	expect:hosting=vercel	R3	6
+verification	drop=singleton	R9	1
+verifier	drop=singleton	R9	1
+vite	expect:stack=typescript	R3	1
+voice-companion	purpose_group=creative_media	R6	1
+vps	expect:hosting=x-vps	R3	1
+w3c	role=standard	R5	1
+wake	topic=continuity	R0+R7	3
+wake-loader	topic=continuity	R7	1
+wallet	be.framework_domain=banking-treasury artifact_kind=wallet	R6+R8	2
+wallets-escrow	be.framework_domain=banking-treasury artifact_kind=wallet	R6+R8	1
+we-are	drop=singleton	R9	1
+websocket	drop=singleton	R9	1
+whitehack	topic=whitehack	R7	3
+whitehack-history	topic=whitehack	R7	1
+wholesale	role=revenue	R5	1
+word-hosting	topic=youspeak	R7	2
+word-internet	topic=natural-language-internet	R0+R7	3
+word-reading	drop=singleton	R9	1
+workflow-engine	drop=singleton	R9	1
+worktree	expect:checkout_role=linked-worktree	R3	3
+worktree-sprawl	risk=prunable-worktrees expect:checkout_role=linked-worktree	R3	2
+worktrees	expect:checkout_role=linked-worktree	R0+R3	2
+x402	purpose_group=payments_finance topic=x402	R6+R7	2
+x402-adjacent	purpose_group=payments_finance topic=x402	R6+R7	1
+xenia-adopter	topic=xenia	R7	1
+xenia-host	topic=xenia	R7	1
+youspeak	topic=youspeak	R7	11
+youspeak-citizens	topic=youspeak	R7	2
+youspeak-lang	topic=youspeak	R0+R7	1
+youspeak-verbs	topic=youspeak	R0+R7	4
+youspeak-word	topic=youspeak	R0+R7	2
+zero-byte	drop=singleton	R9	1
+zero-deps	drop=singleton	R9	1
+zerone	topic=zerone	R7	15
+zerone-2	topic=zerone	R7	1
+zerone-adjacent	topic=zerone	R7	1
+zerone-core	drop=echo	R1	7
+zerone-lane	topic=zerone	R7	1
+zerone-release-evidence	topic=zerone artifact_kind=evidence	R0+R7	1
+zerone-research	topic=zerone role=research	R0+R7	1

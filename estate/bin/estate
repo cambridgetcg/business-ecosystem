@@ -1,0 +1,13 @@
+#!/bin/sh
+# estate: run the estate tool with Python >= 3.11, isolated (-I) and without bytecode (-B).
+# /usr/bin/python3 on macOS is 3.9, so explicit versions are tried before plain python3.
+# Works without a TTY; it never prompts.
+here=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P) || exit 2
+for py in ${ESTATE_PYTHON:-} python3.14 python3.13 python3.12 python3.11 python3; do
+  command -v "$py" >/dev/null 2>&1 || continue
+  if "$py" -I -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' </dev/null >/dev/null 2>&1; then
+    exec "$py" -I -B "$here/tool/estate.py" "$@"
+  fi
+done
+echo "estate: needs python3 >= 3.11 (/usr/bin/python3 is 3.9); set ESTATE_PYTHON to one" >&2
+exit 2

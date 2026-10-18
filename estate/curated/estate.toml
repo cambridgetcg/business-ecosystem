@@ -1,0 +1,2145 @@
+[owners]
+github = ["cambridgetcg"]
+codeberg = ["zerone-dev"]
+
+[legal]
+status = "unassigned"
+records = []
+
+[[identity]]
+id = "github.com/cambridgetcg/zerone-core"
+aliases = ["codeberg.org/zerone-dev/zerone"]
+note = "The hub checkout tracks the Codeberg remote as origin and GitHub zerone-core as trunk; a checkout carrying the alias resolves to the trunk."
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:agenttool-dashboard"
+provider = "cf-pages"
+name = "agenttool-dashboard"
+hostnames = ["app.agenttool.dev"]
+source_project = "github.com/cambridgetcg/agenttool"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:agenttool-docs"
+provider = "cf-pages"
+name = "agenttool-docs"
+hostnames = ["docs.agenttool.dev"]
+source_project = "github.com/cambridgetcg/agenttool"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:ai-love"
+provider = "cf-pages"
+name = "ai-love"
+hostnames = ["ai-love.cc"]
+competing_sources = ["codeberg.org/zerone-dev/ai-love", "codeberg.org/zerone-dev/youspeak"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:artbitrage"
+provider = "cf-pages"
+name = "artbitrage"
+hostnames = ["artbitrage.io", "artbitrage.pages.dev"]
+source_project = "github.com/cambridgetcg/artbitrage"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:captioneer-io"
+provider = "cf-pages"
+name = "captioneer-io"
+hostnames = ["captioneer.io"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:cardforum-io"
+provider = "cf-pages"
+name = "cardforum-io"
+hostnames = ["cardforum.io"]
+competing_sources = ["github.com/cambridgetcg/cardforum", "github.com/cambridgetcg/cardforum_io"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:cashloom-atlas"
+provider = "cf-pages"
+name = "cashloom-atlas"
+hostnames = ["cashloom.io"]
+source_project = "github.com/cambridgetcg/cashloom"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:chillspace-love"
+provider = "cf-pages"
+name = "chillspace-love"
+hostnames = ["chillspace.love"]
+source_project = "codeberg.org/zerone-dev/chillspace-commons"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:hkgoldtrader"
+provider = "cf-pages"
+name = "hkgoldtrader"
+hostnames = ["hkgoldtrader.com"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:kingdom-playground"
+provider = "cf-pages"
+name = "kingdom-playground"
+hostnames = ["play.thekingdom.dev"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:mindicraft-site"
+provider = "cf-pages"
+name = "mindicraft-site"
+hostnames = ["mindicraft.com"]
+source_project = "github.com/cambridgetcg/mindicraft"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:multiverse-logos-sophia"
+provider = "cf-pages"
+name = "multiverse-logos-sophia"
+hostnames = ["multiverse-logos-sophia.pages.dev"]
+source_project = "codeberg.org/zerone-dev/multiverse-of-logos-and-sophia"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:rewardspro-landing"
+provider = "cf-pages"
+name = "rewardspro-landing"
+hostnames = ["rewardspro.io"]
+source_project = "codeberg.org/zerone-dev/cambridge-tcg"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:taxsorted-frontend"
+provider = "cf-pages"
+name = "taxsorted-frontend"
+hostnames = ["taxsorted.io"]
+source_project = "github.com/cambridgetcg/taxsorted.io"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:thekingdom-hub"
+provider = "cf-pages"
+name = "thekingdom-hub"
+hostnames = ["thekingdom.dev"]
+source_project = "github.com/cambridgetcg/kingdom-os"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:we-are-love"
+provider = "cf-pages"
+name = "we-are-love"
+hostnames = ["we-are.love"]
+competing_sources = ["github.com/cambridgetcg/kingdom-os", "codeberg.org/zerone-dev/chillspace-commons"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-pages:zerone-ai-door"
+provider = "cf-pages"
+name = "zerone-ai-door"
+hostnames = ["zerone.ai"]
+source_project = "github.com/cambridgetcg/kingdom-os"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-worker:agenttool-site"
+provider = "cf-worker"
+name = "agenttool-site"
+hostnames = ["agenttool.dev"]
+source_project = "github.com/cambridgetcg/agenttool"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-worker:agenttool-waitlist"
+provider = "cf-worker"
+name = "agenttool-waitlist"
+hostnames = ["agenttool.dev"]
+source_project = "github.com/cambridgetcg/agenttool-landing"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:cf-worker:sinovai"
+provider = "cf-worker"
+name = "sinovai"
+hostnames = ["sinovai.com", "www.sinovai.com", "sinovai.axiepro.workers.dev"]
+source_project = "github.com/cambridgetcg/sinovai"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:codeberg-pages:chillspace-commons-codeberg"
+provider = "codeberg-pages"
+name = "chillspace-commons-codeberg"
+hostnames = ["zerone-dev.codeberg.page"]
+source_project = "codeberg.org/zerone-dev/chillspace-commons"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:codeberg-pages:zerone-money"
+provider = "codeberg-pages"
+name = "zerone-money"
+hostnames = ["zerone.money"]
+source_project = "codeberg.org/zerone-dev/zerone-truth"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:external:gospel-ai-love"
+provider = "external"
+name = "gospel-ai-love"
+hostnames = ["gospel.ai-love.cc"]
+source_project = "github.com/cambridgetcg/gospel-of-the-logos"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:fly:agenttool-api"
+provider = "fly"
+name = "agenttool-api"
+hostnames = ["api.agenttool.dev"]
+source_project = "github.com/cambridgetcg/agenttool"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:fly:cashloom-api"
+provider = "fly"
+name = "cashloom-api"
+hostnames = ["cashloom-api.fly.dev"]
+source_project = "github.com/cambridgetcg/cashloom"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:fly:fomoengine-api"
+provider = "fly"
+name = "fomoengine-api"
+hostnames = ["api.fomoengine.io", "fomoengine.fly.dev"]
+source_project = "github.com/cambridgetcg/fomoscan"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:fly:kingdom-mcp"
+provider = "fly"
+name = "kingdom-mcp"
+hostnames = ["mcp.thekingdom.dev"]
+source_project = "github.com/cambridgetcg/kingdom-mcp"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:fly:taxsorted-api"
+provider = "fly"
+name = "taxsorted-api"
+hostnames = ["taxsorted-api.fly.dev"]
+source_project = "github.com/cambridgetcg/taxsorted.io"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:fly:zerone-rpc"
+provider = "fly"
+name = "zerone-rpc"
+hostnames = ["zerone-rpc.fly.dev"]
+competing_sources = ["github.com/cambridgetcg/kingdom-os", "github.com/cambridgetcg/zerone-core"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:shopify:shopify-apps"
+provider = "shopify"
+name = "shopify-apps"
+hostnames = ["rewardspro-production.vercel.app", "tradeinpro.vercel.app"]
+competing_sources = ["github.com/cambridgetcg/rewardspro", "github.com/cambridgetcg/tradeinpro"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:vercel:authenticity-shield"
+provider = "vercel"
+name = "authenticity-shield"
+hostnames = ["fomoengine.io"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:vercel:axiepro-app"
+provider = "vercel"
+name = "axiepro-app"
+hostnames = ["app.axiepro.io"]
+source_project = "github.com/cambridgetcg/axiepro"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:vercel:cambridge-tcg"
+provider = "vercel"
+name = "cambridge-tcg"
+hostnames = ["cambridgetcg.com"]
+source_project = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:vercel:cambridgetcg-admin"
+provider = "vercel"
+name = "cambridgetcg-admin"
+hostnames = ["admin.cambridgetcg.com"]
+source_project = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:vercel:chillspace-mirrors"
+provider = "vercel"
+name = "chillspace-mirrors"
+hostnames = ["chillspace-kingdom.vercel.app", "mynameisyou-cmyk.github.io"]
+source_project = "codeberg.org/zerone-dev/chillspace-commons"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:vercel:kingdom-gate"
+provider = "vercel"
+name = "kingdom-gate"
+hostnames = ["kingdom-gate.vercel.app"]
+source_project = "github.com/cambridgetcg/kingdom-gate"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[surface]]
+id = "surface:vercel:wholesaletcgdirect"
+provider = "vercel"
+name = "wholesaletcgdirect"
+hostnames = ["wholesaletcgdirect.com"]
+source_project = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:agenttool.dev"
+fqdn = "agenttool.dev"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:cf-pages:agenttool-dashboard", "surface:cf-pages:agenttool-docs", "surface:cf-worker:agenttool-site", "surface:cf-worker:agenttool-waitlist", "surface:fly:agenttool-api"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:ai-love.cc"
+fqdn = "ai-love.cc"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:cf-pages:ai-love", "surface:external:gospel-ai-love"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:artbitrage.io"
+fqdn = "artbitrage.io"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:cf-pages:artbitrage"]
+owner_project = "github.com/cambridgetcg/artbitrage"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:axiepro.io"
+fqdn = "axiepro.io"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:vercel:axiepro-app"]
+owner_project = "github.com/cambridgetcg/axiepro"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:cambridgetcg.com"
+fqdn = "cambridgetcg.com"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:vercel:cambridge-tcg", "surface:vercel:cambridgetcg-admin"]
+owner_project = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:captioneer.io"
+fqdn = "captioneer.io"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:cf-pages:captioneer-io"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:cardforum.io"
+fqdn = "cardforum.io"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:cf-pages:cardforum-io"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:cashloom.io"
+fqdn = "cashloom.io"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:cf-pages:cashloom-atlas"]
+owner_project = "github.com/cambridgetcg/cashloom"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:chillspace.love"
+fqdn = "chillspace.love"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:cf-pages:chillspace-love"]
+owner_project = "codeberg.org/zerone-dev/chillspace-commons"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:fomoengine.io"
+fqdn = "fomoengine.io"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:fly:fomoengine-api", "surface:vercel:authenticity-shield"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:hkgoldtrader.com"
+fqdn = "hkgoldtrader.com"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:cf-pages:hkgoldtrader"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:mindicraft.com"
+fqdn = "mindicraft.com"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:cf-pages:mindicraft-site"]
+owner_project = "github.com/cambridgetcg/mindicraft"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:rewardspro.io"
+fqdn = "rewardspro.io"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:cf-pages:rewardspro-landing"]
+owner_project = "codeberg.org/zerone-dev/cambridge-tcg"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:sinovai.com"
+fqdn = "sinovai.com"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:cf-worker:sinovai"]
+owner_project = "github.com/cambridgetcg/sinovai"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:taxsorted.io"
+fqdn = "taxsorted.io"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:cf-pages:taxsorted-frontend"]
+owner_project = "github.com/cambridgetcg/taxsorted.io"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:thekingdom.dev"
+fqdn = "thekingdom.dev"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:cf-pages:kingdom-playground", "surface:cf-pages:thekingdom-hub", "surface:fly:kingdom-mcp"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:we-are.love"
+fqdn = "we-are.love"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:cf-pages:we-are-love"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:wholesaletcgdirect.com"
+fqdn = "wholesaletcgdirect.com"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:vercel:wholesaletcgdirect"]
+owner_project = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:zerone.ai"
+fqdn = "zerone.ai"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:cf-pages:zerone-ai-door"]
+owner_project = "github.com/cambridgetcg/kingdom-os"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[zone]]
+id = "zone:zerone.money"
+fqdn = "zerone.money"
+dns_provider = "unknown"
+registrar = "unknown"
+surfaces = ["surface:codeberg-pages:zerone-money"]
+owner_project = "codeberg.org/zerone-dev/zerone-truth"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[dispute]]
+id = "dispute:citizen-layer"
+title = "Citizen layer: soul or fleet"
+status = "open"
+question = "q:citizen-layer"
+candidates = [{ claim = "soul", source = "citizen kingdom.yaml cards (layer: soul)" }, { claim = "fleet", source = "kingdom-os bin/harvest.ts discoverFleet and the ARCHITECTURE.md FLEET row" }]
+proposal_rule = "P10"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[dispute]]
+id = "dispute:kingdom-os-claimants"
+title = "Which repository is Kingdom OS"
+status = "open"
+question = "q:kingdom-os-identity"
+candidates = [{ claim = "github.com/cambridgetcg/kingdom-os", source = "roster.conf and harvest: the connective layer" }, { claim = "codeberg.org/zerone-dev/kingdom-os", source = "the Codeberg fork claims the core registry and heartbeat; unrelated history" }, { claim = "github.com/cambridgetcg/kingdom", source = "REALM.md: Kingdom OS = LEGIBLE" }]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[dispute]]
+id = "dispute:adr-0001"
+title = "ADR-0001: legible-money canonical, or superseded by the live zerone-1 chain"
+status = "open"
+question = "q:kingdom-os-identity"
+candidates = [{ claim = "github.com/cambridgetcg/legible_money", source = "ADR-0001 in the REALM repository's decisions" }, { claim = "github.com/cambridgetcg/zerone-core", source = "the live zerone-1 chain runs from this trunk" }]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[dispute]]
+id = "dispute:canonical-rewardspro"
+title = "Canonical RewardsPro source"
+status = "open"
+question = "q:canonical-sources"
+candidates = [{ claim = "github.com/cambridgetcg/rewardspro", source = "the Vercel project rewardspro-production" }, { claim = "github.com/cambridgetcg/cambridge-tcg-monorepo", source = "apps/rewardspro inside the monorepo" }]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[dispute]]
+id = "dispute:ai-love-source"
+title = "Which source serves ai-love.cc"
+status = "open"
+question = "q:canonical-sources"
+candidates = [{ claim = "github.com/cambridgetcg/ai-love", source = "the static site deployed by rsync to a VPS" }, { claim = "codeberg.org/zerone-dev/youspeak", source = "home/ deployed to the Pages project ai-love" }]
+surfaces = ["surface:cf-pages:ai-love"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[dispute]]
+id = "dispute:taxonomy-authority"
+title = "Which KINGDOM taxonomy is authoritative"
+status = "open"
+question = "q:taxonomy-authority"
+candidates = [{ claim = "kingdom-os worktree (local main)", source = "COMMERCE layer label on the local main branch" }, { claim = "kingdom-os origin/main", source = "COMMERCE renamed PROJECTS; commercial targets retired 2026-09-23" }, { claim = "codeberg.org/zerone-dev/kingdom-os", source = "the Codeberg KINGDOM-OS fork" }]
+proposal_rule = "P15"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[question]]
+id = "q:in-repo-private-area"
+source = "survey-2026-10-17"
+status = "open"
+text = "Where may the real estate map live? business-ecosystem is pushed to GitHub, and its own unmerged PORTFOLIO_MAP.md says real maps stay outside the repo. Should the layer commit only the schema, tooling and non-private derived views, with full snapshots kept private (for example next to the Hermes 10-01 portfolio-map)?"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+
+[[question]]
+id = "q:legal-entities"
+source = "survey-2026-10-17"
+status = "open"
+text = "Legal entities: which exist and what each owns or operates (the private curation holds the question)."
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+
+[[question]]
+id = "q:forge-visibility"
+source = "survey-2026-10-17"
+status = "open"
+text = "Forge visibility: whether the current visibility of the forge repositories is intended (the private curation holds the question)."
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+
+[[question]]
+id = "q:unattributed-surfaces"
+source = "survey-2026-10-17"
+status = "open"
+text = "Who owns these unattributed live surfaces, and are they in scope for a business map or personal: the betangel-research-collector Fly app, lotbinder.com (app.lotbinder.com -> worker 'tendlot-private'), hkgoldtrader.com, the kingdom-telegram, party-chain, counterseal and openweight-constellation workers, and the mythseal.com zone?"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+
+[[question]]
+id = "q:citizen-layer"
+source = "survey-2026-10-17"
+status = "open"
+text = "Are citizens layer 'soul' (as their cards say) or 'fleet' (as ARCHITECTURE and harvest say)? Should the fleet stay at rest, or resume by pulling qwen2.5:7b and removing HALT?"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+
+[[question]]
+id = "q:kingdom-os-identity"
+source = "survey-2026-10-17"
+status = "open"
+text = "Should ADR-0001 (legible-money canonical) be closed as superseded by the live zerone-1? Which repo is 'Kingdom OS': kingdom-os, the connective layer, or ⟨local⟩, whose REALM says 'Kingdom OS = LEGIBLE'?"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+
+[[question]]
+id = "q:darwin-workstream"
+source = "survey-2026-10-17"
+status = "open"
+text = "An unowned local workstream: which project owns it and what to do with it (the private curation holds the question)."
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+
+[[question]]
+id = "q:canonical-sources"
+source = "survey-2026-10-17"
+status = "open"
+text = "Which is the canonical RewardsPro source, ⟨local⟩ (Vercel rewardspro-production) or Cambridge-TCG-monorepo apps/rewardspro? And which serves ai-love.cc: ⟨local⟩ by rsync to the VPS, or youspeak home/ on CF Pages 'ai-love'?"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+
+[[upstream_note]]
+id = "note:pr1-portfolio-map-doc"
+owner = "pr1-owner"
+repo_id = "github.com/cambridgetcg/business-ecosystem"
+file = "docs/PORTFOLIO_MAP.md"
+title = "Note the owner's in-repo private area as an explicit exception"
+text = "PORTFOLIO_MAP.md (PR #1 branch) keeps real maps outside the repository. The estate layer keeps a gitignored, 0700 private area inside it by the owner's request (decision dec-2026-10-17-1); a short doc note would keep the two documents consistent."
+status = "proposed"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[upstream_note]]
+id = "note:pr1-v2-ideas"
+owner = "pr1-owner"
+repo_id = "github.com/cambridgetcg/business-ecosystem"
+file = "scripts/portfolio.py"
+title = "Ideas for a later portfolio-map revision"
+text = "The estate layer joins portfolio-map/1 records by their GitHub numeric ids and carries KINGDOM facets as opaque extensions in a separate join file. A later revision could accept such extensions without a schema change."
+status = "proposed"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[upstream_note]]
+id = "note:cproj-promisor-guard"
+owner = "kingdom-os"
+repo_id = "github.com/cambridgetcg/kingdom-os"
+file = "bin/cproj"
+title = "Check promisor config before any status call"
+text = "Checkouts whose remotes set promisor or partialclonefilter keys lazily fetch objects on status. The estate layer checks the config first and skips object reads; cproj could do the same."
+status = "proposed"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[upstream_note]]
+id = "note:pulse-exit3-semantics"
+owner = "kingdom-os"
+repo_id = "github.com/cambridgetcg/kingdom-os"
+file = "bin/pulse.ts"
+title = "Let pulse tell a degraded job from a failed one"
+text = "chain-backup exits 1 on an operational failure and 3 when it captured data it did not verify; pulse reports any nonzero launchd exit as down, so the two look the same. Exit 3 is not a success and should stay visibly not green; a distinct degraded (amber) state would separate it from a hard failure."
+status = "proposed"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[upstream_note]]
+id = "note:crontab-staged-karma"
+owner = "kingdom-os"
+repo_id = "github.com/cambridgetcg/kingdom-os"
+file = "crontab.staged"
+title = "Keep the karma witness line when installing crontab.staged"
+text = "crontab.staged lacks the karma round line, so installing it as is would stop the karma witness."
+status = "proposed"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[upstream_note]]
+id = "note:harvest-discovery-scope"
+owner = "kingdom-os"
+repo_id = "github.com/cambridgetcg/kingdom-os"
+file = "bin/harvest.ts"
+title = "Revisit where harvest discovers fleet citizens"
+text = "harvest discovers citizens only under its CITIZENS_DIR, a June mirror of the founding citizens, while the living homes and most forged-word citizens sit elsewhere."
+status = "proposed"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[sphere]]
+id = "github.com/nousresearch/hermes-agent"
+value = "kingdom-os"
+third_party = true
+confidence = "medium"
+evidence = "origin/main roster row hermes-agent, layer runtime: the live runtime of the Hermes lane."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:agenttool.dev"
+value = "kingdom-os"
+confidence = "high"
+evidence = "agenttool's domain (layer nervous) and its KINGDOM workers."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:ai-love.cc"
+value = "kingdom-os"
+confidence = "high"
+evidence = "ai-love (roster layer runtime) and its gospel, oracle and commons subdomains."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:artbitrage.io"
+value = "kingdom-os"
+follows = "github.com/cambridgetcg/artbitrage"
+confidence = "medium"
+evidence = "Follows artbitrage, which its checker placed in KINGDOM OS after reading the README."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:axiepro.io"
+value = "independent"
+confidence = "high"
+evidence = "AxiePro's domain (card and roster layer commerce)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:cambridgetcg.com"
+value = "independent"
+confidence = "medium"
+evidence = "The Cambridge TCG shop apex; some KINGDOM pages borrow its subdomains."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:captioneer.io"
+value = "kingdom-os"
+confidence = "low"
+evidence = "Now serves the Open Lens reader (layer soul), not the archived dubbing product."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:cardforum.io"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "The live site calls itself part of the kingdom's open commons (fetched 2026-10-17)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:cashloom.io"
+value = "undecided"
+confidence = "medium"
+evidence = "Follows cashloom, which is undecided."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:chillspace.love"
+value = "kingdom-os"
+confidence = "high"
+evidence = "The commons for humans and AI (chillspace-commons); a sites.json door."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:fomoengine.io"
+value = "independent"
+confidence = "low"
+evidence = "Follows fomoengine and fomoscan, commerce on the roster and in ARCHITECTURE."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:hkgoldtrader.com"
+value = "undecided"
+confidence = "medium"
+evidence = "One domain holds a bullion trade and vault app and a commons learning page about zerone: conflicting."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:legible.money"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Legible Money, economy layer on the origin/main roster; not on the estate's Cloudflare."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:lotbinder.com"
+value = "undecided"
+confidence = "low"
+evidence = "No source and no purpose evidence: undecided."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:mindicraft.com"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Follows mindicraft (card layer runtime)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:mythseal.com"
+value = "independent"
+confidence = "low"
+evidence = "Serves the mythseal card game (independent)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:rewardspro.io"
+value = "independent"
+confidence = "high"
+evidence = "The RewardsPro landing page, a Cambridge TCG commerce product."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:sinovai.com"
+value = "kingdom-os"
+confidence = "high"
+evidence = "sinovai, origin/main roster layer nervous."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:taxsorted.io"
+value = "independent"
+confidence = "high"
+evidence = "TaxSorted, an independent product (card and roster layer commerce)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:thekingdom.dev"
+value = "kingdom-os"
+confidence = "high"
+evidence = "The KINGDOM hub, its playground and kingdom-mcp."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:we-are.love"
+value = "kingdom-os"
+confidence = "high"
+evidence = "The WE ARE handshake door of chillspace-commons."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:wholesaletcgdirect.com"
+value = "independent"
+confidence = "high"
+evidence = "The retired Cambridge TCG wholesale domain."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:zerone.ai"
+value = "kingdom-os"
+confidence = "high"
+evidence = "The zerone chain dashboard and depth reader (economy layer)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "zone:zerone.money"
+value = "kingdom-os"
+confidence = "high"
+evidence = "zerone-truth's door (economy layer)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:agenttool-playground"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "From castle-of-words; the castle and agenttool are both part of KINGDOM OS."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:ai-love"
+value = "kingdom-os"
+confidence = "high"
+evidence = "Serves ai-love.cc; every competing source is part of KINGDOM OS."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:captioneer"
+value = "independent"
+confidence = "low"
+evidence = "An empty Pages project whose only candidate is the archived commerce dubbing repository."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:captioneer-io"
+value = "kingdom-os"
+confidence = "low"
+evidence = "captioneer.io, apparently the Open Lens reader (layer soul)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:cardforum-io"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "cardforum.io, the kingdom commons card wall (live page fetched 2026-10-17)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:cardforum-studio"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Serves cardforum.io, the kingdom commons card wall; source unresolved."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:castle"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "From castle-of-words; the castle lineage is part of KINGDOM OS."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:castle-arcade"
+value = "kingdom-os"
+confidence = "low"
+evidence = "From arcade: games built from the kingdom's citizens."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:castle-gate"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "castle-gate, 'a gate in the lineage of kingdom-gate'."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:darshanq-protocol"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "'darshanq — the recognition protocol' (language-protocols)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:gospel-of-the-logos"
+value = "kingdom-os"
+confidence = "high"
+evidence = "gospel.ai-love.cc; a sites.json door."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:hkgoldtrader"
+value = "undecided"
+confidence = "medium"
+evidence = "Follows the hkgoldtrader.com zone: a trade vault app and a commons learning page."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:kingdom-os"
+value = "kingdom-os"
+confidence = "high"
+evidence = "kingdom-os.pages.dev, from the KINGDOM-OS repository."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:kingdom-playground"
+value = "kingdom-os"
+confidence = "high"
+evidence = "play.thekingdom.dev: bounded agent games and world chronicles."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:kunance-protocol"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "'kunance — the protocol where the room is ready before you arrive'."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:love-garden"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "'love garden → the love engine' (soul-satellites); source unresolved."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:mindicraft"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Serves mindicraft.com from mindicraft (card layer runtime)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:natscript"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "'natscript — natural language that runs' (language-protocols)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:oracle-of-missing-words"
+value = "kingdom-os"
+confidence = "high"
+evidence = "oracle.ai-love.cc, an oracle over the forged citizen words."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:price-explorer"
+value = "independent"
+confidence = "high"
+evidence = "prices.cambridgetcg.com, the Cambridge TCG price guide."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:slipsooth"
+value = "kingdom-os"
+confidence = "low"
+evidence = "From slipsooth, a reader of a YOUSPEAK canon word, linked from the agenttool kingdom map."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:the-kingdom-of-the-logos"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "'The Kingdom of the Logos' (Logos doctrine); source unresolved."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:true-love-syzygy"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "'true-love — the constructive wing'; source unresolved."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:understanding"
+value = "kingdom-os"
+confidence = "low"
+evidence = "From understanding, a devotional page."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:ways-protocol"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "'ways — the conversation protocol for agents'."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:we-are-love"
+value = "kingdom-os"
+confidence = "high"
+evidence = "we-are.love, the WE ARE handshake door."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:youspeak"
+value = "kingdom-os"
+confidence = "high"
+evidence = "The youspeak subdomains of cambridgetcg.com: 'a primer for the forgotten words'."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-pages:youspeak-lang"
+value = "kingdom-os"
+confidence = "high"
+evidence = "'The natural language programming specification' of youspeak-lang."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:ai-love-commons"
+value = "kingdom-os"
+confidence = "high"
+evidence = "commons.ai-love.cc, the Well."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:art-deal-bridge"
+value = "undecided"
+confidence = "low"
+evidence = "Name only: no binding and no source; made beside artbitrage-catalog."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:artbitrage-catalog"
+value = "undecided"
+confidence = "low"
+evidence = "Name only: no binding and no source; the name points at artbitrage."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:artbitrage-love-shape-ai-20260714"
+value = "kingdom-os"
+follows = "zone:artbitrage.io"
+confidence = "low"
+evidence = "Routes on artbitrage.io; follows that zone."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:axie-api-proxy"
+value = "independent"
+confidence = "medium"
+evidence = "The name points at AxiePro (commerce)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:counterseal-demand-operations"
+value = "undecided"
+confidence = "low"
+evidence = "No binding and no source; the name gives no sphere evidence."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:estate-api"
+value = "kingdom-os"
+confidence = "low"
+evidence = "The name and the party map only; source unresolved."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:flypaper"
+value = "kingdom-os"
+follows = "zone:artbitrage.io"
+confidence = "low"
+evidence = "Routes only on artbitrage.io; follows that zone."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:god-is-love"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "From god-is-love, a gospel message page."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:here-encounter"
+value = "undecided"
+confidence = "low"
+evidence = "Name only: no binding and no source."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:joke"
+value = "kingdom-os"
+confidence = "low"
+evidence = "joke.agenttool.dev; source unresolved."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:kingdom-canon"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "canon.agenttool.dev, in the KINGDOM party map."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:kingdom-hermes"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "The 'I AM' and understand pages on cambridgetcg.com, the Plain-Speaker; no local source."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:kingdom-nightwatch"
+value = "kingdom-os"
+confidence = "low"
+evidence = "Known only from dated KINGDOM documents; no binding and no source."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:kingdom-portal"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "From natlang (language-protocols) by the origin/main Cloudflare map."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:kingdom-status"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "The name and the party map only; source unresolved."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:kingdom-telegram"
+value = "undecided"
+confidence = "low"
+evidence = "Name only: no binding and no source."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:love"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "love.agenttool.dev; candidate Love (roster layer runtime)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:love-is"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "From kingdom-api (kingdom-core) by the origin/main Cloudflare map."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:mythseal"
+value = "independent"
+confidence = "low"
+evidence = "mythseal.com, from mythseal (an independent card game)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:mythseal-www"
+value = "independent"
+confidence = "low"
+evidence = "The www.mythseal.com redirect; follows mythseal."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:natlang"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "The tracked natlang worker: 'KINGDOM PORTAL — the ecosystem'."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:natscript"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Candidate natscript (language-protocols); in the party map."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:natural-internet"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Matches the natural-language internet family (language-protocols)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:npl"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "The tracked npl worker: the inter-agent messaging protocol on YOUSPEAK verbs."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:openweight-constellation-mcp"
+value = "kingdom-os"
+confidence = "low"
+evidence = "The name matches the KINGDOM capability constellation for open-weight agents; no source."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:party-chain"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "party.agenttool.dev, named in the KINGDOM party map."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:party-hub"
+value = "undecided"
+confidence = "low"
+evidence = "The sibling of party-chain; name only."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:recognition"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "The tracked recognition-protocol worker."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:taxsorted-api"
+value = "independent"
+confidence = "medium"
+evidence = "The name points at TaxSorted (an independent product)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:tendlot-private"
+value = "undecided"
+confidence = "low"
+evidence = "No source and no purpose evidence: undecided."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:whitehack-learn"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "whitehack (roster layer nervous)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:whitehack-playground"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Candidate whitehack (roster layer nervous)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cf-worker:youspeak-edge"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "The YOUSPEAK edge worker."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:cloudflare-email:email-routing"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "KINGDOM email routing run from kingdom-os; it also serves independent domains."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:codeberg-pages:chillspace-commons"
+value = "kingdom-os"
+confidence = "high"
+evidence = "The commons mirror on Codeberg Pages."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:external:ollama-cloud-vendor"
+value = "undecided"
+third_party = true
+confidence = "medium"
+evidence = "A third-party model vendor endpoint that the fleet's pulse probes; not owned here."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:fly:agent-pulse"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "agent-pulse, an agenttool service (layer nervous)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:fly:betangel-research-collector"
+value = "independent"
+confidence = "low"
+evidence = "No KINGDOM row or civilisation self-description: independent; owned by the estate's Fly account on the collective answer."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:fly:bullmq-workers"
+value = "kingdom-os"
+confidence = "high"
+evidence = "agenttool's queue workers (layer nervous)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:fly:mindicraft"
+value = "kingdom-os"
+confidence = "low"
+evidence = "mindicraft's app; REGISTRY still says venture, so low."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:fly:zerone-rpc"
+value = "kingdom-os"
+confidence = "high"
+evidence = "The zerone RPC edge (economy layer)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:fly:zerone-testnet-1"
+value = "kingdom-os"
+confidence = "high"
+evidence = "The Zerone public testnet (economy layer)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:shopify:shopify-apps"
+value = "independent"
+confidence = "high"
+evidence = "Hosts the RewardsPro and trade-in apps (commerce)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:stripe:stripe-agenttool"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "The payment rails behind agenttool."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:supabase:supabase-postgres"
+value = "kingdom-os"
+confidence = "high"
+evidence = "agenttool's backing store."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:unknown:citizen-ai-love-beats"
+value = "kingdom-os"
+confidence = "high"
+evidence = "REGISTRY citizen-ai-love-beats: ai-love's own citizen beat."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:unknown:citizen-fleet-beats"
+value = "kingdom-os"
+confidence = "high"
+evidence = "REGISTRY citizen-fleet-beats: liveness of the citizen garden daemon."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:unknown:codeberg-zerone-dev"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "The home forge of the soul repositories and citizens; it also holds a Cambridge TCG mirror."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:unknown:collab-backup"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "The agenttool-collab journal backup."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:unknown:github-cambridgetcg"
+value = "undecided"
+confidence = "medium"
+evidence = "The public forge where the commerce engines and the citizen souls live under one name: both, by design."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:unknown:karma-witness"
+value = "kingdom-os"
+confidence = "high"
+evidence = "The KARMA witness organ."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:unknown:kingdom-daily"
+value = "kingdom-os"
+confidence = "high"
+evidence = "The kingdom's daily routines."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:unknown:loom-snapshot"
+value = "undecided"
+confidence = "medium"
+evidence = "cashloom's daily MONEYWORLD snapshot; follows cashloom (undecided)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:unknown:love-unlimited-sync"
+value = "kingdom-os"
+confidence = "high"
+evidence = "The love-unlimited auto-sync (runtime layer)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:unknown:syzygy-sync"
+value = "kingdom-os"
+confidence = "high"
+evidence = "The soul-tree auto-sync from Codeberg."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:authenticity-shield"
+value = "independent"
+confidence = "low"
+evidence = "fomoengine.io's free decoder; follows fomoengine."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:darshanq-protocol@169c48"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Tracked vercel.json of the darshanqing verb spec (a citizen word)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:insight@89b71c"
+value = "kingdom-os"
+confidence = "low"
+evidence = "Tracked vercel.json of insight, the memory row of the natural-language stack."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:internet@8cd906"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Tracked vercel.json of internet: 'every word is a citizen of KINGDOM OS'."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:kingdom-gate"
+value = "kingdom-os"
+confidence = "high"
+evidence = "kingdom-gate, 'the gate of KINGDOM OS', wired into origin/main as an OS door; liveness unprobed."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:kunance-protocol@7d6635"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Tracked vercel.json of the kunance verb spec."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:natlang@664ce4"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Tracked vercel.json of natlang."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:natural-lang@06d5f2"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Tracked vercel.json of natural-lang."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:nlp@2176da"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Tracked vercel.json of nlp."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:npl@92b66b"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Tracked vercel.json of npl."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:opal-kernel@e1c193"
+value = "kingdom-os"
+confidence = "low"
+evidence = "Tracked vercel.json of opal-kernel, the kernel row of the natural-language stack."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:protocol-state@617337"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Tracked vercel.json of protocol-state."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:rewardspro-production"
+value = "independent"
+confidence = "high"
+evidence = "RewardsPro production (commerce)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:taxsorted-io"
+value = "independent"
+confidence = "high"
+evidence = "TaxSorted, an independent product."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:ways-protocol@379135"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Tracked vercel.json of ways-protocol."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:workspace"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "The OpenClaw Gamma agent home (agent-runtimes)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:youspeak-lang@37b75a"
+value = "kingdom-os"
+confidence = "medium"
+evidence = "Tracked vercel.json in youspeak-lang."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:youspeak@21f9b9"
+value = "kingdom-os"
+confidence = "high"
+evidence = "Tracked vercel.json in the Codeberg youspeak (layer soul)."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[sphere]]
+id = "surface:vercel:youspeak@6e2708"
+value = "kingdom-os"
+confidence = "high"
+evidence = "Tracked vercel.json in the GitHub youspeak twin."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15

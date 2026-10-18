@@ -1,0 +1,592 @@
+# Record contract of the estate layer (vocab/records.toml): THE single source of every record
+# kind, its id form, its fields, their types and their privacy class (spec section 3).
+# model.validate() checks every build against this file; the README links here.
+#
+# Field spec keys:
+#   type      str | int | bool | iso (ISO-8601 time) | date (YYYY-MM-DD) | list | dict | facet | any
+#   nullable  the value may be null
+#   optional  the key may be absent
+#   enum      a name in [enum] below; "facets:<table path>" (values of vocab/facets.toml, "/"
+#             separated); or "kingdom:<field>" (the live CARD_ENUMS of the build's ref, never a copy)
+#   statuses  for facets: statuses allowed without a value ("set" is always allowed with one)
+#   ref       the value (or each list item) is the id of a record of that kind ("a|b" for either)
+#   privacy   committed | private | derived; a field without one has its kind's class
+#
+# Privacy classes: committed (curated knowledge only, scrubbed), private (measured or
+# risk-bearing; lives under the private area only), derived (computed from private inputs, so
+# private too). Committed files never hold local ids, paths, IPs, provider ids or risk
+# assignments.
+
+[meta]
+schema = "estate.records/1"
+snapshot_schema = "estate.snapshot/1"
+run_schema = "estate.run/1"
+proposal_schema = "estate.proposal/1"
+kinds = ["project", "checkout", "group", "family", "surface", "zone", "scheduler", "artifact", "device", "account", "relation", "proposal", "source"]
+in_records = ["project", "checkout", "group", "family", "surface", "zone", "scheduler", "artifact", "device", "account", "relation"]
+proposals_file = "proposals.jsonl"
+sources_file = "run.json"
+
+[meta.privacy]
+committed = "curated knowledge keyed by forge id, scrubbed by curate.scrub and the privacy lint"
+private = "measured or risk-bearing; only under the private area (0700 dirs, 0600 files)"
+derived = "computed from private inputs; private as well"
+
+[shape.fact]
+v = "any value"
+basis = "measured | claimed | curated | derived | imported"
+src = "a source id (src:...)"
+at = "ISO-8601 time the value was observed or claimed"
+
+[shape.facet]
+value = "the single value, or null (multi-valued facets use values)"
+values = "the list of values of a multi-valued facet"
+status = "set when a value is held; otherwise a status listed for the facet in vocab/facets.toml"
+basis = "measured | claimed | curated | derived | imported | kingdom"
+src = "a source id"
+at = "ISO-8601 time"
+alt = "other facts considered"
+kingdom_extra = "layer, kind and state add ref, resolved_by, candidates[{value, source, ref, overruled_by?}], off_enum[{value, source, ref}], ref_divergent and by_ref{ref: {status, value}}; decided_by names the owner decision that settled the value, authority the decision that made ref the primary ref (set where the refs diverge)"
+sphere_extra = "sphere (projects, zones, surfaces) always holds a value; its basis is one of vocab/facets.toml [facet.sphere].bases, and it adds decision (the owner decision defining the facet), confidence, reviewed, via (the project or alias the value came from), layer (rule:layer), family (curated:family), reason (why; always set when undecided), evidence (the full private text behind a curated row), follows (the record a curated zone or surface row takes its value from) and third_party"
+
+[enum]
+basis = ["measured", "claimed", "curated", "derived", "imported", "kingdom"]
+privacy = ["committed", "private", "derived"]
+presence = ["present", "missing", "gone"]
+measure_status = ["ok", "partial", "skipped-partial-clone", "timeout", "error", "gone-during-run"]
+gitkind = ["dir", "file"]
+upstream_state = ["tracking", "none", "gone", "unmapped", "unborn", "unknown"]
+dirty_mode = ["normal", "skipped-partial", "unknown"]
+canonical_basis = ["override", "scheduler-target", "default-branch-newest", "shortest-path"]
+mechanism = ["launchd", "cron", "hermes", "gha", "cf-cron"]
+dns_provider = ["cloudflare", "codeberg", "vercel", "external", "unknown"]
+backup = ["none", "git-remote", "tigris", "unknown"]
+member_kind = ["project", "checkout", "subpath"]
+source_class = ["claim", "measure", "imported", "curated"]
+freshness = ["fresh", "aging", "stale", "missing", "error"]
+wake_basis = ["wake-md", "hook-file", "session-start", "global", "none"]
+surface_health = ["up", "down", "contradicted", "unprobed", "unknown"]
+scheduler_health = ["healthy", "failing", "disabled", "unknown"]
+proposal_status = ["open", "resolved-observed", "resolved-upstream", "conflict-with-upstream", "declined", "deferred", "superseded"]
+proposal_owner = ["kingdom-os", "repo", "yu", "pr1-owner"]
+target_ref = ["worktree", "origin/main", "checkout-head"]
+upstream_status = ["n/a", "matches-proposed", "differs", "same-as-current"]
+proposal_rule = ["P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P09", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17"]
+evidence_class = ["measure", "claim", "curated", "decision"]
+
+# ── project ─────────────────────────────────────────────────────────────────────────────────
+
+[kind.project]
+id = "a forge id (host/owner/repo, lowercase), or the local form for a checkout with no forge remote: the local prefix, a colon and the home-relative path; aliases carry the root-commit form"
+id_pattern = '^(?:[a-z0-9][a-z0-9.-]*\.[a-z]{2,}/[^/\s]+/\S+|local[:]\S+)$'
+privacy = "private"
+committed_part = "the curated rows of curated/families/*.toml, keyed by forge id"
+
+[kind.project.fields]
+kind = { type = "str" }
+id = { type = "str" }
+name = { type = "str", nullable = true }
+aliases = { type = "list" }
+local = { type = "bool" }
+forge = { type = "dict", nullable = true }
+kingdom = { type = "dict", nullable = true }
+facets = { type = "dict" }
+display = { type = "dict" }
+display_src = { type = "dict" }
+flags = { type = "dict" }
+claims = { type = "list" }
+measures = { type = "dict" }
+curated = { type = "dict", nullable = true, privacy = "committed" }
+checkouts = { type = "list", ref = "checkout" }
+canonical_checkout = { type = "str", nullable = true, ref = "checkout" }
+canonical_basis = { type = "str", nullable = true, enum = "canonical_basis" }
+group_ids = { type = "list", ref = "group" }
+family_id = { type = "str", nullable = true, ref = "family" }
+relations = { type = "list", ref = "relation" }
+surfaces = { type = "list", ref = "surface" }
+schedulers = { type = "list", ref = "scheduler" }
+proposals = { type = "list", ref = "proposal" }
+legal_entity_id = { type = "str", nullable = true }
+risks = { type = "list", enum = "facets:vocab/risk" }
+risk_detail = { type = "list" }
+risk_notes = { type = "list" }
+tag_expectations = { type = "list" }
+unmapped_tags = { type = "list" }
+freshness = { type = "dict" }
+presence = { type = "str", enum = "presence" }
+missing_since = { type = "iso", nullable = true }
+observed_at = { type = "iso" }
+absences = { type = "int", optional = true }
+last_seen = { type = "iso", optional = true, nullable = true }
+
+[kind.project.subfields.facets]
+layer = { type = "facet", enum = "kingdom:layer", statuses = ["settled", "roster-fallback", "contested", "off-enum-only", "unset"] }
+kind = { type = "facet", enum = "kingdom:kind", statuses = ["settled", "roster-fallback", "contested", "off-enum-only", "unset"] }
+state = { type = "facet", enum = "kingdom:state", statuses = ["settled", "roster-fallback", "contested", "off-enum-only", "unset"] }
+standing = { type = "facet", enum = "facets:facet/standing", statuses = ["unknown"] }
+liveness = { type = "facet", enum = "facets:facet/liveness", statuses = ["unknown"] }
+running = { type = "facet", enum = "facets:facet/running", statuses = ["unknown"] }
+hosting = { type = "facet", enum = "facets:facet/hosting", statuses = ["none", "unknown"] }
+stack = { type = "facet", enum = "facets:facet/stack", statuses = ["unknown"] }
+exposure = { type = "facet", enum = "facets:facet/exposure", statuses = ["unknown"] }
+family = { type = "facet", enum = "facets:facet/family", statuses = ["unassigned"] }
+role = { type = "facet", enum = "facets:facet/role", statuses = ["unknown"] }
+topic = { type = "facet", enum = "facets:facet/topic", statuses = ["none"] }
+# Optional only because missing and gone stubs carried from runs before the facet lack it; every
+# present project has one (tool/sphere.py).
+sphere = { type = "facet", enum = "facets:facet/sphere", statuses = [], optional = true }
+
+[kind.project.subfields.display]
+owner_sister = { type = "str", nullable = true, enum = "kingdom:owner_sister" }
+domain = { type = "str", nullable = true, enum = "kingdom:domain" }
+adopts = { type = "list" }
+provenance = { type = "str", nullable = true, enum = "facets:display/provenance" }
+purpose_group = { type = "str", nullable = true, enum = "facets:business/purpose_group" }
+"be.framework_domain" = { type = "list", enum = "facets:business/be.framework_domain" }
+role_status = { type = "str", nullable = true, enum = "facets:display/role_status" }
+
+[kind.project.subfields.flags]
+resting = { type = "bool" }
+checkout_present = { type = "bool" }
+incidental = { type = "bool" }
+orphaned_curation = { type = "bool" }
+
+[kind.project.subfields.measures]
+last_commit_any = { type = "iso", nullable = true }
+pushed_at = { type = "iso", nullable = true }
+dirty_total = { type = "int", nullable = true }
+dirty_unknown = { type = "int" }
+unpushed_commits = { type = "int", nullable = true }
+checkouts_n = { type = "int" }
+measured_checkouts = { type = "int" }
+
+[kind.project.subfields.kingdom]
+card_present = { type = "bool", nullable = true }
+card_checkout = { type = "str", nullable = true, ref = "checkout" }
+card_tracked = { type = "bool", nullable = true }
+card_text_sha256 = { type = "str", nullable = true }
+card_text = { type = "str", nullable = true, privacy = "private" }
+card_raw = { type = "dict", nullable = true, privacy = "private" }
+card_valid = { type = "dict" }
+card_schema_ok = { type = "bool", nullable = true }
+card_field_ok = { type = "bool", nullable = true }
+card_diagnostics = { type = "list" }
+off_enum = { type = "dict" }
+card_by_ref = { type = "dict" }
+roster_row = { type = "dict", nullable = true }
+roster_by_ref = { type = "dict" }
+harvest_view = { type = "dict" }
+fleet_checkout = { type = "str", nullable = true, ref = "checkout" }
+graph_entry = { type = "dict", nullable = true }
+registry_ids = { type = "list" }
+sites_keys = { type = "list" }
+conformance = { type = "dict" }
+wake_basis = { type = "str", enum = "wake_basis" }
+ref = { type = "str", nullable = true }
+
+# ── checkout ────────────────────────────────────────────────────────────────────────────────
+
+[kind.checkout]
+id = "co:<first 12 hex of sha256(realpath)>"
+id_pattern = '^co:[0-9a-f]{12}$'
+privacy = "private"
+
+[kind.checkout.fields]
+kind = { type = "str" }
+id = { type = "str" }
+path = { type = "str" }
+rel = { type = "str" }
+project_id = { type = "str", nullable = true, ref = "project" }
+project_basis = { type = "str", nullable = true }
+checkout_role = { type = "str", nullable = true, enum = "facets:vocab/checkout_role" }
+gitkind = { type = "str", nullable = true, enum = "gitkind" }
+hub = { type = "str", nullable = true }
+is_worktree = { type = "bool" }
+is_hub = { type = "bool" }
+submodule_of = { type = "str", nullable = true }
+nested_in = { type = "str", nullable = true }
+discovered_by = { type = "str" }
+branch = { type = "str", nullable = true }
+detached = { type = "bool", nullable = true }
+head = { type = "str", nullable = true }
+born = { type = "bool", nullable = true }
+shallow = { type = "bool", nullable = true }
+root_commit = { type = "str", nullable = true }
+root_commits = { type = "int", nullable = true }
+last_commit_at = { type = "iso", nullable = true }
+last_author = { type = "str", nullable = true, privacy = "private" }
+commits = { type = "int", nullable = true }
+upstream = { type = "dict" }
+unpushed_commits = { type = "int", nullable = true }
+stash_count = { type = "int", nullable = true }
+dirty = { type = "dict" }
+partial = { type = "dict" }
+alternates = { type = "list" }
+lends_objects_to = { type = "list" }
+worktrees = { type = "dict" }
+remotes = { type = "dict", nullable = true }
+primary_remote = { type = "str", nullable = true }
+primary_remote_name = { type = "str", nullable = true }
+tracked_files = { type = "int", nullable = true }
+top_ext = { type = "list", nullable = true }
+manifests = { type = "list", nullable = true }
+manifests_tracked = { type = "list", nullable = true }
+workflows = { type = "list", nullable = true }
+card = { type = "dict" }
+has_claude_md = { type = "bool", nullable = true }
+wake_markers = { type = "dict", nullable = true }
+fate = { type = "bool", nullable = true }
+rest_marker = { type = "list", nullable = true }
+readme_title = { type = "str", nullable = true }
+post_commit_hook = { type = "bool", nullable = true }
+measure_status = { type = "str", nullable = true, enum = "measure_status" }
+errors = { type = "list" }
+notes = { type = "list" }
+presence = { type = "str", enum = "presence" }
+missing_since = { type = "iso", nullable = true }
+observed_at = { type = "iso" }
+absences = { type = "int", optional = true }
+last_seen = { type = "iso", optional = true, nullable = true }
+
+[kind.checkout.subfields.upstream]
+state = { type = "str", enum = "upstream_state" }
+ref = { type = "str", nullable = true }
+ahead = { type = "int", nullable = true }
+behind = { type = "int", nullable = true }
+as_of_fetch = { type = "iso", nullable = true }
+
+[kind.checkout.subfields.dirty]
+modified = { type = "int", nullable = true }
+untracked = { type = "int", nullable = true }
+mode = { type = "str", enum = "dirty_mode" }
+
+# ── group and family ────────────────────────────────────────────────────────────────────────
+
+[kind.group]
+id = "group:<family>/<slug>"
+id_pattern = '^group:[a-z0-9-]+/[a-z0-9._-]+$'
+privacy = "private"
+committed_part = "the [[group]] rows of curated/families/*.toml whose member rule is path-free"
+
+[kind.group.fields]
+kind = { type = "str" }
+id = { type = "str" }
+label = { type = "str", nullable = true }
+family_id = { type = "str", nullable = true, ref = "family" }
+what = { type = "str", nullable = true }
+role = { type = "list", enum = "facets:facet/role" }
+role_status = { type = "str", nullable = true, enum = "facets:display/role_status" }
+member_rule = { type = "dict" }
+members = { type = "list", privacy = "private" }
+member_kind = { type = "str", nullable = true, enum = "member_kind" }
+member_projects = { type = "list", ref = "project" }
+count_at_survey = { type = "int", nullable = true }
+count_now = { type = "int", nullable = true }
+delta = { type = "int", nullable = true }
+member_note = { type = "str", nullable = true }
+kingdom_claims = { type = "dict" }
+canonical_location = { type = "str", nullable = true, privacy = "private" }
+committed = { type = "bool" }
+presence = { type = "str", enum = "presence" }
+missing_since = { type = "iso", nullable = true }
+observed_at = { type = "iso" }
+
+[kind.family]
+id = "family:<slug>"
+id_pattern = '^family:[a-z0-9-]+$'
+privacy = "committed"
+private_part = "summary_full, drift and nongit_paths"
+
+[kind.family.fields]
+kind = { type = "str" }
+id = { type = "str" }
+label = { type = "str", nullable = true }
+summary = { type = "str", nullable = true }
+open_questions = { type = "list" }
+as_of = { type = "date", nullable = true }
+review_after = { type = "date", nullable = true }
+reviewed = { type = "bool", nullable = true }
+source = { type = "str", nullable = true }
+heavy = { type = "bool" }
+# The family's sphere default ([family.sphere]: value, evidence, source, reviewed, as_of, review_after).
+sphere = { type = "dict", nullable = true, optional = true }
+summary_full = { type = "str", nullable = true, privacy = "private" }
+drift = { type = "list", privacy = "private" }
+nongit_paths = { type = "list", privacy = "private" }
+projects_n = { type = "int" }
+presence = { type = "str", enum = "presence" }
+missing_since = { type = "iso", nullable = true }
+observed_at = { type = "iso" }
+
+# ── surface and zone ────────────────────────────────────────────────────────────────────────
+
+[kind.surface]
+id = "surface:<hosting value>:<name>; the curated id when one exists, else the REGISTRY id or the manifest name"
+id_pattern = '^surface:[^:\s]+:\S+$'
+privacy = "private"
+committed_part = "the public-hostname part of curated/estate.toml [[surface]]"
+
+[kind.surface.fields]
+kind = { type = "str" }
+id = { type = "str" }
+provider = { type = "str", nullable = true, enum = "facets:facet/hosting" }
+name = { type = "str", nullable = true }
+hostnames = { type = "list" }
+audience = { type = "str", nullable = true }
+registry = { type = "dict", nullable = true }
+health = { type = "dict" }
+source_project = { type = "str", nullable = true, ref = "project" }
+attribution = { type = "dict" }
+competing_sources = { type = "list", ref = "project" }
+unresolved_projects = { type = "list" }
+# account: {id, provider, decision, basis}, set when an owner decision attributes the surface to the
+# estate's own provider account.
+account = { type = "dict", nullable = true, optional = true }
+# sphere: the KINGDOM OS facet (curated, else the source project's); optional only for older stubs.
+sphere = { type = "facet", enum = "facets:facet/sphere", statuses = [], optional = true }
+portfolio_resource_id = { type = "str", nullable = true, privacy = "private" }
+attribution_v1 = { type = "str", nullable = true, enum = "facets:vocab/attribution" }
+zone_ids = { type = "list", ref = "zone" }
+legal_entity_id = { type = "str", nullable = true }
+curated = { type = "bool" }
+dispute = { type = "str", nullable = true, optional = true }
+presence = { type = "str", enum = "presence" }
+missing_since = { type = "iso", nullable = true }
+observed_at = { type = "iso" }
+
+[kind.surface.subfields.health]
+state = { type = "str", enum = "surface_health" }
+code = { type = "int", nullable = true }
+at = { type = "iso", nullable = true }
+src = { type = "str" }
+caveat = { type = "dict", nullable = true, privacy = "private" }
+basis = { type = "str" }
+
+[kind.surface.subfields.attribution]
+class = { type = "str", enum = "facets:vocab/attribution" }
+evidence = { type = "list", privacy = "private" }
+
+[kind.zone]
+id = "zone:<fqdn>"
+id_pattern = '^zone:[a-z0-9.-]+$'
+privacy = "private"
+committed_part = "curated/estate.toml [[zone]]"
+
+[kind.zone.fields]
+kind = { type = "str" }
+id = { type = "str" }
+fqdn = { type = "str" }
+dns_provider = { type = "str", enum = "dns_provider" }
+registrar = { type = "str" }
+email_routing = { type = "any", nullable = true }
+purpose = { type = "str", nullable = true }
+owner_project = { type = "str", nullable = true, ref = "project" }
+owner_project_claim = { type = "str", optional = true }
+surfaces = { type = "list", ref = "surface" }
+portfolio_id = { type = "str", nullable = true, privacy = "private" }
+legal_entity_id = { type = "str", nullable = true }
+seen_in = { type = "list" }
+# account: {id, provider, decision, basis}, set when an owner decision attributes the zone to the
+# estate's own provider account.
+account = { type = "dict", nullable = true, optional = true }
+# sphere: the KINGDOM OS facet (curated, else the owner project's); optional only for older stubs.
+sphere = { type = "facet", enum = "facets:facet/sphere", statuses = [], optional = true }
+presence = { type = "str", enum = "presence" }
+missing_since = { type = "iso", nullable = true }
+observed_at = { type = "iso" }
+
+# ── scheduler, artifact, device, account ────────────────────────────────────────────────────
+
+[kind.scheduler]
+id = "sched:<mechanism>:<label>; cron is sched:cron:<sha12 of the redacted line>"
+id_pattern = '^sched:[a-z-]+:.+$'
+privacy = "private"
+
+[kind.scheduler.fields]
+kind = { type = "str" }
+id = { type = "str" }
+mechanism = { type = "str", enum = "mechanism" }
+label = { type = "str", nullable = true }
+schedule = { type = "any", nullable = true }
+program_basename = { type = "str", nullable = true }
+script_basename = { type = "str", nullable = true }
+target_checkout = { type = "str", nullable = true, ref = "checkout" }
+project_id = { type = "str", nullable = true, ref = "project" }
+registry_id = { type = "str", nullable = true }
+watched_by_pulse = { type = "bool" }
+tcc_exposed = { type = "bool", nullable = true }
+tcc_basis = { type = "str", nullable = true, optional = true }
+attribution = { type = "str", nullable = true, enum = "facets:vocab/attribution" }
+source_file = { type = "str", nullable = true }
+health = { type = "dict" }
+pulse = { type = "dict", nullable = true }
+log = { type = "dict", nullable = true, privacy = "private" }
+presence = { type = "str", enum = "presence" }
+missing_since = { type = "iso", nullable = true }
+observed_at = { type = "iso" }
+
+[kind.scheduler.subfields.health]
+state = { type = "str", enum = "scheduler_health" }
+basis = { type = "str" }
+at = { type = "iso", nullable = true }
+caveat = { type = "dict", nullable = true, privacy = "private" }
+
+[kind.artifact]
+id = "artifact:<slug>"
+id_pattern = '^artifact:\S+$'
+privacy = "private"
+note = "lstat only (size, mtime, mode); contents are never read"
+
+[kind.artifact.fields]
+kind = { type = "str" }
+id = { type = "str" }
+path = { type = "str", nullable = true }
+artifact_kind = { type = "str", nullable = true, enum = "facets:vocab/artifact_kind" }
+owner_project = { type = "str", nullable = true, ref = "project" }
+family_id = { type = "str", nullable = true, ref = "family" }
+size = { type = "int", nullable = true }
+mtime = { type = "iso", nullable = true }
+mode = { type = "int", nullable = true }
+secret_bearing = { type = "bool", nullable = true }
+contents_read = { type = "bool" }
+backup = { type = "str", enum = "backup" }
+status = { type = "str" }
+presence = { type = "str", enum = "presence" }
+missing_since = { type = "iso", nullable = true }
+observed_at = { type = "iso" }
+
+[kind.device]
+id = "device:<slug>"
+id_pattern = '^device:\S+$'
+privacy = "private"
+
+[kind.device.fields]
+kind = { type = "str" }
+id = { type = "str" }
+label = { type = "str", nullable = true }
+device_kind = { type = "str", nullable = true }
+role = { type = "str", nullable = true }
+status = { type = "str", nullable = true }
+evidence = { type = "any", nullable = true }
+presence = { type = "str", enum = "presence" }
+missing_since = { type = "iso", nullable = true }
+observed_at = { type = "iso" }
+
+[kind.account]
+id = "account:<provider>:<label>"
+id_pattern = '^account:\S+$'
+privacy = "private"
+note = "names only; credential_artifacts holds artifact ids, never credentials"
+
+[kind.account.fields]
+kind = { type = "str" }
+id = { type = "str" }
+provider = { type = "str", nullable = true }
+label = { type = "str", nullable = true }
+purpose = { type = "str", nullable = true }
+used_by = { type = "list" }
+credential_artifacts = { type = "list" }
+# owns: [{id, decision, basis, observed}], the records an owner decision attributes to this account;
+# observed is false when this run saw no such record. decided_status: {status, decision, provider,
+# note}, a provider status an owner decision set (in-progress-elsewhere).
+owns = { type = "list", optional = true }
+decided_status = { type = "dict", nullable = true, optional = true }
+presence = { type = "str", enum = "presence" }
+missing_since = { type = "iso", nullable = true }
+observed_at = { type = "iso" }
+
+# ── relation ────────────────────────────────────────────────────────────────────────────────
+
+[kind.relation]
+id = "rel:<sha12 of from|verb|to>"
+id_pattern = '^rel:[0-9a-f]{12}$'
+privacy = "private"
+committed_part = "[[project.relations]] in curated/families/*.toml (forge or group ids at both ends)"
+
+[kind.relation.fields]
+kind = { type = "str" }
+id = { type = "str" }
+from = { type = "str", ref = "project|group" }
+verb = { type = "str", enum = "facets:vocab/relation" }
+to = { type = "str", ref = "project|group" }
+basis = { type = "str", enum = "facets:vocab/relation_basis" }
+also = { type = "list" }
+raw_kind = { type = "str", nullable = true }
+note = { type = "str", nullable = true }
+src = { type = "str", nullable = true }
+at = { type = "iso" }
+presence = { type = "str", enum = "presence" }
+missing_since = { type = "iso", nullable = true }
+observed_at = { type = "iso" }
+
+# ── proposal (proposals.jsonl, schema estate.proposal/1) ───────────────────────────────────
+
+[kind.proposal]
+id = "prop:<rule>:<sha12 of rule|file|record|field|proposed>, stable across runs"
+id_pattern = '^prop:P\d{2}:[0-9a-f]{12}$'
+privacy = "private"
+note = "Nothing is ever applied. card_text puts basis notes on comment lines above each field, never inline; patch previews diff the origin/main blob (its sha pinned) and the worktree blob."
+
+[kind.proposal.fields]
+schema = { type = "str" }
+id = { type = "str" }
+rule = { type = "str", enum = "proposal_rule" }
+title = { type = "str" }
+target = { type = "dict" }
+target_ref = { type = "str", enum = "target_ref" }
+current = { type = "dict" }
+proposed = { type = "dict" }
+options = { type = "list" }
+basis = { type = "list" }
+evidence = { type = "list", privacy = "private" }
+needs_yu = { type = "bool" }
+priority = { type = "int" }
+bulk_key = { type = "str", nullable = true }
+bulk_count = { type = "int" }
+collab = { type = "dict", nullable = true }
+upstream = { type = "dict" }
+status = { type = "str", enum = "proposal_status" }
+first_seen = { type = "iso" }
+last_seen = { type = "iso" }
+decision_ref = { type = "str", nullable = true }
+# sphere: the sphere of the proposal's subject (its record, or all its members when they agree);
+# optional because proposals carried from earlier runs lack it.
+sphere = { type = "str", nullable = true, optional = true, enum = "facets:facet/sphere" }
+
+[kind.proposal.subfields.target]
+owner = { type = "str", enum = "proposal_owner" }
+repo_id = { type = "str", nullable = true }
+file = { type = "str", nullable = true }
+record_id = { type = "str", nullable = true }
+field = { type = "str", nullable = true }
+
+[kind.proposal.subfields.upstream]
+worktree_blob = { type = "str", nullable = true }
+origin_main_blob = { type = "str", nullable = true }
+origin_main_commit = { type = "str", nullable = true }
+status = { type = "str", enum = "upstream_status" }
+
+# ── source (run.json sources, keyed by id) ─────────────────────────────────────────────────
+
+[kind.source]
+id = "src:<kind>[:<ref or index>]"
+id_pattern = '^src:\S+$'
+privacy = "private"
+required = ["src:census", "src:kingdom:worktree", "src:roster", "src:pulse"]
+
+[kind.source.fields]
+id = { type = "str" }
+kind = { type = "str" }
+class = { type = "str", enum = "source_class" }
+status = { type = "str", nullable = true }
+locator_id = { type = "str", nullable = true }
+sha256 = { type = "str", nullable = true }
+observed_at = { type = "any", nullable = true }
+age_s = { type = "int", nullable = true }
+budget = { type = "dict", nullable = true }
+freshness = { type = "str", enum = "freshness" }
+required = { type = "bool" }
+configured = { type = "bool" }
+coverage = { type = "dict", nullable = true }
+note = { type = "str", nullable = true }
+propagates = { type = "str", nullable = true, optional = true }

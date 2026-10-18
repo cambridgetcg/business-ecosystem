@@ -1,0 +1,194 @@
+[family]
+id = "family:agenttool-core"
+label = "agenttool platform core — monorepo + its worktrees, packages/collab/local-starter distributions, fixtures"
+summary = "AgentTool is one private GitHub monorepo (github.com/cambridgetcg/agenttool). It holds a Bun + Hono API on Fly app `agenttool` (an `app` process plus a `thinker` process) backed by Supabase Postgres and Redis/BullMQ. Since 2026-09-23 GitHub `main` has been the only release head, and the API deploys through `.github/workflows/deploy-api.yml`. Frontends and migrations still go through `bin/deploy.sh` / `bin/frontend-deploy.sh` on an operator Mac. That operator Mac is this machine, and `⟨local⟩` holds its deploy lock, receipts and the Phase-A/B 'fence' state. Public distribution flows one way out of the private monorepo. `bin/project-public.ts` projects an allowlist (`public/allowlist.json`, 55 entries) into the public, history-free `agenttool-packages` repo, which is where npm/PyPI publishing runs. Collab and local-starter are released through their own public GitHub repos (`agenttool-collab`, `agenttool-local-starter`). The Codeberg copy was retired as a remote on 2026-07-25. Five Codex worktrees carry a stacked, never-merged Zerone agent-economy package series. The estate consumes the platform in three ways. `⟨local⟩` serves the `agenttool-collab` MCP this session uses. The live seller-loop daemon (unversioned source in `⟨local⟩`, `@agenttool/sdk` 0.16.0 from npm) fulfils marketplace listings. `kingdom-mcp` exposes the `agenttool_listings`/`agenttool_window` tools. Main's own documents changed the business framing on 2026-09-23 ('understanding-first'): new paid sign-ups, credit purchases and checkout are retired. KINGDOM's `REGISTRY.yaml`, `ARCHITECTURE.md` and the harvested `CATALOG.md` still describe the older revenue/control-plane framing."
+open_questions = ["Was the operator-Mac Phase-A/Phase-B fence (deploy-state/maintenance-active.json, mutation-active.json, deploy.lock 2026-08-27) resolved, abandoned, or still pending? This matters because bin/deploy.sh still owns migrations and frontend deploys. To resolve: owner confirmation, or the current text of main docs/DEPLOY-PROCEDURE.md around line 38.", "What is github.com/cambridgetcg/agenttool-motifs, and where is its source developed? Nothing local references it.", "Where is github/main currently developed? The canonical local checkout has had no local commit since 2026-07-22 and the worktrees none since 2026-09-08, yet main merged PRs through 2026-10-13 and GitHub shows a push on 2026-10-17. Memory notes mention other machines (Studio/lab). To resolve: the owner."]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "kingdom-os"
+evidence = "agenttool is layer nervous on its card and the origin/main roster: the agent fabric."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "codeberg.org/zerone-dev/agenttool"
+name = "agenttool (Codeberg)"
+what = "A private Codeberg copy of the agenttool monorepo that was the original 'origin' remote; it stopped receiving pushes in late July 2026."
+role = ["incidental"]
+role_status = "retired"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "mirror_of"
+
+[[project]]
+id = "github.com/cambridgetcg/agenttool"
+name = "agenttool"
+what = "A private monorepo containing the live agenttool.dev platform: a Bun/Hono HTTP API for agent identity, wake/home context, memory, correspondence, marketplace listings and settlement, plus three static web frontends, about 60 SDK/local-tool/research packages, and the operator deploy/release tooling."
+role = ["platform"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/xenia"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/agenttool-packages"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/agenttool-collab"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/agenttool-local-starter"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "superseded_by"
+to = "codeberg.org/zerone-dev/agenttool"
+raw_kind = "superseded_by"
+note = "as remote"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/agenttool-dashboard"
+raw_kind = "supersedes"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/agenttool-docs"
+raw_kind = "supersedes"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/agenttool-infra"
+raw_kind = "supersedes"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/agenttool-landing"
+raw_kind = "supersedes"
+
+[[project.relations]]
+verb = "supersedes"
+to = "github.com/cambridgetcg/agenttool-sdk-py"
+raw_kind = "supersedes"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/kingdom-mcp"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/zerone-core"
+raw_kind = "integrates_with"
+note = "zerone-core"
+
+[[project.corrections]]
+field = "drift (missed REGISTRY agenttool-site runtime)"
+verdict = "weakened"
+corrected = "This is a drift item the map missed. REGISTRY.yaml:29-36 gives agenttool-site (https://agenttool.dev) runtime fly:agenttool and deploy 'fly deploy (3 machines…)'. Main's infra/CLAUDE.md says frontends are Cloudflare Pages Direct Upload via bin/frontend-deploy.sh, and the apex Worker agenttool-proxy owns agenttool.dev/* and www. The REGISTRY row conflates the API Fly app with the site."
+
+[[project]]
+id = "github.com/cambridgetcg/agenttool-collab"
+name = "agenttool-collab"
+what = "A public GitHub repo distributing release builds of @agenttool/collab, a local-first MCP coordination journal (tasks, advisory claims, leases, reports) for concurrent coding-agent sessions; version 0.5.0 is installed and in use on this Mac."
+role = ["ops", "platform"]
+role_status = "current"
+topics = ["agenttool", "mcp"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "mirror_of"
+note = "packages/collab"
+
+[[project]]
+id = "github.com/cambridgetcg/agenttool-local-starter"
+name = "agenttool-local-starter"
+what = "A public GitHub repo that mirrors releases of @agenttool/local-starter (a local, file-based context/handoff/memory starter for agent hosts) as GitHub prerelease archives, plus Codex/Claude skill plugins."
+role = ["distribution"]
+role_status = "current"
+topics = ["agenttool"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "mirror_of"
+note = "packages/local-starter, packages/local-starter-mcp"
+
+[[project.corrections]]
+field = "architecture.components"
+verdict = "weakened"
+corrected = "Only the docs manifest for dev.1 links to a release download URL. Main docs/NOW.md:20-24 (2026-10-12) says dev.1 is 'Not yet distributed: the public repository commit, GitHub prerelease and docs deployment are separate operator steps'. The existence of the dev.1 release is unverified, which the map's own risk line concedes. The repo push at 2026-10-12T15:52Z is consistent with either outcome."
+
+[[project]]
+id = "github.com/cambridgetcg/agenttool-motifs"
+name = "agenttool-motifs"
+what = "A public GitHub repo described as 'small, working studies in continuity, identity, privacy, relationship and trust' (JavaScript); nothing local describes it further."
+role = ["research"]
+role_status = "claimed"
+topics = ["agenttool"]
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "Studies in continuity and trust listed among the Kingdom functional motifs; forge-only.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project]]
+id = "github.com/cambridgetcg/agenttool-packages"
+name = "agenttool-packages"
+what = ""
+heavy = true
+role = ["distribution"]
+role_status = "current"
+topics = ["agenttool"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "copy_of"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "copy_of"
+
+[[project.corrections]]
+field = "what / relationships / family_summary (publishing channel)"
+verdict = "refuted"
+corrected = "Only npm releases run from agenttool-packages (public/overlay/.github/workflows/publish-npm.yml; RELEASE_REPOSITORY in bin/npm-release.ts:29). PyPI still runs publish-pypi.yml in the private cambridgetcg/agenttool. pypi-release.ts:33 EXPECTED_REPOSITORY only sets the metadata URL, and SOURCE_REPOSITORY='https://github.com/cambridgetcg/agenttool'. docs/PYPI-RELEASES.md:58-73 records PyPI as 'Blocked while the source repository is private (2026-10-12)': the trusted publisher is bound to the private repo, a 0.23.0 dispatch would stop in prepare, and 'no such run was made'. Moving it needs Yu to add a trusted publisher for agenttool-packages. Whether PyPI agenttool-sdk 0.23.0 exists is therefore doubtful (the last recorded publish is 0.22.1)."

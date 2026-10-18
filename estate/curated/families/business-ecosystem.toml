@@ -1,0 +1,157 @@
+[family]
+id = "family:business-ecosystem"
+label = "business-ecosystem itself — the enterprise monorepo that will host the unified layer"
+summary = "It is mostly TypeScript (Fastify/Hono with Drizzle/Prisma), plus a Python FastAPI/SQLAlchemy accounting ledger and AWS Terraform."
+heavy = true
+open_questions = ["What is the current GitHub state of draft PRs #1-#3? They were open and unmerged at the 2026-10-01 readback, with PR #1 'release-held'. Resolve: gh pr list (network) by the owner.", "Which legal entity (if any) is this system meant to serve, for example Cambridge TCG's registered company? The Hermes map deliberately left legal_entities 'unassigned'. Resolve: Yu."]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "independent"
+evidence = "A business-operations platform, layer commerce on its card and the origin/main roster; hosting the estate overlay is a host role."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "github.com/cambridgetcg/business-ecosystem"
+name = "business-ecosystem"
+what = "A private pnpm/Turborepo monorepo of TypeScript and Python services for running a company's legal entities, ledger, banking, tax, compliance, contracts, insurance, IP and data-privacy records. It is not deployed."
+role = ["platform"]
+role_status = "unrealised"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/purpose-prompter"
+raw_kind = "depends_on"
+note = "methodology"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/true-love"
+raw_kind = "depends_on"
+note = "love-bomb hook source"
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/kingdom-os"
+raw_kind = "part_of"
+note = "roster/catalog, agent card"
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/aws-infra"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/taxsorted.io"
+raw_kind = "candidate_consumer_of"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/cashloom"
+raw_kind = "candidate_consumer_of"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+raw_kind = "candidate_consumer_of"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/rewardspro"
+raw_kind = "candidate_consumer_of"
+
+[[project.corrections]]
+field = "checkouts.others[business-ecosystem-next-20260927] + open_questions[last] + family_summary ('worktrees ... pruned on 2026-10-16')"
+verdict = "refuted"
+corrected = "The PR #1 worktree was deliberately removed on 2026-10-17 at about 12:00 BST, as item #150a of the user-approved storage cleanup step 2 ('after a quick check' tier). It was removed with `git worktree remove` without --force (rc=0) after a verifier recorded a clean tree, branch kept at 1acdc55, 11M. Only the 3 other worktrees were pruned on 10-16. Branch feat/portfolio-evidence-flow-20260927 remains, so the portfolio CLI is recoverable. Hermes START.txt:42-44 still points at the removed path."
+
+[[group]]
+id = "group:business-ecosystem/documentation-corpus"
+label = "business-ecosystem documentation corpus"
+what = "Agent-written mission, architecture, roadmap, baseline, SOC2 and per-service status documents, plus a script-generated progress dashboard."
+role = ["doctrine"]
+role_status = "current"
+member_rule = { kind = "repo-subpath", repo = "github.com/cambridgetcg/business-ecosystem", names = ["docs", "docs/knowledge-gaps", "docs/soc2", "foundational/research", "operational/.understanding"] }
+count_at_survey = 7
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[group]]
+id = "group:business-ecosystem/edge-gateway"
+label = "business-ecosystem edge gateway"
+what = "Fastify JWT reverse proxy, service discovery and health aggregation at :8080 in front of every service."
+role = ["platform"]
+role_status = "current"
+member_rule = { kind = "repo-subpath", repo = "github.com/cambridgetcg/business-ecosystem", names = ["gateway"] }
+count_at_survey = 1
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[group]]
+id = "group:business-ecosystem/foundational-services"
+label = "business-ecosystem foundational services"
+what = "The 'what the business IS' layer. Per-domain service packages (Fastify/Drizzle TS; accounting also Python FastAPI) for legal entities, ledger, bank accounts/payments, regulatory obligations, UK tax, identity verification and corporate security, plus a shared value-object library and a research doc set."
+role = ["platform"]
+role_status = "unrealised"
+member_rule = { kind = "repo-subpath", repo = "github.com/cambridgetcg/business-ecosystem", names = ["foundational/entity-governance", "foundational/accounting", "foundational/banking-treasury", "foundational/compliance", "foundational/tax", "foundational/kyc-identity", "foundational/corporate-security", "foundational/contracts-legal", "foundational/shared", "foundational/research"] }
+count_at_survey = 10
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[group]]
+id = "group:business-ecosystem/infrastructure-as-code"
+label = "business-ecosystem infrastructure-as-code"
+what = ""
+heavy = true
+role = ["ops"]
+role_status = "current"
+member_rule = { kind = "repo-subpath", repo = "github.com/cambridgetcg/business-ecosystem", names = ["infrastructure/terraform/modules/alb", "infrastructure/terraform/modules/data-privacy", "infrastructure/terraform/modules/ecs", "infrastructure/terraform/modules/ecs-cluster", "infrastructure/terraform/modules/ecs-service", "infrastructure/terraform/modules/elasticache", "infrastructure/terraform/modules/messaging", "infrastructure/terraform/modules/observability", "infrastructure/terraform/modules/progress-tracking", "infrastructure/terraform/modules/rds", "infrastructure/terraform/modules/security", "infrastructure/terraform/modules/vpc", "infrastructure/terraform/environments/dev", "infrastructure/terraform/environments/staging", "infrastructure/terraform/environments/prod", "infrastructure/terraform/state", "infrastructure/terraform/progress-tracking-standalone", "infrastructure/terraform/shared", "infrastructure/docker-compose.yml"] }
+count_at_survey = 20
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[group]]
+id = "group:business-ecosystem/operational-services"
+label = "business-ecosystem operational services + orchestration"
+what = "The 'what the business DOES' layer: Hono/Prisma and Fastify/Drizzle services for contracts, GDPR/CCPA privacy, insurance and IP portfolios. Also a Hono aggregation gateway and hidden dot-directories for a YAML workflow engine, compliance aggregator, reporting, and analysis/progress docs."
+role = ["platform"]
+role_status = "unrealised"
+member_rule = { kind = "repo-subpath", repo = "github.com/cambridgetcg/business-ecosystem", names = ["operational/contracts-legal", "operational/data-privacy", "operational/insurance", "operational/intellectual-property", "operational/gateway", "operational/.orchestration/engine", "operational/.orchestration/compliance", "operational/.orchestration/reporting", "operational/.orchestration/understanding", "operational/.orchestration/workflows", "operational/.understanding", "operational/.progress"] }
+count_at_survey = 12
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[group]]
+id = "group:business-ecosystem/shared-libraries"
+label = "business-ecosystem shared libraries, contracts, events"
+what = "Cross-service TypeScript runtime helpers (DB, cache, auth, crypto, messaging, outbox, saga, logging/observability), DTO contracts and event-schema packages under the @ecosystem/* scope."
+role = ["platform"]
+role_status = "current"
+member_rule = { kind = "repo-subpath", repo = "github.com/cambridgetcg/business-ecosystem", names = ["shared/libs/audit-logging", "shared/libs/auth", "shared/libs/cache", "shared/libs/database", "shared/libs/encryption", "shared/libs/external-integrations", "shared/libs/health", "shared/libs/logging", "shared/libs/messaging", "shared/libs/observability", "shared/libs/outbox", "shared/libs/query-composer", "shared/libs/repository", "shared/libs/saga", "shared/libs/secrets", "shared/libs/service-auth", "shared/libs/service-client", "shared/libs/test-utils", "shared/libs/validation", "shared/libs/workflows", "shared/contracts/audit", "shared/contracts/document", "shared/contracts/entity", "shared/contracts/financial", "shared/contracts/identity", "shared/events/compliance-events", "shared/events/entity-events", "shared/events/financial-events", "shared/events/legal-events", "shared/events/operational-events", "shared/config"] }
+count_at_survey = 31
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"

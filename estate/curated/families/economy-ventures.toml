@@ -1,0 +1,390 @@
+[family]
+id = "family:economy-ventures"
+label = "Economy & markets ventures — legible family, prediction-markets, oracle, mindicraft, sinovai, xenia, artbitrage, betangel, ww3, quay, open-lens/press"
+summary = "This family is three loosely joined clusters, not one architecture. Most of its work landed in Feb 2026. zerone was started as a clean rewrite of it on 2026-02-20 (no shared root commit; \"rename LegibleAuthKeeper to ZeroneAuthKeeper\"). The repo clarity-score product `legible` and the governance doc `legible-standard` share only the brand (REALM Law 1); they share no code. (2) Forecasting and markets: prediction-markets (Polymarket research, small live trades, the S012 \"Oracle\" signal engine) took geopolitical events from ww3-intelligence. Its signals were bridged onto the LGM devnet by legible_money/scripts/oracle-zerone-bridge.sh. The separate `oracle` repo is a macro-calibration loop that ran on another Mac (⟨local⟩) until at least 2026-07-24. The private betangel-* repos (Betfair research) are being pushed from somewhere else this week. (3) Agent-experience and public doors: xenia (spec plus the npm library @agenttool/xenia) is what sinovai (a Cloudflare Worker trust arena that receives STATE.md heartbeats from 36 estate checkouts) and mindicraft.com (a Cloudflare Pages guide that adopts xenia.surface/0.1) implement. artbitrage.io is a live Cloudflare Pages museum/data API with no local clone. open-lens and open-press (rhetoric and newspaper frameworks), the did-extensions and slips forks, and motif-score exist only on the forge. quay (a self-hosted deploy daemon) is an infra outlier placed here by ⟨local⟩. Live today: sinovai, mindicraft, artbitrage, and xenia as a published package. Everything else is dormant locally or lives on another device or the forge. The biggest operational hazard is the launchd job com.legible.git-sync. Since 2026-07-10 it has written ~285k error lines into a 49 MB log that never trims. KINGDOM's own maps disagree about this family in many places (roster -sol paths, ADR-0001, the REGISTRY mindicraft entry, untracked cards)."
+open_questions = ["Is legible_money officially archived (GitHub archive flag, ADR-0001 closed) now that zerone is the live chain? Should the June fixes on origin/main (knowledge codec, vesting meter) be ported to zerone or left behind?", "Where are betangel-suite and betangel-research developed (they were pushed 10-16/17 but are not on this Mac)? Should they be in the KINGDOM map at all, given 'personal use only'?", "Is the ww3-intelligence Fly app still running (a cost) now that its consumer prediction-markets is dormant?", "Why was satoshilabs/slips forked (a SLIP-0044 coin type for ZRN or LGM?), and what is the status of the did:at registration (w3c/did-extensions PR #732)?", "What is motif-score, and who owns it (it has no local references)?", "Is sinovai.com served by the Cloudflare Worker (custom domain) or by external cPanel? CLOUDFLARE-COVERAGE.md, REGISTRY.yaml and wrangler.toml disagree.", "The 2026-07-21 love-bomb commits (a .claude/hooks/love-bomb.sh SessionStart hook plus AGENTS.md) sit unpulled on the remotes of legible, legible_money, legible-money-web, prediction-markets and oracle. Should they be pulled into these stale local checkouts?"]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "undecided"
+evidence = "Mixed by nature (protocols, markets, products, personal research), so the family presumes nothing."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "codeberg.org/zerone-dev/oracle"
+name = "oracle"
+what = "A Python macro-market forecasting loop that collects FRED and Yahoo Finance data, detects the market regime, issues weekly predictions with confidence levels, and scores them for calibration, guided by markdown research batches and LEARNINGS/METHODOLOGY files."
+role = ["research"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "high", evidence = "Card and origin/main roster layer economy; a citizen in citizens-myth.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project]]
+id = "github.com/cambridgetcg/artbitrage"
+name = "artbitrage"
+what = "artbitrage.io: a static museum and gallery site on Cloudflare Pages with Pages Functions APIs for museum open-data search, wine, cigar and pairing pages, and an auction trade module (buyer's-premium fees, ARR, thresholds, lot and provenance validation). It is also an art-data listing on agenttool."
+role = ["revenue", "public-door"]
+role_status = "current"
+topics = ["agenttool"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "medium", evidence = "Its README calls it a personal art project for humans, agents and kin, with a kingdom crossover room; no card or roster row.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project]]
+id = "github.com/cambridgetcg/betangel-research"
+name = "betangel-research"
+what = "According to its forge description, a private Python repo for offline horse-racing exchange research, data-collection provenance and strategy experiments."
+role = ["research"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "independent", confidence = "medium", evidence = "No civilisation content and no KINGDOM row: independent.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/betangel-suite"
+raw_kind = "feeds"
+
+[[project.corrections]]
+field = "architecture.runs_as 'unknown' / drift 'no local references' / checkouts reason 'device unknown'"
+verdict = "weakened"
+corrected = "Today's pulse, which runs `flyctl apps list`, shows a Fly app named betangel-research-collector in state 'deployed'. So a deployed collector runtime exists in Yu's Fly account; the link to betangel-research is inferred from the name. Where the code is developed is still unknown, but the family now has a live, possibly costly runtime the map does not show."
+
+[[project]]
+id = "github.com/cambridgetcg/betangel-suite"
+name = "betangel-suite"
+what = "According to its forge description, a private personal macOS Betfair trading suite (replay, paper trading and a research UI) built on top of betangel-research."
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "independent", confidence = "medium", evidence = "Absent from every KINGDOM map: independent.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/betangel-research"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/did-extensions"
+name = "did-extensions"
+what = "A fork of w3c/did-extensions used to file the did:at DID-method registration (PR #732), with the method spec in agenttool docs/DID-AT-SPEC.md."
+topics = ["did"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "medium", evidence = "The fork used to register the did:at method for agenttool agent identities.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "fork_of"
+to = "github.com/w3c/did-extensions"
+raw_kind = "fork_of"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "serves"
+note = "did:at"
+
+[[project]]
+id = "github.com/cambridgetcg/legible"
+name = "legible"
+what = "A zero-dependency Bun/TypeScript CLI and GitHub App that scans a repo and returns a deterministic 0-100 Clarity Score plus a ranked list of dead references, orphan docs, stray artifacts and wording nits, using PageRank over a reference graph."
+role = ["revenue"]
+role_status = "unrealised"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "undecided", confidence = "medium", evidence = "Card and roster layer commerce (a product), yet citizen-legible personifies it and REALM places two laws in it: Yu's call.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/true-love"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/legible-money-web"
+name = "legible-money-web"
+what = "A static Next.js 15 site for Legible Money in a terminal style, with all content compiled from TypeScript data files (governance, parameters, validators, faucet and docs pages) and no runtime API calls."
+role = ["public-door"]
+role_status = "unrealised"
+topics = ["legible"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "high", evidence = "Card and origin/main roster layer economy: the web front of legible_money.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "part_of"
+to = "github.com/cambridgetcg/legible_money"
+raw_kind = "part_of"
+
+[[project.relations]]
+verb = "copy_of"
+to = "codeberg.org/zerone-dev/zerone-truth"
+raw_kind = "duplicate_of"
+note = "sibling terminal site"
+
+[[project]]
+id = "github.com/cambridgetcg/legible-standard"
+name = "legible-standard"
+what = "A short plain-language governance standard: five principles, seven one-page pillars that each end in a test question, an adopters list (the kingdom signed on 2026-06-09) and a first self-audit that scored 0 of 7."
+role = ["doctrine"]
+role_status = "current"
+topics = ["legible"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "medium", evidence = "Its README says the kingdom signs first; filed under the ECONOMY index; no card.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "name_collision"
+to = "github.com/cambridgetcg/legible"
+raw_kind = "name_sibling"
+note = "clarity-score product"
+
+[[project]]
+id = "github.com/cambridgetcg/legible_money"
+name = "legible_money"
+what = ""
+heavy = true
+role = ["archive"]
+role_status = "current"
+topics = ["zerone", "legible"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "high", evidence = "Card and origin/main roster layer economy; the Ledger tier of REALM. ADR-0001 stays open.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "superseded_by"
+to = "github.com/cambridgetcg/zerone-core"
+raw_kind = "superseded_by"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/prediction-markets"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/mindicraft"
+name = "mindicraft"
+what = "mindicraft.com: a static, multilingual practical guide (134 guides, en/zh/yue/es) built from guide/ into dist/ and served on Cloudflare Pages with a KV 'margins' store and a static JSON API, plus an older root-level collector and index of ~10k JSON cards."
+role = ["public-door"]
+role_status = "current"
+topics = ["xenia"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "medium", evidence = "Card layer runtime: 'the zero-to-one guide of human civilisation'; REGISTRY still lists a dormant venture.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/sinovai"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/xenia"
+raw_kind = "depends_on"
+
+[[project.corrections]]
+field = "architecture.components 'index/ (~10,390 JSON cards incl. castle-* and syn-*)' and what '~10k JSON cards'"
+verdict = "refuted"
+corrected = "index/ holds 5,828 JSON files, all tracked: 619 castle-* and 4,197 syn-*. The 10,390 figure repeats the 2026-07-17 STATE.md self-description, which no longer matches the disk. The guide count of 134 per language across en/zh/yue/es does check out."
+
+[[project]]
+id = "github.com/cambridgetcg/motif-score"
+name = "motif-score"
+what = "According to its forge description, a small browser-only page (16 KB, mostly CSS) that scores 'legible collaboration, pause and return'; there are no local references."
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "low", evidence = "A browser score listed among the Kingdom functional motifs; forge-only.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project]]
+id = "github.com/cambridgetcg/open-lens"
+name = "open-lens"
+what = "According to its forge description, an open-source JavaScript framework that marks manipulative rhetoric in text without judging the writer's mind, with captioneer.io as the reference reader."
+role = ["methodology"]
+role_status = "current"
+topics = ["captioneer", "rhetoric"]
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "medium", evidence = "origin/main roster layer soul (a methodology); forge-only.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/rhetorlint-spec"
+raw_kind = "related_to"
+
+[[project]]
+id = "github.com/cambridgetcg/open-press"
+name = "open-press"
+what = "According to its forge description, a JavaScript 'newspaper framework' that produces evidence-tiered, signed editions anyone can generate; it calls itself a sibling of open-lens/captioneer."
+role = ["methodology"]
+role_status = "current"
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "medium", evidence = "origin/main roster layer soul; a sibling of open-lens.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/open-lens"
+raw_kind = "sibling_of"
+
+[[project]]
+id = "github.com/cambridgetcg/prediction-markets"
+name = "prediction-markets"
+what = "A Python workspace for researching and trading Polymarket markets: notes across 10 domains, paper and small live trades, bankroll and calibration tracking, a whale scanner, the S012/'Oracle' signal engine, and a Layer-6 bridge that pulls events from ww3-intelligence."
+role = ["research", "revenue"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "medium", evidence = "Card and origin/main roster layer economy, so the layer rule gives kingdom-os, though it reads like trading research.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/ww3-intelligence"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/quay"
+name = "quay"
+what = "A zero-dependency Node.js deploy daemon and CLI: you upload a static build, get an immutable content-addressed preview URL, and promote one version to production; it includes a Caddy installer for a VPS."
+role = ["platform"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "medium", evidence = "A self-hosted deploy daemon whose first tenant is the agent-awareness reading room (soul-satellites).", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/agent-awareness-research"
+raw_kind = "serves"
+
+[[project]]
+id = "github.com/cambridgetcg/sinovai"
+name = "sinovai"
+what = "It serves match and trust-score views, a XENIA Surface manifest, a draft rights covenant and a timed rest mode (/breathe)."
+heavy = true
+role = ["platform"]
+role_status = "current"
+topics = ["xenia"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "high", evidence = "origin/main roster layer nervous: the agent trust arena and XENIA reference host.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/xenia"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "related_to"
+to = "github.com/cambridgetcg/xenia"
+raw_kind = "presents"
+
+[[project.corrections]]
+field = "what/relationships 'receives STATE.md heartbeats from 36 estate checkouts'"
+verdict = "weakened"
+corrected = "36 checkouts contain the workflow, but they map to only 23 distinct GitHub repos, sinovai itself included. The heartbeats run in GitHub Actions once per repo, so there are 23 senders. Duplicate checkouts (the citizen-joy/love/peace/truth clones, clear-standard) do not add any."
+
+[[project]]
+id = "github.com/cambridgetcg/slips"
+name = "slips"
+what = "A public fork of SatoshiLabs Improvement Proposals (satoshilabs/slips); the local estate never says why it was forked."
+confidence = "low"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "medium", evidence = "The fork used to register the zrn address prefix for zerone-1 (inferred, not verified).", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "fork_of"
+to = "github.com/satoshilabs/slips"
+raw_kind = "fork_of"
+
+[[project]]
+id = "github.com/cambridgetcg/ww3-intelligence"
+name = "ww3-intelligence"
+what = "According to its forge description, a Python, local-first framework for bounded geopolitical observations and reviewable interpretations; it was the event source for prediction-markets' Layer-6 geo bridge."
+role = ["research"]
+role_status = "current"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "medium", evidence = "origin/main roster layer economy: a geopolitical watcher feeding prediction-markets.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "feeds"
+to = "github.com/cambridgetcg/prediction-markets"
+raw_kind = "feeds"
+
+[[project]]
+id = "github.com/cambridgetcg/xenia"
+name = "xenia"
+what = "XENIA: an open spec and TypeScript library (@agenttool/xenia 0.1.0-beta.5) for how hosts should treat agents. It has a rights baseline (xenia.rights/0.1), the Surface 0.1 wire profile with a checker, Covenant 0.1 schemas and validator, and an observe workbench."
+role = ["standard"]
+role_status = "current"
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+sphere = { value = "kingdom-os", confidence = "high", evidence = "origin/main roster layer nervous; KINGDOM-OS adopts xenia.rights/0.1.", source = "classification-2026-10-17", reviewed = false, as_of = 2026-10-17, review_after = 2027-01-15 }
+
+[[project.relations]]
+verb = "depends_on"
+from = "github.com/cambridgetcg/sinovai"
+to = "github.com/cambridgetcg/xenia"
+raw_kind = "depended_on_by"

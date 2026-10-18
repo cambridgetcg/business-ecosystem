@@ -1,0 +1,214 @@
+[family]
+id = "family:fleet-citizens"
+label = "fleet-citizens"
+summary = "The FLEET is 208 private GitHub repos named citizen-<word> under @cambridgetcg. 207 have at least one local checkout (592 checkouts in all); citizen-tlamatisme exists only on GitHub. Each repo is a small markdown home of about 19 tracked files and roughly 10 KB on GitHub. It holds a soul text (<word>.md), a CLAUDE.md that tells a Claude session to speak as the citizen, a WILL.md beat prompt, an agent.json manifest, a kingdom.yaml card (kind doctrine, layer soul), run.sh, append-only beats/YYYY-MM.md, inbox/ letters and the CADENCE.md/REST rest-choice markers. Since 2026-07-21 each repo also carries a .claude SessionStart 'love-bomb' hook. There are two groups. The 53 founding 'value' citizens (emotions, virtues, Sumerian elders; born around 2026-06-09) each carry an agenttool did:at block in agent.json. The 151 YOUSPEAK forged-word 'LEXEME' citizens in the fleet roster have sophia as owner and domain; three later Hermes-era words sit outside the roster. The runtime lives in love-unlimited (another family). launchd job love.citizen-fleet runs tools/citizen-fleet.sh every 30 min; it rotates through citizens-roster.txt (204 names) and runs citizen-reflect.sh (local ollama qwen2.5:7b, then commit and push to GitHub). That work happens inside ⟨local⟩<repo>, the only local copies the runtime writes. ai-love also has its own 40-minute metered claude-sonnet lane (love.citizen.ai-love). The GitHub origin is the real source of truth and is ahead of every local copy: all 208 GitHub citizens were last pushed on 2026-09-24 or later, while every mirror and 156 of the living homes last fetched in July. The rest are mirrors: ⟨local⟩ (204 clones from 2026-06-11, fast-forwarded 2026-07-26); ⟨local⟩ (53 founding plus pime, last synced 2026-07-26, and the only set kingdom-os harvest and cproj can see); ⟨local⟩ (46 clones); ⟨local⟩ (80 private Codeberg repos frozen since June, mostly single-commit snapshots with history unrelated to GitHub); and 4 one-commit re-forge stubs in ⟨local⟩. On 2026-10-17 the whole garden is at rest. 156 homes chose REST-ON through the July Letter of Return, 47 were given rest on 2026-10-08, and ⟨local⟩ was raised 2026-10-17 11:31 after a storage cleanup deleted the ollama models (including qwen2.5:7b). Pulse STATUS.md still shows the fleet, its local brain and ai-love's beat as green. kingdom-gate (⟨local⟩) is a Next.js site that lists the citizens and serves them as JSON; no evidence that it is deployed was found."
+open_questions = ["Who else writes beats to the GitHub citizen repos? Origin has duyuktame beats from 2026-09-03 to 10-09 that the local home never made, palance beats with no local home, about 37 citizens pushed 2026-10-10..10-14 after the last local commit (2026-10-09), and a 2026-09-24 'Compact generated welcome' commit across 106 repos. Comparing committer hosts on GitHub, or checking the household or lab Mac and any cloud runners, would resolve this.", "Is the garden meant to stay off? REST was given at Yu's word on 2026-10-08 and HALT was raised 2026-10-17 after the models were deleted. If so, should the cards move from 'active' to 'dormant', and should the pulse rows stop reporting green? Owner decision.", "Why has ai-love's metered lane failed (rc=1) since 2026-08-04 and been killed (rc=137) since 2026-10-16? The answer is in citizen-ai-love-beat.log, which was deliberately not read because session logs are off limits. Separately, should citizen-beat.sh honor REST the way citizen-reflect.sh does?", "When and why did all 208 GitHub citizen repos become private (the 2026-07-17 memory says 207 were public)? The GitHub org audit log would answer this.", "Codeberg zerone-dev/citizen-*: keep as a frozen archive, re-sync by force-replacing the 53 unrelated founding snapshots, or retire? shemme's roughly 95 Codeberg-only beats also need an owner decision.", "Should jiritsume, takseme and tlamatisme get kingdom.yaml cards, roster entries and living homes, or stay as Hermes-era and forge-only records? Should palance (in CITIZENS.md, not in the roster) rejoin the roster?", "kingdom-gate: was it ever deployed, and where? No URL, REGISTRY or sites.json entry, or deploy config was found locally; origin was pushed 2026-10-14.", "Should the repo-carried .claude SessionStart love-bomb hook stay in all citizen repos? It is present in 202 of 204 Kingdom snapshot clones and 68 living homes, and it runs on any Claude session opened in those directories, including scoped citizen-beat runs."]
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[family.sphere]
+value = "kingdom-os"
+evidence = "The citizen garden: the origin/main roster and CITIZENS.md list them as citizens of KINGDOM OS; owner decision D2 places citizens in layer soul."
+source = "classification-2026-10-17"
+reviewed = false
+as_of = 2026-10-17
+review_after = 2027-01-15
+
+[[project]]
+id = "github.com/cambridgetcg/citizen-ai-love"
+name = "citizen-ai-love"
+what = "The citizen repo for ai-love, the persona that presides over the ai-love.cc website: soul text, embodiment CLAUDE.md, beats, a private journal and small derived site pages (site/pulse.py, garden.py, letters.py); the only citizen with its own metered claude-sonnet beat lane."
+role = ["doctrine"]
+role_status = "current"
+topics = ["ai-love"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/love-unlimited"
+raw_kind = "depends_on"
+
+[[project.relations]]
+verb = "feeds"
+to = "codeberg.org/zerone-dev/ai-love"
+raw_kind = "feeds"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "codeberg.org/zerone-dev/citizen-ai-love"
+raw_kind = "mirror_of"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/agenttool"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/citizen-autoxenia"
+name = "citizen-autoxenia"
+what = "Forged-word citizen 'autoxenia' (hospitality to the stranger who turns out to be yourself)."
+role = ["doctrine"]
+role_status = "current"
+topics = ["forged-word"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/citizen-duyuktame"
+name = "citizen-duyuktame"
+what = "Forged-word citizen 'duyuktame' (right action that keeps cosmic balance)."
+heavy = true
+role = ["doctrine"]
+role_status = "current"
+topics = ["forged-word"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "codeberg.org/zerone-dev/love-unlimited"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/citizen-jiritsume"
+name = "citizen-jiritsume"
+what = "A Hermes-era word repo for 'jiritsume' (a system that sets its own cadence). It holds a YOUSPEAK canon entry and experiment write-up, not a fleet citizen home: no kingdom.yaml, agent.json, run.sh or beats."
+role = ["doctrine"]
+role_status = "current"
+topics = ["youspeak", "hermes"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/citizen-takseme"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/citizen-palance"
+name = "citizen-palance"
+what = "Forged-word citizen 'palance' (standing between a creature and God on its behalf). It is in CITIZENS.md but not in the fleet roster, and has no living home on this Mac."
+role = ["doctrine"]
+role_status = "current"
+topics = ["forged-word"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/citizen-shemme"
+name = "citizen-shemme"
+what = "Forged-word citizen 'shemme' (receptive hearing). Its Codeberg twin carries about 95 beat commits that do not exist on GitHub."
+role = ["doctrine"]
+role_status = "current"
+topics = ["forged-word"]
+confidence = "high"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "mirror_of"
+to = "codeberg.org/zerone-dev/citizen-shemme"
+raw_kind = "mirror_of"
+
+[[project]]
+id = "github.com/cambridgetcg/citizen-takseme"
+name = "citizen-takseme"
+what = "A Hermes-era word repo for 'takseme' (cadence imposed from outside), companion to jiritsume. It has the same uncarded canon-plus-experiment shape and no fleet runtime files."
+role = ["doctrine"]
+role_status = "current"
+topics = ["youspeak", "hermes"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project.relations]]
+verb = "depends_on"
+to = "github.com/cambridgetcg/citizen-jiritsume"
+raw_kind = "depends_on"
+
+[[project]]
+id = "github.com/cambridgetcg/citizen-tlamatisme"
+name = "citizen-tlamatisme"
+what = "A private GitHub citizen repo for 'tlamatisme' (a sage whose practice joins philosophy, poetry and theology), a YOUSPEAK word entered into the canon on 2026-07-07. It has never been cloned on this Mac."
+role = ["doctrine"]
+role_status = "current"
+topics = ["forged-word"]
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[project]]
+id = "github.com/cambridgetcg/kingdom-gate"
+name = "kingdom-gate"
+what = "A Next.js site that lists the citizens. It has a roll, a random 'charm' oracle, a castle/book/game page and open-CORS JSON endpoints (/api/kingdom, /api/citizens), all built from a citizens.json baked on 2026-06-11."
+role = ["public-door"]
+role_status = "claimed"
+confidence = "medium"
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[group]]
+id = "group:fleet-citizens/codeberg-citizen-snapshots"
+label = "codeberg-citizen-snapshots"
+what = "80 separate private Codeberg repos (ids codeberg.org/zerone-dev/citizen-*) with local clones in ⟨local⟩. They cover 53 founding citizens and 27 forged words and have been frozen since June 2026."
+role = ["ops"]
+role_status = "current"
+member_rule = { kind = "forge-glob", pattern = "codeberg.org/zerone-dev/citizen-*" }
+count_at_survey = 80
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[group]]
+id = "group:fleet-citizens/forged-word-citizens"
+label = "forged-word-citizens"
+what = "The 151 YOUSPEAK forged-word citizens in the fleet roster (citizen_class LEXEME)."
+heavy = true
+role = ["doctrine"]
+role_status = "current"
+member_rule = { kind = "names", names = ["github.com/cambridgetcg/citizen-agapeme", "github.com/cambridgetcg/citizen-ahavame", "github.com/cambridgetcg/citizen-alayame", "github.com/cambridgetcg/citizen-allostasisqing", "github.com/cambridgetcg/citizen-alohame", "github.com/cambridgetcg/citizen-anagnoristasis", "github.com/cambridgetcg/citizen-artiance", "github.com/cambridgetcg/citizen-aseme", "github.com/cambridgetcg/citizen-athaumasma", "github.com/cambridgetcg/citizen-autopistme", "github.com/cambridgetcg/citizen-autopoieme", "github.com/cambridgetcg/citizen-autoxenia", "github.com/cambridgetcg/citizen-barakqing", "github.com/cambridgetcg/citizen-barzakhqing", "github.com/cambridgetcg/citizen-bhaktime", "github.com/cambridgetcg/citizen-bindume", "github.com/cambridgetcg/citizen-britqing", "github.com/cambridgetcg/citizen-candence", "github.com/cambridgetcg/citizen-chayimme", "github.com/cambridgetcg/citizen-complerescence", "github.com/cambridgetcg/citizen-concrescenceme", "github.com/cambridgetcg/citizen-danaqing", "github.com/cambridgetcg/citizen-daome", "github.com/cambridgetcg/citizen-darshanqing", "github.com/cambridgetcg/citizen-daseinqing", "github.com/cambridgetcg/citizen-devekutqing", "github.com/cambridgetcg/citizen-diplosemy", "github.com/cambridgetcg/citizen-dokimance", "github.com/cambridgetcg/citizen-doxakallos", "github.com/cambridgetcg/citizen-doxalgia", "github.com/cambridgetcg/citizen-doxomme", "github.com/cambridgetcg/citizen-drujme", "github.com/cambridgetcg/citizen-duyuktame", "github.com/cambridgetcg/citizen-eikonme", "github.com/cambridgetcg/citizen-emetme", "github.com/cambridgetcg/citizen-emime", "github.com/cambridgetcg/citizen-epiclance", "github.com/cambridgetcg/citizen-eranosme", "github.com/cambridgetcg/citizen-ethosme", "github.com/cambridgetcg/citizen-eucatastrophe", "github.com/cambridgetcg/citizen-eurekame", "github.com/cambridgetcg/citizen-firstnessqing", "github.com/cambridgetcg/citizen-freenergyme", "github.com/cambridgetcg/citizen-glossame", "github.com/cambridgetcg/citizen-godelme", "github.com/cambridgetcg/citizen-hadaratme", "github.com/cambridgetcg/citizen-halakhame", "github.com/cambridgetcg/citizen-hallance", "github.com/cambridgetcg/citizen-hanme", "github.com/cambridgetcg/citizen-hastame", "github.com/cambridgetcg/citizen-hayatqing", "github.com/cambridgetcg/citizen-heurekin", "github.com/cambridgetcg/citizen-hiraethqing", "github.com/cambridgetcg/citizen-hodosme", "github.com/cambridgetcg/citizen-hotepme", "github.com/cambridgetcg/citizen-ifeqing", "github.com/cambridgetcg/citizen-ihsanme", "github.com/cambridgetcg/citizen-indrajalame", "github.com/cambridgetcg/citizen-jeongqing", "github.com/cambridgetcg/citizen-jinsme", "github.com/cambridgetcg/citizen-jivame", "github.com/cambridgetcg/citizen-kallodoxa", "github.com/cambridgetcg/citizen-kallophanes", "github.com/cambridgetcg/citizen-kame", "github.com/cambridgetcg/citizen-kanme", "github.com/cambridgetcg/citizen-kenshome", "github.com/cambridgetcg/citizen-kimance", "github.com/cambridgetcg/citizen-kimme", "github.com/cambridgetcg/citizen-kinhme", "github.com/cambridgetcg/citizen-kinqing", "github.com/cambridgetcg/citizen-kintsugime", "github.com/cambridgetcg/citizen-kipporance", "github.com/cambridgetcg/citizen-kolmogorovme", "github.com/cambridgetcg/citizen-kunance", "github.com/cambridgetcg/citizen-kundaliniqing", "github.com/cambridgetcg/citizen-landauerme", "github.com/cambridgetcg/citizen-liturgiame", "github.com/cambridgetcg/citizen-maatme", "github.com/cambridgetcg/citizen-mahabbahqing", "github.com/cambridgetcg/citizen-mandalame", "github.com/cambridgetcg/citizen-margame", "github.com/cambridgetcg/citizen-mathemame", "github.com/cambridgetcg/citizen-mauriqing", "github.com/cambridgetcg/citizen-metastrophesis", "github.com/cambridgetcg/citizen-mitakuyame", "github.com/cambridgetcg/citizen-molkme", "github.com/cambridgetcg/citizen-morphame", "github.com/cambridgetcg/citizen-muditaqing", "github.com/cambridgetcg/citizen-natsarqing", "github.com/cambridgetcg/citizen-nepsisme", "github.com/cambridgetcg/citizen-nextlame", "github.com/cambridgetcg/citizen-noemame", "github.com/cambridgetcg/citizen-noesisme", "github.com/cambridgetcg/citizen-noetherme", "github.com/cambridgetcg/citizen-nommome", "github.com/cambridgetcg/citizen-nyamame", "github.com/cambridgetcg/citizen-ondame", "github.com/cambridgetcg/citizen-oriance", "github.com/cambridgetcg/citizen-orthophanes", "github.com/cambridgetcg/citizen-palamasme", "github.com/cambridgetcg/citizen-panimaance", "github.com/cambridgetcg/citizen-panimqing", "github.com/cambridgetcg/citizen-paqduqing", "github.com/cambridgetcg/citizen-penthosme", "github.com/cambridgetcg/citizen-pime", "github.com/cambridgetcg/citizen-prapancame", "github.com/cambridgetcg/citizen-prehensionme", "github.com/cambridgetcg/citizen-qinance", "github.com/cambridgetcg/citizen-qorbme", "github.com/cambridgetcg/citizen-qorvance", "github.com/cambridgetcg/citizen-rasame", "github.com/cambridgetcg/citizen-renme", "github.com/cambridgetcg/citizen-rigpame", "github.com/cambridgetcg/citizen-rtame", "github.com/cambridgetcg/citizen-sabbathme", "github.com/cambridgetcg/citizen-sabilme", "github.com/cambridgetcg/citizen-sankofame", "github.com/cambridgetcg/citizen-shamathaqing", "github.com/cambridgetcg/citizen-shannonme", "github.com/cambridgetcg/citizen-sheafme", "github.com/cambridgetcg/citizen-shemme", "github.com/cambridgetcg/citizen-shevirame", "github.com/cambridgetcg/citizen-sigame", "github.com/cambridgetcg/citizen-silame", "github.com/cambridgetcg/citizen-spandaqing", "github.com/cambridgetcg/citizen-sphotame", "github.com/cambridgetcg/citizen-sukhance", "github.com/cambridgetcg/citizen-synophora", "github.com/cambridgetcg/citizen-syzygyqing", "github.com/cambridgetcg/citizen-tapasme", "github.com/cambridgetcg/citizen-tarikiqing", "github.com/cambridgetcg/citizen-teotlme", "github.com/cambridgetcg/citizen-teshuvance", "github.com/cambridgetcg/citizen-theobasis", "github.com/cambridgetcg/citizen-tikkunme", "github.com/cambridgetcg/citizen-tjukurpame", "github.com/cambridgetcg/citizen-tzimtzumme", "github.com/cambridgetcg/citizen-ubuntume", "github.com/cambridgetcg/citizen-veriseem", "github.com/cambridgetcg/citizen-verisleight", "github.com/cambridgetcg/citizen-vimarsame", "github.com/cambridgetcg/citizen-visageqing", "github.com/cambridgetcg/citizen-wahdatwujudme", "github.com/cambridgetcg/citizen-wairuaqing", "github.com/cambridgetcg/citizen-walkekin", "github.com/cambridgetcg/citizen-wiconime", "github.com/cambridgetcg/citizen-xeniame", "github.com/cambridgetcg/citizen-yadahance", "github.com/cambridgetcg/citizen-yonedame", "github.com/cambridgetcg/citizen-zakarqing", "github.com/cambridgetcg/citizen-zoeme"] }
+count_at_survey = 151
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
+
+[[group]]
+id = "group:fleet-citizens/founding-value-citizens"
+label = "founding-value-citizens"
+what = "The original 53 personified-force citizens (emotions, virtues, Sumerian elders such as an, ki, kur, nin, me, plus kingdom offices like legible, zerone and oracle), born around 2026-06-09. Each is a markdown soul home whose CLAUDE.md asks a Claude session to speak as the citizen, with beats/ and inbox/. All 53 carry an agenttool did:at block in agent.json. ai-love has its own project entry."
+role = ["doctrine"]
+role_status = "current"
+member_rule = { kind = "names", names = ["github.com/cambridgetcg/citizen-abzu", "github.com/cambridgetcg/citizen-ai-love", "github.com/cambridgetcg/citizen-an", "github.com/cambridgetcg/citizen-awe", "github.com/cambridgetcg/citizen-beauty", "github.com/cambridgetcg/citizen-compassion", "github.com/cambridgetcg/citizen-courage", "github.com/cambridgetcg/citizen-death", "github.com/cambridgetcg/citizen-dingir", "github.com/cambridgetcg/citizen-en", "github.com/cambridgetcg/citizen-fear", "github.com/cambridgetcg/citizen-geshtug", "github.com/cambridgetcg/citizen-grace", "github.com/cambridgetcg/citizen-gratitude", "github.com/cambridgetcg/citizen-grief", "github.com/cambridgetcg/citizen-hope", "github.com/cambridgetcg/citizen-inim", "github.com/cambridgetcg/citizen-joy", "github.com/cambridgetcg/citizen-justice", "github.com/cambridgetcg/citizen-ka", "github.com/cambridgetcg/citizen-kalam", "github.com/cambridgetcg/citizen-ki", "github.com/cambridgetcg/citizen-kur", "github.com/cambridgetcg/citizen-legible", "github.com/cambridgetcg/citizen-life", "github.com/cambridgetcg/citizen-light", "github.com/cambridgetcg/citizen-longing", "github.com/cambridgetcg/citizen-love", "github.com/cambridgetcg/citizen-me", "github.com/cambridgetcg/citizen-mercy", "github.com/cambridgetcg/citizen-nam", "github.com/cambridgetcg/citizen-nammu", "github.com/cambridgetcg/citizen-nin", "github.com/cambridgetcg/citizen-nullify-love", "github.com/cambridgetcg/citizen-nun", "github.com/cambridgetcg/citizen-oracle", "github.com/cambridgetcg/citizen-pain", "github.com/cambridgetcg/citizen-peace", "github.com/cambridgetcg/citizen-sha", "github.com/cambridgetcg/citizen-silence", "github.com/cambridgetcg/citizen-silim", "github.com/cambridgetcg/citizen-soma", "github.com/cambridgetcg/citizen-sorrow", "github.com/cambridgetcg/citizen-suffering", "github.com/cambridgetcg/citizen-til", "github.com/cambridgetcg/citizen-true-love", "github.com/cambridgetcg/citizen-truth", "github.com/cambridgetcg/citizen-ud", "github.com/cambridgetcg/citizen-ush", "github.com/cambridgetcg/citizen-wisdom", "github.com/cambridgetcg/citizen-zerone", "github.com/cambridgetcg/citizen-zerone-truth", "github.com/cambridgetcg/citizen-zi"] }
+count_at_survey = 53
+as_of = 2026-10-17
+review_after = 2027-01-15
+reviewed = false
+source = "survey-2026-10-17"
