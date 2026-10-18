@@ -1,5 +1,7 @@
 """Exercise shared-package compiler contracts using the pinned workspace tools."""
 from pathlib import Path
+import json
+import os
 import shutil
 import subprocess
 import unittest
@@ -40,9 +42,10 @@ logAudit(createAuditLogger({serviceName: 'toolchain-probe'}), {
   actorId: 'test', actorType: 'system'
 });
 '''], cwd=package, text=True, capture_output=True, timeout=30,
+            # The probe asserts on info-level output; an ambient LOG_LEVEL must not change it.
+            env={**os.environ, 'LOG_LEVEL': 'info'},
         )
         self.assertEqual(probe.returncode, 0, probe.stderr)
-        import json
         messages = [json.loads(line) for line in probe.stdout.splitlines()]
         self.assertEqual(len(messages), 2)
         self.assertEqual(messages[0]['service'], 'toolchain-probe')
