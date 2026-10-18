@@ -2,14 +2,14 @@
   "about": [
     "Package tasks that fail today and that ci.yml skips until they are fixed. scripts/ci-quarantine.mjs turns this list into turbo --filter=!<package> arguments, validates it, and re-measures it: a report on main and a ratchet on pull requests.",
     "The list may only shrink. Remove an entry when its task passes, and lower errors when the count falls. A build or typecheck entry is refused for a package that another package depends on, because turbo would run that task anyway.",
-    "errors counts TypeScript diagnostics (build, typecheck), ESLint errors (lint) or failing test files (test, where 0 means there are no test files). Counts come from pnpm --filter <package> run <task> after the non-quarantined build; first_error paths are relative to the package. measured_at is the commit whose package sources were measured.",
+    "errors counts TypeScript diagnostics (build, typecheck), ESLint errors (lint) or failing test files (test, where 0 means there are no test files). Counts come from pnpm --filter <package> run <task> after the install and build that the quarantine jobs in ci.yml run (pnpm install --frozen-lockfile --config.side-effects-cache=false, then the non-quarantined build); first_error paths are relative to the package. measured_at is the commit whose package sources were measured.",
     "Follow-up ids (F2-F9, O1) refer to the step-0 plan in the pull request that added this file."
   ],
   "measured_with": {
     "node": "20.20.2",
     "pnpm": "9.15.9",
     "turbo": "2.7.6",
-    "platform": "darwin-arm64; the CI report job re-measures on ubuntu"
+    "platform": "darwin-arm64; the ubuntu ratchet run on the pull request that added this file measured the same 48 counts"
   },
   "status_drift": {
     "about": "STATUS.md claims that these measurements contradict. They are recorded here rather than edited: a push to main that touches a STATUS.md starts Progress Sync, which configures AWS credentials, and owner decision D6 (dec-2026-10-17-7) rules out AWS action.",
@@ -74,19 +74,19 @@
     {
       "package": "@ecosystem/contracts-legal",
       "task": "lint",
-      "reason": "Its Prisma client is never generated (no CI step, and both Prisma schemas write one shared @prisma/client copy), so Prisma types do not resolve and almost every use is no-unsafe-*.",
-      "first_error": "src/app.ts:20:11 Unsafe array destructuring of a tuple element with an error typed value @typescript-eslint/no-unsafe-assignment",
+      "reason": "Its Prisma client is never generated (no CI step, and both Prisma schemas write one shared @prisma/client copy). Only the default stub client exists, so model types are missing and almost every use is no-unsafe-*.",
+      "first_error": "src/app.ts:20:11 Unsafe array destructuring of a tuple element with an `any` value @typescript-eslint/no-unsafe-assignment",
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 1875,
+      "errors": 1900,
       "exit": "F7 (one generated client per schema) first, then F8 for what remains; lint exits 0."
     },
     {
       "package": "@ecosystem/data-privacy",
       "task": "lint",
-      "reason": "Same Prisma cause as contracts-legal: almost all errors are no-unsafe-* on unresolved Prisma types.",
-      "first_error": "src/app.ts:18:11 Unsafe array destructuring of a tuple element with an error typed value @typescript-eslint/no-unsafe-assignment",
+      "reason": "Same Prisma cause as contracts-legal: almost all errors are no-unsafe-* on missing Prisma model types.",
+      "first_error": "src/app.ts:18:11 Unsafe array destructuring of a tuple element with an `any` value @typescript-eslint/no-unsafe-assignment",
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 269,
+      "errors": 272,
       "exit": "F7 first, then F8 for what remains; lint exits 0."
     },
     {
@@ -209,19 +209,19 @@
     {
       "package": "@ecosystem/contracts-legal",
       "task": "typecheck",
-      "reason": "Its Prisma client is never generated: 114 TS2305 missing @prisma/client exports, and 30 implicit any that follow from them.",
-      "first_error": "src/app.ts(9,10): error TS2305: Module '\"@prisma/client\"' has no exported member 'PrismaClient'.",
+      "reason": "Its Prisma client is never generated, so only the default stub exists: 82 TS2694 and 65 TS2305 missing Prisma types, and 30 implicit any that follow from them.",
+      "first_error": "src/domain/contract-templates/repository.ts(5,24): error TS2305: Module '\"@prisma/client\"' has no exported member 'ContractTemplate'.",
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 144,
+      "errors": 177,
       "exit": "F7: generate a client per schema before typecheck and build; typecheck exits 0. Remove with the build entry."
     },
     {
       "package": "@ecosystem/data-privacy",
       "task": "typecheck",
-      "reason": "Same Prisma cause (9 TS2305, 2 TS7006), plus one exactOptionalPropertyTypes error in src/lib/events.ts.",
-      "first_error": "src/app.ts(8,10): error TS2305: Module '\"@prisma/client\"' has no exported member 'PrismaClient'.",
+      "reason": "Same Prisma cause: the stub client leaves query results unknown (TS2339 x7) and 2 implicit any (TS7006), plus one exactOptionalPropertyTypes error in src/lib/events.ts.",
+      "first_error": "src/infrastructure/persistence/prisma-breach.repository.ts(87,69): error TS2339: Property 'data' does not exist on type 'unknown'.",
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 12,
+      "errors": 10,
       "exit": "F7; typecheck exits 0. Remove with the build entry."
     },
     {
@@ -291,18 +291,18 @@
       "package": "@ecosystem/contracts-legal",
       "task": "build",
       "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
-      "first_error": "src/app.ts(9,10): error TS2305: Module '\"@prisma/client\"' has no exported member 'PrismaClient'.",
+      "first_error": "src/domain/contract-templates/repository.ts(5,24): error TS2305: Module '\"@prisma/client\"' has no exported member 'ContractTemplate'.",
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 144,
+      "errors": 177,
       "exit": "F7; build exits 0. Remove with the typecheck entry."
     },
     {
       "package": "@ecosystem/data-privacy",
       "task": "build",
       "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
-      "first_error": "src/app.ts(8,10): error TS2305: Module '\"@prisma/client\"' has no exported member 'PrismaClient'.",
+      "first_error": "src/infrastructure/persistence/prisma-breach.repository.ts(87,69): error TS2339: Property 'data' does not exist on type 'unknown'.",
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 12,
+      "errors": 10,
       "exit": "F7; build exits 0. Remove with the typecheck entry."
     },
     {

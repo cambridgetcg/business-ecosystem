@@ -18,7 +18,9 @@
  * report and ratchet exit 1 when an entry now passes (remove it), its error
  * count rose, or its errors cannot be counted; ratchet also when the list
  * grew or a new file has lint errors. Both run `pnpm --filter <package> run
- * <task>` directly, so build the non-quarantined packages first.
+ * <task>` directly. To reproduce CI's counts, install as its quarantine jobs
+ * do (pnpm install --frozen-lockfile --config.side-effects-cache=false) and
+ * build the non-quarantined packages first.
  */
 
 import { spawnSync } from 'node:child_process';
