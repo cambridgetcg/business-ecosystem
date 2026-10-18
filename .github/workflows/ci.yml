@@ -5,6 +5,17 @@ on:
     branches: [main, develop]
   push:
     branches: [main, develop]
+  workflow_dispatch:
+  schedule:
+    # Weekly, for the quarantine report on main.
+    - cron: '17 6 * * 1'
+
+permissions:
+  contents: read
+
+# Package tasks listed in ci/quarantine.json are skipped by every turbo run
+# below; scripts/ci-quarantine.mjs prints the --filter=!<package> arguments.
+# The pnpm exec form matters: `pnpm lint --filter=...` would be read by pnpm.
 
 jobs:
   lint-and-typecheck:
@@ -19,10 +30,12 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Validate the quarantine list
+        run: node scripts/ci-quarantine.mjs check
       - name: Lint
-        run: pnpm lint
+        run: pnpm exec turbo run lint $(node scripts/ci-quarantine.mjs lint)
       - name: Type Check
-        run: pnpm typecheck
+        run: pnpm exec turbo run typecheck $(node scripts/ci-quarantine.mjs typecheck)
 
   test:
     runs-on: ubuntu-latest
@@ -51,9 +64,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Build
-        run: pnpm build
+        run: pnpm exec turbo run build $(node scripts/ci-quarantine.mjs build)
       - name: Test
-        run: pnpm test
+        run: pnpm exec turbo run test $(node scripts/ci-quarantine.mjs test)
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
           REDIS_URL: redis://localhost:6379
@@ -72,4 +85,53 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: Build All
-        run: pnpm build
+        run: pnpm exec turbo run build $(node scripts/ci-quarantine.mjs build)
+
+  # Pull requests only: re-measure quarantined tasks in the packages the PR
+  # touches. Fails when a count rises, an entry now passes (remove it), the
+  # list grows, or a new .ts file in a lint-quarantined package has errors.
+  quarantine-ratchet:
+    name: Quarantine ratchet
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build what quarantined tasks compile against
+        run: pnpm exec turbo run build $(node scripts/ci-quarantine.mjs build)
+      - name: Re-measure quarantined tasks in touched packages
+        run: node scripts/ci-quarantine.mjs ratchet "origin/${GITHUB_BASE_REF}"
+
+  # Never blocks: re-measures every entry and writes the counts to the run
+  # summary on pushes, manual runs and the weekly schedule, not on PRs.
+  quarantine-report:
+    name: Quarantine report
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build what quarantined tasks compile against
+        run: pnpm exec turbo run build $(node scripts/ci-quarantine.mjs build)
+      - name: Re-measure every quarantined task
+        shell: bash
+        run: node scripts/ci-quarantine.mjs report | tee -a "$GITHUB_STEP_SUMMARY"
