@@ -29,7 +29,7 @@ export interface SagaDefinition<TPayload = unknown, TContext = unknown> {
   defaultTimeout?: number;
 }
 
-const logger: Logger = (pino as unknown as (options: object) => Logger)({ name: 'entity-onboarding' });
+const logger: Logger = pino({ name: 'entity-onboarding' });
 
 export interface EntityOnboardingPayload {
   name: string;

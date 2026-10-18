@@ -9,7 +9,7 @@ import { QueryExecutor } from './query-executor.js';
 import { DataLoader, createEntityLoader } from './data-loader.js';
 import type { CompositeQueryResult, QueryOptions } from './types.js';
 
-const logger: Logger = (pino as unknown as (options: object) => Logger)({ name: 'composite-query' });
+const logger: Logger = pino({ name: 'composite-query' });
 
 /**
  * Service client interface for cross-domain queries

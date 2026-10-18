@@ -7,7 +7,7 @@ import { pino } from 'pino';
 import type { Logger } from 'pino';
 import type { DataLoaderOptions } from './types.js';
 
-const logger: Logger = (pino as unknown as (options: object) => Logger)({ name: 'data-loader' });
+const logger: Logger = pino({ name: 'data-loader' });
 
 export class DataLoader<K, V> {
   private batchDelayMs: number;

@@ -9,7 +9,7 @@ import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { pino } from 'pino';
 import type { Logger } from 'pino';
 
-const logger: Logger = (pino as unknown as (options: object) => Logger)({ name: 'saga' });
+const logger: Logger = pino({ name: 'saga' });
 
 // Saga state table
 export const sagaTable = pgTable('sagas', {
