@@ -17,6 +17,38 @@ sys.path.insert(0, str(src_path))
 
 
 # =============================================================================
+# Offline Guard
+# =============================================================================
+
+# These tests run without network access (offline-evidence.yml has no
+# services or secrets). The pytest process refuses outbound connections and
+# name lookups; child processes install their own audit hook (see
+# test_payment_evidence_cli.OFFLINE_RUNNER). Local socket pairs, which asyncio
+# event loops use internally, raise none of these events.
+NETWORK_EVENTS = frozenset({
+    "socket.connect", "socket.sendto", "socket.sendmsg", "socket.getaddrinfo",
+    "socket.gethostbyname", "socket.gethostbyname_ex", "socket.gethostbyaddr", "socket.getnameinfo",
+})
+network_attempts = []
+
+
+def _refuse_network(event, _args):
+    if event in NETWORK_EVENTS:
+        network_attempts.append(event)
+        raise AssertionError("network access forbidden in accounting tests: " + event)
+
+
+sys.addaudithook(_refuse_network)
+
+
+def pytest_sessionfinish(session):
+    # Fail the run even when code under test swallowed the refusal.
+    if network_attempts:
+        print("\nnetwork access attempted: " + ", ".join(sorted(set(network_attempts))), file=sys.stderr)
+        session.exitstatus = pytest.ExitCode.TESTS_FAILED
+
+
+# =============================================================================
 # Hypothesis Configuration
 # =============================================================================
 
