@@ -190,8 +190,26 @@ export class CashPositionService {
       totalInBase += position.totalInBaseCurrency.amount;
     }
 
-    // TODO: Calculate intercompany eliminations
-    // This would require tracking intercompany loans/receivables
+    // Calculate intercompany eliminations using the intercompany service
+    // This removes internal transactions between related entities for accurate consolidation
+    if (entityIds.length >= 2) {
+      try {
+        // Import dynamically to avoid circular dependencies
+        const { createIntercompanyService } = await import('./intercompany-service.js');
+        const intercompanyService = createIntercompanyService();
+        const eliminations = await intercompanyService.calculateEliminations(entityIds, baseCurrency);
+
+        intercompanyEliminations = eliminations.totalElimination.amount;
+
+        // Log any warnings from elimination calculation
+        if (eliminations.warnings.length > 0) {
+          console.warn('Intercompany elimination warnings:', eliminations.warnings);
+        }
+      } catch (error) {
+        // Log but don't fail - eliminations are supplementary
+        console.warn('Failed to calculate intercompany eliminations:', error);
+      }
+    }
 
     return {
       timestamp: new Date(),

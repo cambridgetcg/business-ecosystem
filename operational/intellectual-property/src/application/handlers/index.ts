@@ -18,6 +18,53 @@ export { LicenseQueryHandler, type PaginatedResult as LicensePaginatedResult } f
 export { TradeSecretCommandHandler, type EventPublisher as TradeSecretEventPublisher } from './trade-secret-command.handler.js';
 export { TradeSecretQueryHandler } from './trade-secret-query.handler.js';
 
+// Deadline Event Handler
+export {
+  DeadlineEventHandler,
+  deadlineEventHandler,
+  lambdaHandler,
+  type EventHandlerResult,
+} from './deadline-event.handler.js';
+
+// Enforcement Event Handler
+export {
+  EnforcementEventHandler,
+  enforcementEventHandler,
+  type EnforcementEventType,
+  type EnforcementMatterPayload,
+  type EnforcementActionPayload,
+  type SettlementPayload,
+} from './enforcement-event.handler.js';
+
+// Strategy Event Handler
+export {
+  StrategyEventHandler,
+  strategyEventHandler,
+  type StrategyEventType,
+  type ValuationPayload,
+  type FTOPayload,
+  type FTOFindingPayload,
+  type DueDiligencePayload,
+  type DDFindingPayload,
+} from './strategy-event.handler.js';
+
+// Enforcement CQRS Handlers
+export { EnforcementCommandHandler, type EventPublisher as EnforcementEventPublisher } from './enforcement-command.handler.js';
+export { EnforcementQueryHandler, type PaginatedResult as EnforcementPaginatedResult } from './enforcement-query.handler.js';
+
+// Strategy CQRS Handlers
+export { StrategyCommandHandler, type EventPublisher as StrategyEventPublisherAlias } from './strategy-command.handler.js';
+export { StrategyQueryHandler, type PaginatedResult as StrategyPaginatedResult } from './strategy-query.handler.js';
+
+// Webhook Handler
+export {
+  WebhookHandler,
+  webhookHandler,
+  type WebhookEventPublisher,
+  type WebhookAlertRepository,
+  type WebhookNotificationService,
+} from './webhook-handler.js';
+
 // Unified types
 export interface EventPublisher {
   publish(eventType: string, aggregateId: string, payload: Record<string, unknown>): Promise<void>;

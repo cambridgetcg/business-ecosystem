@@ -644,6 +644,90 @@ enum ProcessorStatus {
 }
 
 // ============================================================================
+// CROSS-BORDER DATA TRANSFERS (GDPR Chapter V)
+// ============================================================================
+
+model DataTransfer {
+  id String @id @default(cuid())
+
+  // Entity ownership
+  entityId String
+
+  // Transfer identification
+  name        String
+  description String @db.Text
+
+  // Source and destination
+  sourceCountry      String @default("GB")
+  destinationCountry String
+  recipientName      String
+  recipientType      RecipientType
+
+  // Data details
+  dataCategories   String[]
+  dataSubjects     String[]
+  transferPurposes String[]
+
+  // Transfer basis
+  transferBasis  TransferBasis
+  basisReference String? // SCC version, BCR reference, etc.
+
+  // Impact assessment (Schrems II)
+  transferImpactAssessment Json?
+
+  // Supplementary measures
+  technicalMeasures      String[]
+  organizationalMeasures String[]
+  contractualMeasures    String[]
+
+  // Status
+  status     TransferStatus @default(DRAFT)
+  approvedBy String?
+  approvedAt DateTime?
+
+  // Linked records
+  processorId          String?
+  processingActivityId String?
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+
+  @@index([entityId])
+  @@index([status])
+  @@index([destinationCountry])
+  @@map("data_transfers")
+}
+
+enum TransferStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum RecipientType {
+  CONTROLLER
+  PROCESSOR
+}
+
+enum TransferBasis {
+  ADEQUACY_DECISION
+  STANDARD_CONTRACTUAL_CLAUSES
+  BINDING_CORPORATE_RULES
+  APPROVED_CODE_OF_CONDUCT
+  APPROVED_CERTIFICATION
+  EXPLICIT_CONSENT
+  CONTRACT_PERFORMANCE
+  PUBLIC_INTEREST
+  LEGAL_CLAIMS
+  VITAL_INTERESTS
+  PUBLIC_REGISTER
+}
+
+// ============================================================================
 // AUDIT LOGGING
 // ============================================================================
 

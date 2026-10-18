@@ -1,0 +1,27 @@
+{
+  "version": "6",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1769784090613,
+      "tag": "0000_easy_thunderbolts",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1769784202704,
+      "tag": "0001_stormy_raza",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1769784310192,
+      "tag": "0002_sleepy_exiles",
+      "breakpoints": true
+    }
+  ]
+}

@@ -17,6 +17,11 @@ import { tradeSecretsRoutes } from './routes/trade-secrets.routes.js';
 import { patentFamiliesRoutes } from './routes/patent-families.routes.js';
 import { maintenanceFeesRoutes } from './routes/maintenance-fees.routes.js';
 import { domainNamesRoutes } from './routes/domain-names.routes.js';
+import { enforcementRoutes } from './routes/enforcement.routes.js';
+import { strategyRoutes } from './routes/strategy.routes.js';
+import { dashboardRoutes } from './routes/dashboard.routes.js';
+import { analyticsRoutes } from './routes/analytics.routes.js';
+import { reportsRoutes } from './routes/reports.routes.js';
 import { healthRoutes } from './routes/health.routes.js';
 import type { Database } from '../../infrastructure/persistence/database.js';
 import type { CacheService } from '../../infrastructure/cache/index.js';
@@ -63,6 +68,13 @@ export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> 
         { name: 'copyrights', description: 'Copyright management' },
         { name: 'trade-secrets', description: 'Trade secret management' },
         { name: 'licenses', description: 'IP licensing' },
+        { name: 'enforcement', description: 'IP enforcement matters' },
+        { name: 'valuations', description: 'IP valuations' },
+        { name: 'fto', description: 'Freedom-to-operate analyses' },
+        { name: 'due-diligence', description: 'Due diligence reports' },
+        { name: 'dashboard', description: 'Portfolio health dashboard' },
+        { name: 'analytics', description: 'Enforcement analytics' },
+        { name: 'reports', description: 'Portfolio reports' },
         { name: 'health', description: 'Health checks' },
       ],
     },
@@ -92,6 +104,11 @@ export async function buildApp(deps: AppDependencies): Promise<FastifyInstance> 
   await app.register(patentFamiliesRoutes, { prefix: '/api/v1/patent-families' });
   await app.register(maintenanceFeesRoutes, { prefix: '/api/v1/maintenance-fees' });
   await app.register(domainNamesRoutes, { prefix: '/api/v1/domain-names' });
+  await app.register(enforcementRoutes, { prefix: '/api/v1/enforcement' });
+  await app.register(strategyRoutes, { prefix: '/api/v1/strategy' });
+  await app.register(dashboardRoutes, { prefix: '/api/v1/dashboard' });
+  await app.register(analyticsRoutes, { prefix: '/api/v1/analytics' });
+  await app.register(reportsRoutes, { prefix: '/api/v1/reports' });
 
   return app;
 }

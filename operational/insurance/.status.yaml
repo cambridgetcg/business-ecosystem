@@ -1,0 +1,76 @@
+# Insurance Service Status
+# Last Updated: 2026-01-29
+
+service: "@ecosystem/insurance"
+version: "0.1.0"
+description: "Corporate insurance portfolio and claims management"
+
+phase: "2-assess"
+
+progress:
+  percentage: 5
+  status: "not-started"
+
+waypoints:
+  - id: "WP1"
+    name: "schema-design"
+    status: "pending"
+    blockedBy: "Need to define Prisma schema for 40+ entity types"
+  - id: "WP2"
+    name: "policy-management"
+    status: "pending"
+  - id: "WP3"
+    name: "claims-management"
+    status: "pending"
+  - id: "WP4"
+    name: "coi-generation"
+    status: "pending"
+  - id: "WP5"
+    name: "compliance-integration"
+    status: "pending"
+  - id: "WP6"
+    name: "carrier-integration"
+    status: "pending"
+
+modules:
+  - name: "policy-management"
+    coverage: "gap"
+    notes: "40+ entity types documented in README, none implemented"
+  - name: "claims-management"
+    coverage: "gap"
+    notes: "Core feature not implemented"
+  - name: "general-liability"
+    coverage: "gap"
+  - name: "professional-liability"
+    coverage: "gap"
+  - name: "property-insurance"
+    coverage: "gap"
+  - name: "workers-compensation"
+    coverage: "gap"
+  - name: "cyber-insurance"
+    coverage: "gap"
+  - name: "product-liability"
+    coverage: "gap"
+
+dependencies:
+  database: "none"
+  messaging: "none"
+  external:
+    - name: "carrier-apis"
+      status: "pending"
+    - name: "broker-systems"
+      status: "pending"
+
+health:
+  runnable: true
+  tests: "none"
+  linting: "clean"
+  typecheck: "clean"
+
+lastUpdated: "2026-01-29"
+updatedBy: "claude-code"
+notes: |
+  STUB ONLY - Health endpoint is the only functionality.
+  Comprehensive README documents 8 subdomains and 40+ entity types.
+  No Prisma schema exists yet.
+  HIGH PRIORITY for implementation.

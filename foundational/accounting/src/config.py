@@ -68,6 +68,42 @@ class AWSSettings(BaseSettings):
     endpoint_url: str | None = Field(default=None, description="Custom endpoint (for LocalStack)")
 
 
+class MessagingSettings(BaseSettings):
+    """Event messaging configuration settings."""
+
+    model_config = SettingsConfigDict(env_prefix="MESSAGING_")
+
+    enabled: bool = Field(default=True, description="Enable event publishing")
+    provider: Literal["in_memory", "sns", "rabbitmq"] = Field(
+        default="in_memory", description="Messaging provider"
+    )
+
+    # SNS settings
+    sns_topic_arn: str | None = Field(
+        default=None, description="SNS topic ARN for domain events"
+    )
+    sns_topic_name: str = Field(
+        default="accounting-events", description="SNS topic name"
+    )
+
+    # SQS settings for consuming events
+    sqs_banking_queue_url: str | None = Field(
+        default=None, description="SQS queue URL for banking-treasury events"
+    )
+    sqs_compliance_queue_url: str | None = Field(
+        default=None, description="SQS queue URL for compliance events"
+    )
+
+    # RabbitMQ settings (for local/hybrid deployments)
+    rabbitmq_url: str = Field(
+        default="amqp://guest:guest@localhost:5672/",
+        description="RabbitMQ connection URL"
+    )
+    rabbitmq_exchange: str = Field(
+        default="ecosystem.events", description="RabbitMQ exchange name"
+    )
+
+
 class Settings(BaseSettings):
     """Main application settings."""
 
@@ -154,6 +190,7 @@ class Settings(BaseSettings):
     # Nested settings
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
     aws: AWSSettings = Field(default_factory=AWSSettings)
+    messaging: MessagingSettings = Field(default_factory=MessagingSettings)
 
     @computed_field
     @property

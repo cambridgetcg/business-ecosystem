@@ -6,6 +6,11 @@ import { eq, and } from 'drizzle-orm';
 import { getDb, identities, documents, verificationRequests } from '../../infrastructure/persistence/index.js';
 import { VerificationStatus, RiskLevel } from '../../domain/value-objects/index.js';
 import { createKycEvent } from '../../domain/events/index.js';
+import {
+  getGlobalEventPublisher,
+  KYCEventTypes,
+  type VerificationApprovedPayload,
+} from '../../infrastructure/messaging/event-publisher.js';
 import type {
   CreateIdentityCommand,
   UpdateIdentityCommand,
@@ -259,9 +264,33 @@ export class VerificationRequestCommandHandler {
   }
 
   async completeVerificationRequest(command: CompleteVerificationRequestCommand): Promise<void> {
-    const status = command.decision === 'APPROVED' 
-      ? VerificationStatus.APPROVED 
+    const status = command.decision === 'APPROVED'
+      ? VerificationStatus.APPROVED
       : VerificationStatus.REJECTED;
+
+    // Get request details first for event publishing
+    const requestResults = await this.db.select({
+      identityId: verificationRequests.identityId,
+      type: verificationRequests.type,
+      metadata: verificationRequests.metadata,
+    })
+      .from(verificationRequests)
+      .where(eq(verificationRequests.id, command.requestId));
+
+    const requestDetails = requestResults[0];
+    if (!requestDetails) {
+      throw new Error(`Verification request not found: ${command.requestId}`);
+    }
+
+    // Get identity details for the event
+    const identityResults = await this.db.select({
+      externalId: identities.externalId,
+      type: identities.type,
+    })
+      .from(identities)
+      .where(eq(identities.id, requestDetails.identityId));
+
+    const identityDetails = identityResults[0];
 
     await this.db.update(verificationRequests)
       .set({
@@ -278,23 +307,40 @@ export class VerificationRequestCommandHandler {
         eq(verificationRequests.tenantId, command.tenantId)
       ));
 
-    // If approved, also update the identity
+    // If approved, also update the identity and publish event
     if (command.decision === 'APPROVED') {
-      const results = await this.db.select({ identityId: verificationRequests.identityId })
-        .from(verificationRequests)
-        .where(eq(verificationRequests.id, command.requestId));
-      
-      const request = results[0];
+      await this.db.update(identities)
+        .set({
+          verificationStatus: VerificationStatus.APPROVED,
+          verifiedAt: new Date(),
+          verifiedBy: command.decisionBy,
+          updatedAt: new Date(),
+        })
+        .where(eq(identities.id, requestDetails.identityId));
 
-      if (request) {
-        await this.db.update(identities)
-          .set({
-            verificationStatus: VerificationStatus.APPROVED,
-            verifiedAt: new Date(),
-            verifiedBy: command.decisionBy,
-            updatedAt: new Date(),
-          })
-          .where(eq(identities.id, request.identityId));
+      // Publish verification approved event
+      const eventPublisher = getGlobalEventPublisher();
+      if (eventPublisher) {
+        const payload: VerificationApprovedPayload = {
+          requestId: command.requestId,
+          identityId: requestDetails.identityId,
+          tenantId: command.tenantId,
+          externalId: identityDetails?.externalId,
+          verificationType: requestDetails.type,
+          decision: command.decision,
+          decisionBy: command.decisionBy,
+          decisionAt: new Date().toISOString(),
+          metadata: {
+            entityId: identityDetails?.externalId ?? null, // Include entity ID for banking-treasury
+            ...(requestDetails.metadata as Record<string, unknown> ?? {}),
+          },
+        };
+
+        await eventPublisher.publish(
+          KYCEventTypes.VERIFICATION_APPROVED,
+          requestDetails.identityId,
+          payload
+        );
       }
     }
   }

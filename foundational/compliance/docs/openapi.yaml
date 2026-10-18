@@ -1,0 +1,3998 @@
+openapi: 3.1.0
+info:
+  title: Compliance Service API
+  description: |
+    Enterprise compliance management service for regulatory requirements, obligations,
+    controls, policies, procedures, and attestations.
+
+    ## Features
+    - UK/US/EU regulatory requirement tracking
+    - Compliance obligation management with deadlines
+    - BOI filings (Corporate Transparency Act)
+    - Internal controls (SOX, COSO, ISO27001)
+    - Policy and procedure management with versioning
+    - Attestation tracking and compliance certifications
+    - Compliance dashboard and reporting
+
+    ## Authentication
+    All endpoints require a valid `x-tenant-id` header for multi-tenant isolation.
+
+    ## Event-Driven Architecture
+    This service publishes domain events to RabbitMQ for cross-service integration.
+  version: 1.0.0
+  contact:
+    name: API Support
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost:3007
+    description: Local development
+  - url: https://api.example.com/compliance
+    description: Production
+
+tags:
+  - name: Obligations
+    description: Compliance obligation management
+  - name: Requirements
+    description: Regulatory requirement definitions
+  - name: Calendar
+    description: Compliance calendar and deadlines
+  - name: Findings
+    description: Audit findings and remediation
+  - name: BOI
+    description: Beneficial Ownership Information filings
+  - name: Controls
+    description: Internal control requirements
+  - name: Policies
+    description: Compliance policy management
+  - name: Procedures
+    description: Procedure documentation
+  - name: Attestations
+    description: Policy attestations and certifications
+  - name: Dashboard
+    description: Compliance dashboard and metrics
+  - name: Reports
+    description: Compliance reporting
+
+components:
+  securitySchemes:
+    tenantId:
+      type: apiKey
+      in: header
+      name: x-tenant-id
+      description: Tenant identifier for multi-tenant isolation
+
+  parameters:
+    TenantId:
+      name: x-tenant-id
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Tenant identifier
+
+    EntityId:
+      name: entityId
+      in: query
+      schema:
+        type: string
+        format: uuid
+      description: Filter by entity ID
+
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 50
+      description: Maximum number of results
+
+    Offset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+      description: Number of results to skip
+
+  schemas:
+    # Common schemas
+    UUID:
+      type: string
+      format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
+    DateTime:
+      type: string
+      format: date-time
+      example: "2024-12-31T23:59:59Z"
+
+    Date:
+      type: string
+      format: date
+      example: "2024-12-31"
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        statusCode:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - error
+        - statusCode
+
+    # Enums
+    RegulatorType:
+      type: string
+      enum:
+        - hmrc
+        - companies_house
+        - ico
+        - fca
+        - pra
+        - hse
+        - environment_agency
+        - irs
+        - sec
+        - fincen
+        - state_sos
+        - dol
+        - eu_commission
+        - national_regulator
+        - other
+
+    RequirementCategory:
+      type: string
+      enum:
+        - corporation_tax
+        - vat
+        - paye
+        - national_insurance
+        - annual_return
+        - confirmation_statement
+        - accounts_filing
+        - directors_duties
+        - psc_register
+        - data_protection
+        - data_breach
+        - aml_kyc
+        - beneficial_ownership
+        - employment
+        - health_safety
+        - environmental
+        - sector_specific
+        - other
+
+    ObligationStatus:
+      type: string
+      enum:
+        - pending
+        - in_progress
+        - under_review
+        - completed
+        - waived
+        - not_applicable
+        - failed
+        - overdue
+
+    Priority:
+      type: string
+      enum:
+        - critical
+        - high
+        - medium
+        - low
+
+    Frequency:
+      type: string
+      enum:
+        - one_time
+        - annual
+        - quarterly
+        - monthly
+        - weekly
+        - ongoing
+        - event_driven
+
+    ControlType:
+      type: string
+      enum:
+        - preventive
+        - detective
+        - corrective
+        - directive
+        - compensating
+
+    ControlFramework:
+      type: string
+      enum:
+        - coso
+        - cobit
+        - iso27001
+        - iso31000
+        - sox
+        - gdpr
+        - pci_dss
+        - nist
+        - custom
+
+    ControlStatus:
+      type: string
+      enum:
+        - not_implemented
+        - in_design
+        - in_implementation
+        - implemented
+        - operating_effectively
+        - deficient
+        - not_applicable
+
+    PolicyStatus:
+      type: string
+      enum:
+        - draft
+        - pending_approval
+        - approved
+        - published
+        - under_review
+        - deprecated
+        - retired
+
+    AttestationType:
+      type: string
+      enum:
+        - policy_acknowledgment
+        - training_completion
+        - compliance_certification
+        - conflict_of_interest
+        - code_of_conduct
+        - data_protection
+        - security_awareness
+        - whistleblower
+        - anti_bribery
+        - custom
+
+    FindingSeverity:
+      type: string
+      enum:
+        - critical
+        - high
+        - medium
+        - low
+        - informational
+
+    # Domain entities
+    RegulatoryRequirement:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        tenantId:
+          $ref: '#/components/schemas/UUID'
+        regulator:
+          $ref: '#/components/schemas/RegulatorType'
+        regulationName:
+          type: string
+          example: "Corporation Tax Return"
+        regulationReference:
+          type: string
+          example: "CT600"
+        jurisdiction:
+          type: string
+          example: "GB"
+        category:
+          $ref: '#/components/schemas/RequirementCategory'
+        subCategory:
+          type: string
+        description:
+          type: string
+        frequency:
+          $ref: '#/components/schemas/Frequency'
+        deadlineRule:
+          type: string
+          example: "12 months after accounting period end"
+        gracePeriodDays:
+          type: integer
+        penaltyDescription:
+          type: string
+        maxPenaltyAmount:
+          type: number
+        effectiveDate:
+          $ref: '#/components/schemas/Date'
+        sunsetDate:
+          $ref: '#/components/schemas/Date'
+        guidanceUrl:
+          type: string
+          format: uri
+        formReference:
+          type: string
+        isActive:
+          type: boolean
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+
+    ComplianceObligation:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        tenantId:
+          $ref: '#/components/schemas/UUID'
+        entityId:
+          $ref: '#/components/schemas/UUID'
+        requirementId:
+          $ref: '#/components/schemas/UUID'
+        regulator:
+          $ref: '#/components/schemas/RegulatorType'
+        jurisdiction:
+          type: string
+        category:
+          $ref: '#/components/schemas/RequirementCategory'
+        title:
+          type: string
+          example: "Q4 2024 VAT Return"
+        description:
+          type: string
+        formReference:
+          type: string
+        status:
+          $ref: '#/components/schemas/ObligationStatus'
+        priority:
+          $ref: '#/components/schemas/Priority'
+        periodStart:
+          $ref: '#/components/schemas/Date'
+        periodEnd:
+          $ref: '#/components/schemas/Date'
+        dueDate:
+          $ref: '#/components/schemas/DateTime'
+        completedAt:
+          $ref: '#/components/schemas/DateTime'
+        completedBy:
+          type: string
+        assignedTo:
+          type: string
+        filingFee:
+          type: number
+        escalated:
+          type: boolean
+        escalatedAt:
+          $ref: '#/components/schemas/DateTime'
+        escalatedTo:
+          type: string
+        escalationReason:
+          type: string
+        notes:
+          type: string
+        metadata:
+          type: object
+        tags:
+          type: array
+          items:
+            type: string
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+
+    ComplianceCalendarEvent:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        tenantId:
+          $ref: '#/components/schemas/UUID'
+        entityId:
+          $ref: '#/components/schemas/UUID'
+        title:
+          type: string
+        description:
+          type: string
+        eventType:
+          type: string
+          enum:
+            - deadline
+            - reminder
+            - review
+            - audit
+            - filing
+            - meeting
+            - training
+            - other
+        status:
+          type: string
+          enum:
+            - scheduled
+            - in_progress
+            - completed
+            - cancelled
+            - rescheduled
+        regulator:
+          $ref: '#/components/schemas/RegulatorType'
+        category:
+          $ref: '#/components/schemas/RequirementCategory'
+        obligationId:
+          $ref: '#/components/schemas/UUID'
+        requirementId:
+          $ref: '#/components/schemas/UUID'
+        eventDate:
+          $ref: '#/components/schemas/DateTime'
+        eventEndDate:
+          $ref: '#/components/schemas/DateTime'
+        allDay:
+          type: boolean
+        isRecurring:
+          type: boolean
+        recurrenceRule:
+          type: string
+        reminderDays:
+          type: array
+          items:
+            type: integer
+        assignedTo:
+          type: string
+        completedAt:
+          $ref: '#/components/schemas/DateTime'
+        completedBy:
+          type: string
+        completionNotes:
+          type: string
+        metadata:
+          type: object
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+
+    AuditFinding:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        tenantId:
+          $ref: '#/components/schemas/UUID'
+        entityId:
+          $ref: '#/components/schemas/UUID'
+        title:
+          type: string
+        description:
+          type: string
+        findingType:
+          type: string
+          enum:
+            - control_deficiency
+            - policy_violation
+            - regulatory_breach
+            - process_gap
+            - documentation_issue
+            - training_gap
+            - other
+        severity:
+          $ref: '#/components/schemas/FindingSeverity'
+        status:
+          type: string
+          enum:
+            - open
+            - in_remediation
+            - pending_verification
+            - closed
+            - accepted_risk
+        auditType:
+          type: string
+          enum:
+            - internal
+            - external
+            - regulatory
+            - self_assessment
+        auditDate:
+          $ref: '#/components/schemas/Date'
+        auditorName:
+          type: string
+        auditReference:
+          type: string
+        regulator:
+          $ref: '#/components/schemas/RegulatorType'
+        requirementId:
+          $ref: '#/components/schemas/UUID'
+        obligationId:
+          $ref: '#/components/schemas/UUID'
+        remediationPlan:
+          type: string
+        remediationDueDate:
+          $ref: '#/components/schemas/Date'
+        remediationCompletedDate:
+          $ref: '#/components/schemas/Date'
+        remediationNotes:
+          type: string
+        assignedTo:
+          type: string
+        assignedToName:
+          type: string
+        evidenceDocuments:
+          type: object
+        metadata:
+          type: object
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+
+    BOIFiling:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        tenantId:
+          $ref: '#/components/schemas/UUID'
+        entityId:
+          $ref: '#/components/schemas/UUID'
+        filingType:
+          type: string
+          enum:
+            - initial
+            - updated
+            - corrected
+            - newly_exempt
+        status:
+          type: string
+          enum:
+            - draft
+            - pending_review
+            - submitted
+            - accepted
+            - rejected
+            - exempt
+        companyName:
+          type: string
+        einTaxId:
+          type: string
+        stateOfFormation:
+          type: string
+        dateOfFormation:
+          $ref: '#/components/schemas/Date'
+        currentAddress:
+          type: object
+        beneficialOwners:
+          type: array
+          items:
+            type: object
+        companyApplicants:
+          type: array
+          items:
+            type: object
+        exemptionReason:
+          type: string
+        dueDate:
+          $ref: '#/components/schemas/Date'
+        submittedAt:
+          $ref: '#/components/schemas/DateTime'
+        submittedBy:
+          type: string
+        fincenId:
+          type: string
+        confirmationNumber:
+          type: string
+        rejectionReason:
+          type: string
+        metadata:
+          type: object
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+
+    ControlRequirement:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        tenantId:
+          $ref: '#/components/schemas/UUID'
+        entityId:
+          $ref: '#/components/schemas/UUID'
+        controlId:
+          type: string
+          example: "CTRL-001"
+        name:
+          type: string
+        description:
+          type: string
+        controlType:
+          $ref: '#/components/schemas/ControlType'
+        framework:
+          $ref: '#/components/schemas/ControlFramework'
+        frameworkReference:
+          type: string
+          example: "SOX 404"
+        category:
+          type: string
+        subcategory:
+          type: string
+        status:
+          $ref: '#/components/schemas/ControlStatus'
+        owner:
+          type: string
+        ownerName:
+          type: string
+        testFrequency:
+          $ref: '#/components/schemas/Frequency'
+        lastTestDate:
+          $ref: '#/components/schemas/Date'
+        lastTestResult:
+          type: string
+          enum:
+            - pass
+            - fail
+            - partial
+            - not_tested
+        lastTestNotes:
+          type: string
+        nextTestDueDate:
+          $ref: '#/components/schemas/Date'
+        effectivenessRating:
+          type: number
+          minimum: 1
+          maximum: 5
+        inherentRisk:
+          type: integer
+          minimum: 1
+          maximum: 5
+        residualRisk:
+          type: integer
+          minimum: 1
+          maximum: 5
+        materialWeakness:
+          type: boolean
+        significantDeficiency:
+          type: boolean
+        compensatesFor:
+          $ref: '#/components/schemas/UUID'
+        dependsOnControls:
+          type: array
+          items:
+            $ref: '#/components/schemas/UUID'
+        relatedRisks:
+          type: array
+          items:
+            type: string
+        evidence:
+          type: object
+        metadata:
+          type: object
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+
+    Policy:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        tenantId:
+          $ref: '#/components/schemas/UUID'
+        policyNumber:
+          type: string
+          example: "POL-2024-001"
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum:
+            - governance
+            - compliance
+            - security
+            - privacy
+            - hr
+            - finance
+            - operations
+            - it
+            - legal
+            - other
+        status:
+          $ref: '#/components/schemas/PolicyStatus'
+        version:
+          type: string
+          example: "1.0"
+        effectiveDate:
+          $ref: '#/components/schemas/Date'
+        expirationDate:
+          $ref: '#/components/schemas/Date'
+        reviewDate:
+          $ref: '#/components/schemas/Date'
+        reviewFrequency:
+          $ref: '#/components/schemas/Frequency'
+        owner:
+          type: string
+        ownerName:
+          type: string
+        approver:
+          type: string
+        approverName:
+          type: string
+        approvedAt:
+          $ref: '#/components/schemas/DateTime'
+        publishedAt:
+          $ref: '#/components/schemas/DateTime'
+        publishedBy:
+          type: string
+        content:
+          type: string
+        contentUrl:
+          type: string
+          format: uri
+        requiresAcknowledgment:
+          type: boolean
+        acknowledgmentFrequency:
+          type: string
+          enum:
+            - once
+            - annual
+            - biannual
+            - quarterly
+        applicableRoles:
+          type: array
+          items:
+            type: string
+        applicableDepartments:
+          type: array
+          items:
+            type: string
+        relatedRegulations:
+          type: array
+          items:
+            type: string
+        relatedControls:
+          type: array
+          items:
+            $ref: '#/components/schemas/UUID'
+        tags:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+
+    Procedure:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        tenantId:
+          $ref: '#/components/schemas/UUID'
+        policyId:
+          $ref: '#/components/schemas/UUID'
+        procedureNumber:
+          type: string
+          example: "PROC-2024-001"
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+            - draft
+            - active
+            - under_review
+            - deprecated
+            - retired
+        version:
+          type: string
+        effectiveDate:
+          $ref: '#/components/schemas/Date'
+        reviewDate:
+          $ref: '#/components/schemas/Date'
+        owner:
+          type: string
+        ownerName:
+          type: string
+        steps:
+          type: array
+          items:
+            type: object
+            properties:
+              order:
+                type: integer
+              title:
+                type: string
+              description:
+                type: string
+              responsibleRole:
+                type: string
+              estimatedDuration:
+                type: string
+              requiredDocuments:
+                type: array
+                items:
+                  type: string
+        requiredTraining:
+          type: array
+          items:
+            type: string
+        relatedForms:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+
+    Attestation:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        tenantId:
+          $ref: '#/components/schemas/UUID'
+        policyId:
+          $ref: '#/components/schemas/UUID'
+        userId:
+          type: string
+        userName:
+          type: string
+        userEmail:
+          type: string
+          format: email
+        userDepartment:
+          type: string
+        userRole:
+          type: string
+        attestationType:
+          $ref: '#/components/schemas/AttestationType'
+        status:
+          type: string
+          enum:
+            - pending
+            - completed
+            - declined
+            - expired
+            - waived
+        dueDate:
+          $ref: '#/components/schemas/Date'
+        completedAt:
+          $ref: '#/components/schemas/DateTime'
+        response:
+          type: string
+          enum:
+            - agree
+            - disagree
+            - not_applicable
+        comments:
+          type: string
+        ipAddress:
+          type: string
+        userAgent:
+          type: string
+        remindersSent:
+          type: integer
+        lastReminderAt:
+          $ref: '#/components/schemas/DateTime'
+        declineReason:
+          type: string
+        waivedBy:
+          type: string
+        waivedReason:
+          type: string
+        metadata:
+          type: object
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+
+    ComplianceReport:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UUID'
+        tenantId:
+          $ref: '#/components/schemas/UUID'
+        entityId:
+          $ref: '#/components/schemas/UUID'
+        reportType:
+          type: string
+          enum:
+            - monthly_summary
+            - quarterly_review
+            - annual_report
+            - regulatory_filing
+            - board_report
+            - custom
+        title:
+          type: string
+        periodStart:
+          $ref: '#/components/schemas/Date'
+        periodEnd:
+          $ref: '#/components/schemas/Date'
+        obligationsTotal:
+          type: integer
+        obligationsCompleted:
+          type: integer
+        obligationsOverdue:
+          type: integer
+        obligationsPending:
+          type: integer
+        breakdownByRegulator:
+          type: object
+        breakdownByCategory:
+          type: object
+        riskLevel:
+          type: string
+          enum:
+            - low
+            - medium
+            - high
+            - critical
+        complianceRate:
+          type: number
+          minimum: 0
+          maximum: 100
+        status:
+          type: string
+          enum:
+            - draft
+            - final
+            - approved
+            - distributed
+        approvedBy:
+          type: string
+        approvedAt:
+          $ref: '#/components/schemas/DateTime'
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+
+    DashboardMetrics:
+      type: object
+      properties:
+        totalObligations:
+          type: integer
+        completed:
+          type: integer
+        pending:
+          type: integer
+        overdue:
+          type: integer
+        upcomingThisWeek:
+          type: integer
+        complianceRate:
+          type: number
+        byRegulator:
+          type: object
+          additionalProperties:
+            type: integer
+        byCategory:
+          type: object
+          additionalProperties:
+            type: integer
+
+    ComplianceScore:
+      type: object
+      properties:
+        overall:
+          type: number
+          minimum: 0
+          maximum: 100
+        byDimension:
+          type: object
+          properties:
+            obligations:
+              type: number
+            findings:
+              type: number
+            timeliness:
+              type: number
+        trend:
+          type: string
+          enum:
+            - improving
+            - stable
+            - declining
+
+    # Request/Response schemas
+    CreateObligationRequest:
+      type: object
+      required:
+        - entityId
+        - requirementId
+        - title
+        - dueDate
+      properties:
+        entityId:
+          $ref: '#/components/schemas/UUID'
+        requirementId:
+          $ref: '#/components/schemas/UUID'
+        title:
+          type: string
+        description:
+          type: string
+        periodStart:
+          $ref: '#/components/schemas/Date'
+        periodEnd:
+          $ref: '#/components/schemas/Date'
+        dueDate:
+          $ref: '#/components/schemas/DateTime'
+        assignedTo:
+          type: string
+        priority:
+          $ref: '#/components/schemas/Priority'
+        filingFee:
+          type: number
+        notes:
+          type: string
+        metadata:
+          type: object
+        tags:
+          type: array
+          items:
+            type: string
+
+    UpdateObligationRequest:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/ObligationStatus'
+        priority:
+          $ref: '#/components/schemas/Priority'
+        assignedTo:
+          type: string
+        dueDate:
+          $ref: '#/components/schemas/DateTime'
+        notes:
+          type: string
+        metadata:
+          type: object
+        tags:
+          type: array
+          items:
+            type: string
+
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+            limit:
+              type: integer
+            offset:
+              type: integer
+            hasMore:
+              type: boolean
+
+security:
+  - tenantId: []
+
+paths:
+  # Health endpoints
+  /health:
+    get:
+      summary: Health check
+      tags: [Health]
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  service:
+                    type: string
+                    example: compliance
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /ready:
+    get:
+      summary: Readiness check
+      tags: [Health]
+      security: []
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ready
+                  service:
+                    type: string
+                    example: compliance
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  # Obligations
+  /api/v1/obligations:
+    post:
+      summary: Create obligation
+      tags: [Obligations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateObligationRequest'
+      responses:
+        '201':
+          description: Obligation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceObligation'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      summary: List obligations
+      tags: [Obligations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/EntityId'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ObligationStatus'
+        - name: regulator
+          in: query
+          schema:
+            $ref: '#/components/schemas/RegulatorType'
+        - name: category
+          in: query
+          schema:
+            $ref: '#/components/schemas/RequirementCategory'
+        - name: dueBefore
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: dueAfter
+          in: query
+          schema:
+            type: string
+            format: date
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: List of obligations
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ComplianceObligation'
+
+  /api/v1/obligations/{id}:
+    get:
+      summary: Get obligation by ID
+      tags: [Obligations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: Obligation details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceObligation'
+        '404':
+          description: Obligation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      summary: Update obligation
+      tags: [Obligations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateObligationRequest'
+      responses:
+        '200':
+          description: Obligation updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceObligation'
+        '404':
+          description: Obligation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/v1/obligations/upcoming:
+    get:
+      summary: Get upcoming obligations
+      tags: [Obligations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 30
+          description: Number of days ahead to look
+      responses:
+        '200':
+          description: List of upcoming obligations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ComplianceObligation'
+
+  /api/v1/obligations/overdue:
+    get:
+      summary: Get overdue obligations
+      tags: [Obligations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: List of overdue obligations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ComplianceObligation'
+
+  /api/v1/obligations/{id}/escalate:
+    post:
+      summary: Escalate obligation
+      tags: [Obligations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - escalatedTo
+                - escalationReason
+              properties:
+                escalatedTo:
+                  type: string
+                escalationReason:
+                  type: string
+      responses:
+        '200':
+          description: Obligation escalated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceObligation'
+
+  /api/v1/obligations/{id}/calendar:
+    post:
+      summary: Create calendar events for obligation
+      tags: [Obligations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '201':
+          description: Calendar events created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ComplianceCalendarEvent'
+
+  # Requirements
+  /api/v1/requirements:
+    post:
+      summary: Create requirement
+      tags: [Requirements]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - regulator
+                - regulationName
+                - jurisdiction
+                - category
+                - description
+                - frequency
+                - effectiveDate
+              properties:
+                regulator:
+                  $ref: '#/components/schemas/RegulatorType'
+                regulationName:
+                  type: string
+                regulationReference:
+                  type: string
+                jurisdiction:
+                  type: string
+                category:
+                  $ref: '#/components/schemas/RequirementCategory'
+                subCategory:
+                  type: string
+                description:
+                  type: string
+                frequency:
+                  $ref: '#/components/schemas/Frequency'
+                deadlineRule:
+                  type: string
+                gracePeriodDays:
+                  type: integer
+                penaltyDescription:
+                  type: string
+                maxPenaltyAmount:
+                  type: number
+                effectiveDate:
+                  type: string
+                  format: date
+                sunsetDate:
+                  type: string
+                  format: date
+                guidanceUrl:
+                  type: string
+                  format: uri
+                formReference:
+                  type: string
+      responses:
+        '201':
+          description: Requirement created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegulatoryRequirement'
+
+    get:
+      summary: List requirements
+      tags: [Requirements]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: regulator
+          in: query
+          schema:
+            $ref: '#/components/schemas/RegulatorType'
+        - name: category
+          in: query
+          schema:
+            $ref: '#/components/schemas/RequirementCategory'
+        - name: jurisdiction
+          in: query
+          schema:
+            type: string
+        - name: activeOnly
+          in: query
+          schema:
+            type: boolean
+            default: true
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: List of requirements
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RegulatoryRequirement'
+
+  /api/v1/requirements/{id}:
+    get:
+      summary: Get requirement by ID
+      tags: [Requirements]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: Requirement details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegulatoryRequirement'
+        '404':
+          description: Requirement not found
+
+  /api/v1/requirements/by-regulator/{code}:
+    get:
+      summary: Get requirements by regulator
+      tags: [Requirements]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: code
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/RegulatorType'
+      responses:
+        '200':
+          description: List of requirements for regulator
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RegulatoryRequirement'
+
+  /api/v1/requirements/by-category/{code}:
+    get:
+      summary: Get requirements by category
+      tags: [Requirements]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: code
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/RequirementCategory'
+      responses:
+        '200':
+          description: List of requirements for category
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RegulatoryRequirement'
+
+  /api/v1/regulators:
+    get:
+      summary: List all regulators
+      tags: [Requirements]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: List of regulators
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code:
+                      $ref: '#/components/schemas/RegulatorType'
+                    name:
+                      type: string
+                    country:
+                      type: string
+
+  /api/v1/categories:
+    get:
+      summary: List all requirement categories
+      tags: [Requirements]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code:
+                      $ref: '#/components/schemas/RequirementCategory'
+                    name:
+                      type: string
+
+  # Calendar
+  /api/v1/calendar/events:
+    post:
+      summary: Create calendar event
+      tags: [Calendar]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - eventType
+                - eventDate
+              properties:
+                entityId:
+                  $ref: '#/components/schemas/UUID'
+                title:
+                  type: string
+                description:
+                  type: string
+                eventType:
+                  type: string
+                regulator:
+                  $ref: '#/components/schemas/RegulatorType'
+                category:
+                  $ref: '#/components/schemas/RequirementCategory'
+                obligationId:
+                  $ref: '#/components/schemas/UUID'
+                requirementId:
+                  $ref: '#/components/schemas/UUID'
+                eventDate:
+                  type: string
+                  format: date-time
+                eventEndDate:
+                  type: string
+                  format: date-time
+                allDay:
+                  type: boolean
+                isRecurring:
+                  type: boolean
+                recurrenceRule:
+                  type: string
+                reminderDays:
+                  type: array
+                  items:
+                    type: integer
+                assignedTo:
+                  type: string
+      responses:
+        '201':
+          description: Event created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceCalendarEvent'
+
+    get:
+      summary: List calendar events
+      tags: [Calendar]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/EntityId'
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: eventType
+          in: query
+          schema:
+            type: string
+        - name: regulator
+          in: query
+          schema:
+            $ref: '#/components/schemas/RegulatorType'
+      responses:
+        '200':
+          description: List of calendar events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ComplianceCalendarEvent'
+
+  /api/v1/calendar/events/{id}:
+    get:
+      summary: Get calendar event by ID
+      tags: [Calendar]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceCalendarEvent'
+
+    patch:
+      summary: Update calendar event
+      tags: [Calendar]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                eventDate:
+                  type: string
+                  format: date-time
+                eventEndDate:
+                  type: string
+                  format: date-time
+                assignedTo:
+                  type: string
+                status:
+                  type: string
+      responses:
+        '200':
+          description: Event updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceCalendarEvent'
+
+    delete:
+      summary: Delete calendar event
+      tags: [Calendar]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '204':
+          description: Event deleted
+
+  /api/v1/calendar/events/{id}/complete:
+    post:
+      summary: Mark calendar event as completed
+      tags: [Calendar]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                completionNotes:
+                  type: string
+      responses:
+        '200':
+          description: Event completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceCalendarEvent'
+
+  # Controls
+  /api/v1/controls:
+    post:
+      summary: Create control
+      tags: [Controls]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - entityId
+                - controlId
+                - name
+                - controlType
+                - framework
+              properties:
+                entityId:
+                  $ref: '#/components/schemas/UUID'
+                controlId:
+                  type: string
+                name:
+                  type: string
+                description:
+                  type: string
+                controlType:
+                  $ref: '#/components/schemas/ControlType'
+                framework:
+                  $ref: '#/components/schemas/ControlFramework'
+                frameworkReference:
+                  type: string
+                category:
+                  type: string
+                subcategory:
+                  type: string
+                owner:
+                  type: string
+                ownerName:
+                  type: string
+                testFrequency:
+                  $ref: '#/components/schemas/Frequency'
+                inherentRisk:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                relatedRisks:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Control created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlRequirement'
+
+    get:
+      summary: List controls
+      tags: [Controls]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/EntityId'
+        - name: framework
+          in: query
+          schema:
+            $ref: '#/components/schemas/ControlFramework'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ControlStatus'
+        - name: controlType
+          in: query
+          schema:
+            $ref: '#/components/schemas/ControlType'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: List of controls
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ControlRequirement'
+
+  /api/v1/controls/{id}:
+    get:
+      summary: Get control by ID
+      tags: [Controls]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: Control details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlRequirement'
+
+    patch:
+      summary: Update control
+      tags: [Controls]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                status:
+                  $ref: '#/components/schemas/ControlStatus'
+                owner:
+                  type: string
+                testFrequency:
+                  $ref: '#/components/schemas/Frequency'
+                inherentRisk:
+                  type: integer
+                residualRisk:
+                  type: integer
+      responses:
+        '200':
+          description: Control updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlRequirement'
+
+  /api/v1/controls/{id}/implement:
+    post:
+      summary: Mark control as implemented
+      tags: [Controls]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                implementationNotes:
+                  type: string
+                evidence:
+                  type: object
+      responses:
+        '200':
+          description: Control marked as implemented
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlRequirement'
+
+  /api/v1/controls/{id}/test:
+    post:
+      summary: Record control test result
+      tags: [Controls]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - result
+              properties:
+                result:
+                  type: string
+                  enum:
+                    - pass
+                    - fail
+                    - partial
+                testNotes:
+                  type: string
+                testedBy:
+                  type: string
+                evidence:
+                  type: object
+      responses:
+        '200':
+          description: Test recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ControlRequirement'
+
+  /api/v1/controls/due-for-testing:
+    get:
+      summary: Get controls due for testing
+      tags: [Controls]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 30
+      responses:
+        '200':
+          description: Controls due for testing
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ControlRequirement'
+
+  /api/v1/controls/deficient:
+    get:
+      summary: Get deficient controls
+      tags: [Controls]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Deficient controls
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ControlRequirement'
+
+  /api/v1/controls/metrics:
+    get:
+      summary: Get control metrics
+      tags: [Controls]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/EntityId'
+      responses:
+        '200':
+          description: Control metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  byStatus:
+                    type: object
+                  byFramework:
+                    type: object
+                  byType:
+                    type: object
+                  deficiencies:
+                    type: object
+                    properties:
+                      materialWeaknesses:
+                        type: integer
+                      significantDeficiencies:
+                        type: integer
+                  averageEffectiveness:
+                    type: number
+
+  /api/v1/controls/frameworks:
+    get:
+      summary: List control frameworks
+      tags: [Controls]
+      responses:
+        '200':
+          description: List of frameworks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code:
+                      $ref: '#/components/schemas/ControlFramework'
+                    name:
+                      type: string
+                    description:
+                      type: string
+
+  # Policies
+  /api/v1/policies:
+    post:
+      summary: Create policy
+      tags: [Policies]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - category
+              properties:
+                policyNumber:
+                  type: string
+                title:
+                  type: string
+                description:
+                  type: string
+                category:
+                  type: string
+                content:
+                  type: string
+                contentUrl:
+                  type: string
+                effectiveDate:
+                  type: string
+                  format: date
+                reviewDate:
+                  type: string
+                  format: date
+                reviewFrequency:
+                  $ref: '#/components/schemas/Frequency'
+                owner:
+                  type: string
+                ownerName:
+                  type: string
+                requiresAcknowledgment:
+                  type: boolean
+                acknowledgmentFrequency:
+                  type: string
+                applicableRoles:
+                  type: array
+                  items:
+                    type: string
+                applicableDepartments:
+                  type: array
+                  items:
+                    type: string
+                relatedRegulations:
+                  type: array
+                  items:
+                    type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Policy created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+
+    get:
+      summary: List policies
+      tags: [Policies]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/PolicyStatus'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: List of policies
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Policy'
+
+  /api/v1/policies/{id}:
+    get:
+      summary: Get policy by ID
+      tags: [Policies]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: Policy details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+
+    patch:
+      summary: Update policy
+      tags: [Policies]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                content:
+                  type: string
+                reviewDate:
+                  type: string
+                  format: date
+                owner:
+                  type: string
+                applicableRoles:
+                  type: array
+                  items:
+                    type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Policy updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+
+  /api/v1/policies/{id}/submit-for-approval:
+    post:
+      summary: Submit policy for approval
+      tags: [Policies]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                approver:
+                  type: string
+                notes:
+                  type: string
+      responses:
+        '200':
+          description: Policy submitted for approval
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+
+  /api/v1/policies/{id}/approve:
+    post:
+      summary: Approve policy
+      tags: [Policies]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                approvalNotes:
+                  type: string
+      responses:
+        '200':
+          description: Policy approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+
+  /api/v1/policies/{id}/publish:
+    post:
+      summary: Publish policy
+      tags: [Policies]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                effectiveDate:
+                  type: string
+                  format: date
+                notifyUsers:
+                  type: boolean
+      responses:
+        '200':
+          description: Policy published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+
+  /api/v1/policies/{id}/new-version:
+    post:
+      summary: Create new policy version
+      tags: [Policies]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                versionNotes:
+                  type: string
+      responses:
+        '201':
+          description: New version created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+
+  /api/v1/policies/{id}/deprecate:
+    post:
+      summary: Deprecate policy
+      tags: [Policies]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                replacedByPolicyId:
+                  $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: Policy deprecated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+
+  /api/v1/policies/metrics:
+    get:
+      summary: Get policy metrics
+      tags: [Policies]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Policy metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  byStatus:
+                    type: object
+                  byCategory:
+                    type: object
+                  needingReview:
+                    type: integer
+                  acknowledgmentRate:
+                    type: number
+
+  /api/v1/policies/needs-review:
+    get:
+      summary: Get policies needing review
+      tags: [Policies]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Policies needing review
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Policy'
+
+  /api/v1/policies/published:
+    get:
+      summary: Get published policies
+      tags: [Policies]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Published policies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Policy'
+
+  # Procedures
+  /api/v1/procedures:
+    post:
+      summary: Create procedure
+      tags: [Procedures]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - policyId
+                - title
+              properties:
+                policyId:
+                  $ref: '#/components/schemas/UUID'
+                procedureNumber:
+                  type: string
+                title:
+                  type: string
+                description:
+                  type: string
+                owner:
+                  type: string
+                ownerName:
+                  type: string
+                steps:
+                  type: array
+                  items:
+                    type: object
+                requiredTraining:
+                  type: array
+                  items:
+                    type: string
+                relatedForms:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '201':
+          description: Procedure created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Procedure'
+
+    get:
+      summary: List procedures
+      tags: [Procedures]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: policyId
+          in: query
+          schema:
+            $ref: '#/components/schemas/UUID'
+        - name: status
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: List of procedures
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Procedure'
+
+  /api/v1/procedures/{id}:
+    get:
+      summary: Get procedure by ID
+      tags: [Procedures]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: Procedure details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Procedure'
+
+    patch:
+      summary: Update procedure
+      tags: [Procedures]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                owner:
+                  type: string
+                reviewDate:
+                  type: string
+                  format: date
+      responses:
+        '200':
+          description: Procedure updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Procedure'
+
+  /api/v1/procedures/{id}/activate:
+    post:
+      summary: Activate procedure
+      tags: [Procedures]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                effectiveDate:
+                  type: string
+                  format: date
+      responses:
+        '200':
+          description: Procedure activated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Procedure'
+
+  /api/v1/procedures/{id}/new-version:
+    post:
+      summary: Create new procedure version
+      tags: [Procedures]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '201':
+          description: New version created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Procedure'
+
+  /api/v1/procedures/by-policy/{policyId}:
+    get:
+      summary: Get procedures by policy
+      tags: [Procedures]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: Procedures for policy
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Procedure'
+
+  /api/v1/procedures/{id}/steps:
+    put:
+      summary: Replace procedure steps
+      tags: [Procedures]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - steps
+              properties:
+                steps:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      order:
+                        type: integer
+                      title:
+                        type: string
+                      description:
+                        type: string
+                      responsibleRole:
+                        type: string
+      responses:
+        '200':
+          description: Steps updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Procedure'
+
+    post:
+      summary: Add procedure step
+      tags: [Procedures]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                responsibleRole:
+                  type: string
+                estimatedDuration:
+                  type: string
+                requiredDocuments:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Step added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Procedure'
+
+  # Attestations
+  /api/v1/attestations:
+    post:
+      summary: Create attestation
+      tags: [Attestations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - policyId
+                - userId
+                - attestationType
+                - dueDate
+              properties:
+                policyId:
+                  $ref: '#/components/schemas/UUID'
+                userId:
+                  type: string
+                userName:
+                  type: string
+                userEmail:
+                  type: string
+                  format: email
+                userDepartment:
+                  type: string
+                userRole:
+                  type: string
+                attestationType:
+                  $ref: '#/components/schemas/AttestationType'
+                dueDate:
+                  type: string
+                  format: date
+      responses:
+        '201':
+          description: Attestation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attestation'
+
+    get:
+      summary: List attestations
+      tags: [Attestations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: policyId
+          in: query
+          schema:
+            $ref: '#/components/schemas/UUID'
+        - name: userId
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: attestationType
+          in: query
+          schema:
+            $ref: '#/components/schemas/AttestationType'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: List of attestations
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Attestation'
+
+  /api/v1/attestations/bulk:
+    post:
+      summary: Create bulk attestations
+      tags: [Attestations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - policyId
+                - users
+                - attestationType
+                - dueDate
+              properties:
+                policyId:
+                  $ref: '#/components/schemas/UUID'
+                users:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      userId:
+                        type: string
+                      userName:
+                        type: string
+                      userEmail:
+                        type: string
+                attestationType:
+                  $ref: '#/components/schemas/AttestationType'
+                dueDate:
+                  type: string
+                  format: date
+      responses:
+        '201':
+          description: Attestations created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created:
+                    type: integer
+                  attestations:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Attestation'
+
+  /api/v1/attestations/{id}:
+    get:
+      summary: Get attestation by ID
+      tags: [Attestations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: Attestation details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attestation'
+
+    patch:
+      summary: Update attestation
+      tags: [Attestations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dueDate:
+                  type: string
+                  format: date
+                status:
+                  type: string
+      responses:
+        '200':
+          description: Attestation updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attestation'
+
+  /api/v1/attestations/{id}/complete:
+    post:
+      summary: Complete attestation
+      tags: [Attestations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - response
+              properties:
+                response:
+                  type: string
+                  enum:
+                    - agree
+                    - disagree
+                    - not_applicable
+                comments:
+                  type: string
+      responses:
+        '200':
+          description: Attestation completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attestation'
+
+  /api/v1/attestations/{id}/decline:
+    post:
+      summary: Decline attestation
+      tags: [Attestations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Attestation declined
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attestation'
+
+  /api/v1/attestations/{id}/remind:
+    post:
+      summary: Send attestation reminder
+      tags: [Attestations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: Reminder sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  remindersSent:
+                    type: integer
+
+  /api/v1/attestations/pending:
+    get:
+      summary: Get pending attestations
+      tags: [Attestations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: userId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pending attestations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attestation'
+
+  /api/v1/attestations/overdue:
+    get:
+      summary: Get overdue attestations
+      tags: [Attestations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Overdue attestations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attestation'
+
+  /api/v1/attestations/by-policy/{policyId}/status:
+    get:
+      summary: Get attestation status by policy
+      tags: [Attestations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: Attestation status for policy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  policyId:
+                    $ref: '#/components/schemas/UUID'
+                  total:
+                    type: integer
+                  completed:
+                    type: integer
+                  pending:
+                    type: integer
+                  overdue:
+                    type: integer
+                  completionRate:
+                    type: number
+
+  /api/v1/attestations/metrics:
+    get:
+      summary: Get attestation metrics
+      tags: [Attestations]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Attestation metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  byStatus:
+                    type: object
+                  byType:
+                    type: object
+                  completionRate:
+                    type: number
+                  averageCompletionTime:
+                    type: number
+
+  /api/v1/attestation-types:
+    get:
+      summary: List attestation types
+      tags: [Attestations]
+      responses:
+        '200':
+          description: List of attestation types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code:
+                      $ref: '#/components/schemas/AttestationType'
+                    name:
+                      type: string
+                    description:
+                      type: string
+
+  # Findings
+  /api/v1/findings:
+    post:
+      summary: Create finding
+      tags: [Findings]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - entityId
+                - title
+                - description
+                - findingType
+                - severity
+                - auditType
+                - auditDate
+              properties:
+                entityId:
+                  $ref: '#/components/schemas/UUID'
+                title:
+                  type: string
+                description:
+                  type: string
+                findingType:
+                  type: string
+                severity:
+                  $ref: '#/components/schemas/FindingSeverity'
+                auditType:
+                  type: string
+                auditDate:
+                  type: string
+                  format: date
+                auditorName:
+                  type: string
+                auditReference:
+                  type: string
+                regulator:
+                  $ref: '#/components/schemas/RegulatorType'
+                requirementId:
+                  $ref: '#/components/schemas/UUID'
+                obligationId:
+                  $ref: '#/components/schemas/UUID'
+                remediationPlan:
+                  type: string
+                remediationDueDate:
+                  type: string
+                  format: date
+                assignedTo:
+                  type: string
+                assignedToName:
+                  type: string
+      responses:
+        '201':
+          description: Finding created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditFinding'
+
+    get:
+      summary: List findings
+      tags: [Findings]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/EntityId'
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: severity
+          in: query
+          schema:
+            $ref: '#/components/schemas/FindingSeverity'
+        - name: auditType
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: List of findings
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AuditFinding'
+
+  /api/v1/findings/{id}:
+    get:
+      summary: Get finding by ID
+      tags: [Findings]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: Finding details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditFinding'
+
+    patch:
+      summary: Update finding
+      tags: [Findings]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                remediationPlan:
+                  type: string
+                remediationDueDate:
+                  type: string
+                  format: date
+                assignedTo:
+                  type: string
+                assignedToName:
+                  type: string
+      responses:
+        '200':
+          description: Finding updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditFinding'
+
+  /api/v1/findings/metrics:
+    get:
+      summary: Get findings metrics
+      tags: [Findings]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/EntityId'
+      responses:
+        '200':
+          description: Findings metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  open:
+                    type: integer
+                  closed:
+                    type: integer
+                  bySeverity:
+                    type: object
+                  byStatus:
+                    type: object
+                  averageRemediationDays:
+                    type: number
+
+  /api/v1/findings/{id}/start-remediation:
+    post:
+      summary: Start finding remediation
+      tags: [Findings]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - remediationPlan
+              properties:
+                remediationPlan:
+                  type: string
+                remediationDueDate:
+                  type: string
+                  format: date
+                assignedTo:
+                  type: string
+      responses:
+        '200':
+          description: Remediation started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditFinding'
+
+  /api/v1/findings/{id}/complete-remediation:
+    post:
+      summary: Complete finding remediation
+      tags: [Findings]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                remediationNotes:
+                  type: string
+                evidenceDocuments:
+                  type: object
+      responses:
+        '200':
+          description: Remediation completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditFinding'
+
+  /api/v1/findings/{id}/verify:
+    post:
+      summary: Verify finding remediation
+      tags: [Findings]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                verificationNotes:
+                  type: string
+      responses:
+        '200':
+          description: Finding verified and closed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditFinding'
+
+  /api/v1/findings/{id}/accept-risk:
+    post:
+      summary: Accept risk for finding
+      tags: [Findings]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - justification
+                - approvedBy
+              properties:
+                justification:
+                  type: string
+                approvedBy:
+                  type: string
+                reviewDate:
+                  type: string
+                  format: date
+      responses:
+        '200':
+          description: Risk accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditFinding'
+
+  # BOI Filings
+  /api/v1/boi/filings:
+    post:
+      summary: Create BOI filing
+      tags: [BOI]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - entityId
+                - filingType
+                - companyName
+              properties:
+                entityId:
+                  $ref: '#/components/schemas/UUID'
+                filingType:
+                  type: string
+                  enum:
+                    - initial
+                    - updated
+                    - corrected
+                    - newly_exempt
+                companyName:
+                  type: string
+                einTaxId:
+                  type: string
+                stateOfFormation:
+                  type: string
+                dateOfFormation:
+                  type: string
+                  format: date
+                currentAddress:
+                  type: object
+                beneficialOwners:
+                  type: array
+                  items:
+                    type: object
+                companyApplicants:
+                  type: array
+                  items:
+                    type: object
+                exemptionReason:
+                  type: string
+      responses:
+        '201':
+          description: BOI filing created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BOIFiling'
+
+    get:
+      summary: List BOI filings
+      tags: [BOI]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/EntityId'
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: filingType
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: List of BOI filings
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/BOIFiling'
+
+  /api/v1/boi/filings/{id}:
+    get:
+      summary: Get BOI filing by ID
+      tags: [BOI]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: BOI filing details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BOIFiling'
+
+    patch:
+      summary: Update BOI filing
+      tags: [BOI]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                companyName:
+                  type: string
+                currentAddress:
+                  type: object
+                beneficialOwners:
+                  type: array
+                  items:
+                    type: object
+                companyApplicants:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: BOI filing updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BOIFiling'
+
+  /api/v1/boi/filings/{id}/submit:
+    post:
+      summary: Submit BOI filing
+      tags: [BOI]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: BOI filing submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BOIFiling'
+
+  /api/v1/boi/filings/{id}/accept:
+    post:
+      summary: Mark BOI filing as accepted
+      tags: [BOI]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fincenId
+                - confirmationNumber
+              properties:
+                fincenId:
+                  type: string
+                confirmationNumber:
+                  type: string
+      responses:
+        '200':
+          description: BOI filing accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BOIFiling'
+
+  /api/v1/boi/filings/{id}/reject:
+    post:
+      summary: Mark BOI filing as rejected
+      tags: [BOI]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rejectionReason
+              properties:
+                rejectionReason:
+                  type: string
+      responses:
+        '200':
+          description: BOI filing rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BOIFiling'
+
+  /api/v1/boi/filings/upcoming:
+    get:
+      summary: Get upcoming BOI filing deadlines
+      tags: [BOI]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 90
+      responses:
+        '200':
+          description: Upcoming BOI filings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BOIFiling'
+
+  /api/v1/boi/exemption-reasons:
+    get:
+      summary: List BOI exemption reasons
+      tags: [BOI]
+      responses:
+        '200':
+          description: List of exemption reasons
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    code:
+                      type: string
+                    name:
+                      type: string
+                    description:
+                      type: string
+
+  /api/v1/boi/filings/{id}/beneficial-owners:
+    post:
+      summary: Add beneficial owner to filing
+      tags: [BOI]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - fullName
+                - dateOfBirth
+                - address
+              properties:
+                fullName:
+                  type: string
+                dateOfBirth:
+                  type: string
+                  format: date
+                address:
+                  type: object
+                identificationDocument:
+                  type: object
+                ownershipPercentage:
+                  type: number
+                controlType:
+                  type: string
+      responses:
+        '200':
+          description: Beneficial owner added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BOIFiling'
+
+  /api/v1/boi/filings/{id}/beneficial-owners/{ownerId}:
+    delete:
+      summary: Remove beneficial owner from filing
+      tags: [BOI]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+        - name: ownerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Beneficial owner removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BOIFiling'
+
+  # Dashboard
+  /api/v1/dashboard:
+    get:
+      summary: Get dashboard summary
+      tags: [Dashboard]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/EntityId'
+      responses:
+        '200':
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardMetrics'
+
+  /api/v1/dashboard/compliance-score:
+    get:
+      summary: Get compliance score
+      tags: [Dashboard]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/EntityId'
+      responses:
+        '200':
+          description: Compliance score
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceScore'
+
+  /api/v1/dashboard/upcoming-deadlines:
+    get:
+      summary: Get upcoming deadlines
+      tags: [Dashboard]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 30
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Upcoming deadlines
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ComplianceObligation'
+
+  /api/v1/dashboard/risk-summary:
+    get:
+      summary: Get risk summary
+      tags: [Dashboard]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/EntityId'
+      responses:
+        '200':
+          description: Risk summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  overallRiskLevel:
+                    type: string
+                  openFindings:
+                    type: object
+                    properties:
+                      critical:
+                        type: integer
+                      high:
+                        type: integer
+                      medium:
+                        type: integer
+                      low:
+                        type: integer
+                  deficientControls:
+                    type: integer
+                  overdueObligations:
+                    type: integer
+                  complianceGaps:
+                    type: array
+                    items:
+                      type: string
+
+  /api/v1/dashboard/activity-feed:
+    get:
+      summary: Get activity feed
+      tags: [Dashboard]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Activity feed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    type:
+                      type: string
+                    action:
+                      type: string
+                    entityType:
+                      type: string
+                    entityId:
+                      type: string
+                    description:
+                      type: string
+                    timestamp:
+                      type: string
+                      format: date-time
+                    userId:
+                      type: string
+                    userName:
+                      type: string
+
+  # Reports
+  /api/v1/reports:
+    post:
+      summary: Generate compliance report
+      tags: [Reports]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - periodStart
+                - periodEnd
+              properties:
+                entityId:
+                  $ref: '#/components/schemas/UUID'
+                reportType:
+                  type: string
+                periodStart:
+                  type: string
+                  format: date
+                periodEnd:
+                  type: string
+                  format: date
+      responses:
+        '201':
+          description: Report generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceReport'
+
+    get:
+      summary: List compliance reports
+      tags: [Reports]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/EntityId'
+        - name: reportType
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+      responses:
+        '200':
+          description: List of reports
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ComplianceReport'
+
+  /api/v1/reports/{id}:
+    get:
+      summary: Get report by ID
+      tags: [Reports]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: Report details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceReport'
+
+  /api/v1/reports/{id}/approve:
+    post:
+      summary: Approve compliance report
+      tags: [Reports]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UUID'
+      responses:
+        '200':
+          description: Report approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceReport'
+
+  /api/v1/compliance/score:
+    get:
+      summary: Get compliance score (legacy endpoint)
+      tags: [Reports]
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/EntityId'
+      responses:
+        '200':
+          description: Compliance score
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceScore'

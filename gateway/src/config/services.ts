@@ -1,5 +1,8 @@
 /**
  * Service registry configuration
+ *
+ * Central configuration for all ecosystem services routed through the gateway.
+ * Services are organized by layer: Foundational, Operational, Orchestration.
  */
 
 export interface ServiceConfig {
@@ -15,9 +18,20 @@ export interface ServiceConfig {
     required: boolean;
     roles?: string[];
   };
+  circuitBreaker?: {
+    failureThreshold?: number;
+    resetTimeoutMs?: number;
+    successThreshold?: number;
+  };
+  layer: 'foundational' | 'operational' | 'orchestration';
+  critical?: boolean;
 }
 
-export const services: ServiceConfig[] = [
+// =============================================================================
+// FOUNDATIONAL LAYER SERVICES (What the Business IS)
+// =============================================================================
+
+const foundationalServices: ServiceConfig[] = [
   {
     name: 'entity-governance',
     prefix: '/api/v1/entities',
@@ -25,6 +39,8 @@ export const services: ServiceConfig[] = [
     healthCheck: '/health',
     rateLimit: { max: 100, timeWindow: '1 minute' },
     auth: { required: true },
+    layer: 'foundational',
+    critical: true,
   },
   {
     name: 'kyc-identity',
@@ -33,6 +49,8 @@ export const services: ServiceConfig[] = [
     healthCheck: '/health',
     rateLimit: { max: 100, timeWindow: '1 minute' },
     auth: { required: true },
+    layer: 'foundational',
+    critical: true,
   },
   {
     name: 'accounting',
@@ -41,6 +59,8 @@ export const services: ServiceConfig[] = [
     healthCheck: '/health',
     rateLimit: { max: 100, timeWindow: '1 minute' },
     auth: { required: true },
+    layer: 'foundational',
+    critical: true,
   },
   {
     name: 'banking-treasury',
@@ -49,6 +69,9 @@ export const services: ServiceConfig[] = [
     healthCheck: '/health',
     rateLimit: { max: 50, timeWindow: '1 minute' },
     auth: { required: true, roles: ['admin', 'treasury'] },
+    circuitBreaker: { failureThreshold: 3, resetTimeoutMs: 60000 },
+    layer: 'foundational',
+    critical: true,
   },
   {
     name: 'tax',
@@ -57,6 +80,7 @@ export const services: ServiceConfig[] = [
     healthCheck: '/health',
     rateLimit: { max: 100, timeWindow: '1 minute' },
     auth: { required: true },
+    layer: 'foundational',
   },
   {
     name: 'compliance',
@@ -65,6 +89,7 @@ export const services: ServiceConfig[] = [
     healthCheck: '/health',
     rateLimit: { max: 100, timeWindow: '1 minute' },
     auth: { required: true },
+    layer: 'foundational',
   },
   {
     name: 'corporate-security',
@@ -73,15 +98,25 @@ export const services: ServiceConfig[] = [
     healthCheck: '/health',
     rateLimit: { max: 100, timeWindow: '1 minute' },
     auth: { required: true, roles: ['admin', 'security'] },
+    layer: 'foundational',
+    critical: true,
   },
   {
-    name: 'contracts-legal',
+    name: 'contracts-legal-foundational',
     prefix: '/api/v1/contracts',
     upstream: process.env.CONTRACTS_LEGAL_URL || 'http://localhost:3008',
     healthCheck: '/health',
     rateLimit: { max: 100, timeWindow: '1 minute' },
     auth: { required: true },
+    layer: 'foundational',
   },
+];
+
+// =============================================================================
+// OPERATIONAL LAYER SERVICES (What the Business DOES)
+// =============================================================================
+
+const operationalServices: ServiceConfig[] = [
   {
     name: 'data-privacy',
     prefix: '/api/v1/privacy',
@@ -89,6 +124,7 @@ export const services: ServiceConfig[] = [
     healthCheck: '/health',
     rateLimit: { max: 100, timeWindow: '1 minute' },
     auth: { required: true },
+    layer: 'operational',
   },
   {
     name: 'intellectual-property',
@@ -97,6 +133,7 @@ export const services: ServiceConfig[] = [
     healthCheck: '/health',
     rateLimit: { max: 100, timeWindow: '1 minute' },
     auth: { required: true },
+    layer: 'operational',
   },
   {
     name: 'insurance',
@@ -105,13 +142,66 @@ export const services: ServiceConfig[] = [
     healthCheck: '/health',
     rateLimit: { max: 100, timeWindow: '1 minute' },
     auth: { required: true },
+    layer: 'operational',
+  },
+  {
+    name: 'contracts-legal-operational',
+    prefix: '/api/v1/operational-contracts',
+    upstream: process.env.OPERATIONAL_CONTRACTS_URL || 'http://localhost:3012',
+    healthCheck: '/health',
+    rateLimit: { max: 100, timeWindow: '1 minute' },
+    auth: { required: true },
+    layer: 'operational',
   },
 ];
 
+// =============================================================================
+// ORCHESTRATION LAYER SERVICES
+// =============================================================================
+
+const orchestrationServices: ServiceConfig[] = [
+  {
+    name: 'operational-gateway',
+    prefix: '/api/v1/operational',
+    upstream: process.env.OPERATIONAL_GATEWAY_URL || 'http://localhost:3022',
+    healthCheck: '/health',
+    rateLimit: { max: 200, timeWindow: '1 minute' },
+    auth: { required: true },
+    layer: 'orchestration',
+  },
+  {
+    name: 'workflow-engine',
+    prefix: '/api/v1/workflows',
+    upstream: process.env.WORKFLOW_ENGINE_URL || 'http://localhost:3020',
+    healthCheck: '/health',
+    rateLimit: { max: 100, timeWindow: '1 minute' },
+    auth: { required: true },
+    layer: 'orchestration',
+  },
+];
+
+// =============================================================================
+// COMBINED SERVICES
+// =============================================================================
+
+export const services: ServiceConfig[] = [
+  ...foundationalServices,
+  ...operationalServices,
+  ...orchestrationServices,
+];
+
 export function getServiceByName(name: string): ServiceConfig | undefined {
-  return services.find(s => s.name === name);
+  return services.find((s) => s.name === name);
 }
 
 export function getServiceByPrefix(prefix: string): ServiceConfig | undefined {
-  return services.find(s => prefix.startsWith(s.prefix));
+  return services.find((s) => prefix.startsWith(s.prefix));
+}
+
+export function getServicesByLayer(layer: ServiceConfig['layer']): ServiceConfig[] {
+  return services.filter((s) => s.layer === layer);
+}
+
+export function getCriticalServices(): ServiceConfig[] {
+  return services.filter((s) => s.critical);
 }

@@ -10,7 +10,7 @@ import { z } from 'zod';
 export const env = createEnv({
   server: {
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-    PORT: z.coerce.number().default(3000),
+    PORT: z.coerce.number().default(3004),
     
     // Database - either direct URL or fetched from AWS Secrets Manager
     DATABASE_URL: z.string().url().optional(),
@@ -23,12 +23,21 @@ export const env = createEnv({
     // SNS/SQS Configuration
     SNS_BANKING_TREASURY_TOPIC: z.string().optional(),
     SQS_EVENTS_QUEUE: z.string().optional(),
+
+    // RabbitMQ Configuration
+    RABBITMQ_URL: z.string().url().optional(),
     
     // Logging
     LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
     
     // Feature flags
     ENABLE_EVENT_PUBLISHING: z.coerce.boolean().default(true),
+
+    // Plaid Configuration
+    PLAID_CLIENT_ID: z.string().optional(),
+    PLAID_SECRET: z.string().optional(),
+    PLAID_ENVIRONMENT: z.enum(['sandbox', 'development', 'production']).default('sandbox'),
+    PLAID_WEBHOOK_URL: z.string().url().optional(),
 
     // Redis/Cache Configuration
     REDIS_URL: z.string().optional(),

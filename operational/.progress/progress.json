@@ -1,0 +1,909 @@
+{
+  "generatedAt": "2026-01-29T13:27:10.056Z",
+  "ecosystem": {
+    "totalServices": 8,
+    "averageProgress": 50,
+    "waypointsComplete": 26,
+    "waypointsTotal": 56,
+    "coverageScore": 38,
+    "healthyServices": 8
+  },
+  "services": [
+    {
+      "service": "@ecosystem/contracts-legal",
+      "version": "0.1.0",
+      "description": "Contract lifecycle management with legal compliance",
+      "phase": "5-build",
+      "progress": {
+        "percentage": 70,
+        "status": "in-progress"
+      },
+      "waypoints": [
+        {
+          "id": "WP1",
+          "name": "schema-design",
+          "status": "complete",
+          "completedAt": "2026-01-15"
+        },
+        {
+          "id": "WP2",
+          "name": "customer-contracts",
+          "status": "complete",
+          "completedAt": "2026-01-20"
+        },
+        {
+          "id": "WP3",
+          "name": "vendor-contracts",
+          "status": "complete",
+          "completedAt": "2026-01-22"
+        },
+        {
+          "id": "WP4",
+          "name": "templates-obligations",
+          "status": "complete",
+          "completedAt": "2026-01-25"
+        },
+        {
+          "id": "WP5",
+          "name": "legal-operations",
+          "status": "in-progress"
+        },
+        {
+          "id": "WP6",
+          "name": "compliance-integration",
+          "status": "pending"
+        },
+        {
+          "id": "WP7",
+          "name": "testing",
+          "status": "pending"
+        }
+      ],
+      "modules": [
+        {
+          "name": "customer-contracts",
+          "coverage": "deep",
+          "notes": "Full CRUD, lifecycle states, parties, obligations"
+        },
+        {
+          "name": "vendor-contracts",
+          "coverage": "deep",
+          "notes": "Similar to customer, vendor-specific fields"
+        },
+        {
+          "name": "employment-contracts",
+          "coverage": "solid",
+          "notes": "Implemented, needs testing"
+        },
+        {
+          "name": "contract-templates",
+          "coverage": "solid",
+          "notes": "Template management, variable substitution"
+        },
+        {
+          "name": "contract-obligations",
+          "coverage": "solid",
+          "notes": "Obligation tracking, deadline alerts"
+        },
+        {
+          "name": "litigation-matters",
+          "coverage": "surface",
+          "notes": "Basic CRUD, discovery models missing"
+        },
+        {
+          "name": "real-estate",
+          "coverage": "solid",
+          "notes": "Lease management implemented"
+        },
+        {
+          "name": "contract-lifecycle",
+          "coverage": "stub",
+          "notes": "Constants only, needs implementation"
+        }
+      ],
+      "dependencies": {
+        "database": "migrated",
+        "messaging": "none",
+        "external": []
+      },
+      "health": {
+        "runnable": true,
+        "tests": "none",
+        "linting": "warnings",
+        "typecheck": "clean"
+      },
+      "lastUpdated": "2026-01-29",
+      "updatedBy": "claude-code",
+      "notes": "Most mature domain service. Strong foundation.\n8 research documents with detailed implementation recommendations.\nMissing: event publishing, compliance endpoint, tests.\n"
+    },
+    {
+      "service": "@ecosystem/data-privacy",
+      "version": "0.1.0",
+      "description": "GDPR compliance and data subject rights management",
+      "phase": "5-build",
+      "progress": {
+        "percentage": 37,
+        "status": "in-progress"
+      },
+      "waypoints": [
+        {
+          "id": "WP1",
+          "name": "consent-management",
+          "status": "complete",
+          "completedAt": "2026-01-29"
+        },
+        {
+          "id": "WP2",
+          "name": "data-subject-rights",
+          "status": "complete",
+          "completedAt": "2026-01-29"
+        },
+        {
+          "id": "WP3",
+          "name": "breach-management",
+          "status": "complete",
+          "completedAt": "2026-01-29"
+        },
+        {
+          "id": "WP4",
+          "name": "privacy-impact",
+          "status": "pending"
+        },
+        {
+          "id": "WP5",
+          "name": "data-inventory",
+          "status": "pending"
+        },
+        {
+          "id": "WP6",
+          "name": "vendor-privacy",
+          "status": "pending"
+        },
+        {
+          "id": "WP7",
+          "name": "cross-border-transfer",
+          "status": "pending"
+        },
+        {
+          "id": "WP8",
+          "name": "privacy-program",
+          "status": "pending"
+        }
+      ],
+      "modules": [
+        {
+          "name": "consent-management",
+          "coverage": "deep",
+          "notes": "Full CRUD + withdraw + entity/subject queries"
+        },
+        {
+          "name": "data-subject-rights",
+          "coverage": "deep",
+          "notes": "DSAR workflow with 30-day deadline tracking, activity logging"
+        },
+        {
+          "name": "breach-management",
+          "coverage": "deep",
+          "notes": "72-hour notification, severity assessment, containment workflow"
+        },
+        {
+          "name": "privacy-impact",
+          "coverage": "stub",
+          "notes": "Schema exists in Prisma, API not implemented"
+        },
+        {
+          "name": "data-inventory",
+          "coverage": "gap"
+        },
+        {
+          "name": "vendor-privacy",
+          "coverage": "gap"
+        },
+        {
+          "name": "cross-border-transfer",
+          "coverage": "gap"
+        },
+        {
+          "name": "privacy-program",
+          "coverage": "gap"
+        }
+      ],
+      "dependencies": {
+        "database": "migrated",
+        "messaging": "publisher",
+        "external": []
+      },
+      "health": {
+        "runnable": true,
+        "tests": "none",
+        "linting": "warnings",
+        "typecheck": "warnings"
+      },
+      "lastUpdated": "2026-01-29",
+      "updatedBy": "claude-code",
+      "notes": "MVP COMPLETE - Core GDPR features operational.\nCore 3 modules (consent, DSAR, breach) fully implemented with:\n- Event publishing to RabbitMQ\n- Compliance status endpoint for gateway aggregation\n- Entity-scoped queries\n5 modules pending for full domain backbone.\n"
+    },
+    {
+      "service": "@ecosystem/insurance",
+      "version": "0.1.0",
+      "description": "Corporate insurance portfolio and claims management",
+      "phase": "2-assess",
+      "progress": {
+        "percentage": 5,
+        "status": "not-started"
+      },
+      "waypoints": [
+        {
+          "id": "WP1",
+          "name": "schema-design",
+          "status": "pending",
+          "blockedBy": "Need to define Prisma schema for 40+ entity types"
+        },
+        {
+          "id": "WP2",
+          "name": "policy-management",
+          "status": "pending"
+        },
+        {
+          "id": "WP3",
+          "name": "claims-management",
+          "status": "pending"
+        },
+        {
+          "id": "WP4",
+          "name": "coi-generation",
+          "status": "pending"
+        },
+        {
+          "id": "WP5",
+          "name": "compliance-integration",
+          "status": "pending"
+        },
+        {
+          "id": "WP6",
+          "name": "carrier-integration",
+          "status": "pending"
+        }
+      ],
+      "modules": [
+        {
+          "name": "policy-management",
+          "coverage": "gap",
+          "notes": "40+ entity types documented in README, none implemented"
+        },
+        {
+          "name": "claims-management",
+          "coverage": "gap",
+          "notes": "Core feature not implemented"
+        },
+        {
+          "name": "general-liability",
+          "coverage": "gap"
+        },
+        {
+          "name": "professional-liability",
+          "coverage": "gap"
+        },
+        {
+          "name": "property-insurance",
+          "coverage": "gap"
+        },
+        {
+          "name": "workers-compensation",
+          "coverage": "gap"
+        },
+        {
+          "name": "cyber-insurance",
+          "coverage": "gap"
+        },
+        {
+          "name": "product-liability",
+          "coverage": "gap"
+        }
+      ],
+      "dependencies": {
+        "database": "none",
+        "messaging": "none",
+        "external": [
+          {
+            "name": "carrier-apis",
+            "status": "pending"
+          },
+          {
+            "name": "broker-systems",
+            "status": "pending"
+          }
+        ]
+      },
+      "health": {
+        "runnable": true,
+        "tests": "none",
+        "linting": "clean",
+        "typecheck": "clean"
+      },
+      "lastUpdated": "2026-01-29",
+      "updatedBy": "claude-code",
+      "notes": "STUB ONLY - Health endpoint is the only functionality.\nComprehensive README documents 8 subdomains and 40+ entity types.\nNo Prisma schema exists yet.\nHIGH PRIORITY for implementation.\n"
+    },
+    {
+      "service": "@ecosystem/intellectual-property",
+      "version": "0.1.0",
+      "description": "Patent, trademark, copyright, and license management",
+      "phase": "5-build",
+      "progress": {
+        "percentage": 55,
+        "status": "in-progress"
+      },
+      "waypoints": [
+        {
+          "id": "WP1",
+          "name": "cqrs-architecture",
+          "status": "complete",
+          "completedAt": "2026-01-10"
+        },
+        {
+          "id": "WP2",
+          "name": "patent-aggregate",
+          "status": "complete",
+          "completedAt": "2026-01-12"
+        },
+        {
+          "id": "WP3",
+          "name": "trademark-aggregate",
+          "status": "complete",
+          "completedAt": "2026-01-14"
+        },
+        {
+          "id": "WP4",
+          "name": "copyright-aggregate",
+          "status": "complete",
+          "completedAt": "2026-01-16"
+        },
+        {
+          "id": "WP5",
+          "name": "license-aggregate",
+          "status": "complete",
+          "completedAt": "2026-01-18"
+        },
+        {
+          "id": "WP6",
+          "name": "trade-secrets",
+          "status": "pending",
+          "blockedBy": "Entity doesn't exist, referenced by License"
+        },
+        {
+          "id": "WP7",
+          "name": "deadline-management",
+          "status": "pending",
+          "blockedBy": "Maintenance fees, Section 8/9 not tracked"
+        },
+        {
+          "id": "WP8",
+          "name": "route-handler-wiring",
+          "status": "pending",
+          "blockedBy": "Routes bypass CQRS handlers"
+        }
+      ],
+      "modules": [
+        {
+          "name": "patents",
+          "coverage": "solid",
+          "notes": "Full DDD implementation with CQRS, routes bypass handlers"
+        },
+        {
+          "name": "trademarks",
+          "coverage": "solid",
+          "notes": "Full DDD implementation"
+        },
+        {
+          "name": "copyrights",
+          "coverage": "solid",
+          "notes": "Full implementation"
+        },
+        {
+          "name": "licenses",
+          "coverage": "solid",
+          "notes": "Full implementation, references non-existent TradeSecret"
+        },
+        {
+          "name": "trade-secrets",
+          "coverage": "gap",
+          "notes": "CRITICAL GAP - entity doesn't exist but is referenced"
+        },
+        {
+          "name": "deadline-tracking",
+          "coverage": "surface",
+          "notes": "Basic dates only, no fee schedules or Section 8/9"
+        },
+        {
+          "name": "patent-families",
+          "coverage": "gap",
+          "notes": "Research exists, no implementation"
+        },
+        {
+          "name": "pct-workflow",
+          "coverage": "gap",
+          "notes": "Research exists, no implementation"
+        }
+      ],
+      "dependencies": {
+        "database": "migrated",
+        "messaging": "none",
+        "external": []
+      },
+      "health": {
+        "runnable": true,
+        "tests": "none",
+        "linting": "warnings",
+        "typecheck": "warnings"
+      },
+      "lastUpdated": "2026-01-29",
+      "updatedBy": "claude-code",
+      "notes": "Only domain using CQRS pattern - well-architected.\n22 research documents with detailed legal requirements.\nCRITICAL: Trade Secret entity missing but referenced by License.\nRoutes currently bypass CQRS handlers (tech debt).\n100% deadline compliance is stated mission but infrastructure incomplete.\n"
+    },
+    {
+      "service": "@ecosystem/gateway",
+      "version": "0.1.0",
+      "description": "Cross-operational aggregation and routing gateway",
+      "phase": "5-build",
+      "progress": {
+        "percentage": 65,
+        "status": "in-progress"
+      },
+      "waypoints": [
+        {
+          "id": "WP1",
+          "name": "core-routing",
+          "status": "complete",
+          "completedAt": "2026-01-20"
+        },
+        {
+          "id": "WP2",
+          "name": "domain-fan-out",
+          "status": "complete",
+          "completedAt": "2026-01-22"
+        },
+        {
+          "id": "WP3",
+          "name": "entity-overview",
+          "status": "complete",
+          "completedAt": "2026-01-28"
+        },
+        {
+          "id": "WP4",
+          "name": "compliance-aggregation",
+          "status": "complete",
+          "completedAt": "2026-01-28"
+        },
+        {
+          "id": "WP5",
+          "name": "authorization",
+          "status": "pending",
+          "blockedBy": "Auth model not designed"
+        },
+        {
+          "id": "WP6",
+          "name": "rate-limiting",
+          "status": "pending"
+        },
+        {
+          "id": "WP7",
+          "name": "api-documentation",
+          "status": "pending"
+        }
+      ],
+      "modules": [
+        {
+          "name": "routing",
+          "coverage": "deep",
+          "notes": "Entity-scoped routing to all domains"
+        },
+        {
+          "name": "aggregation",
+          "coverage": "solid",
+          "notes": "Partial failure handling works"
+        },
+        {
+          "name": "domain-clients",
+          "coverage": "solid",
+          "notes": "HTTP clients for all 4 domains"
+        },
+        {
+          "name": "compliance-view",
+          "coverage": "solid",
+          "notes": "Real data from data-privacy, others use mocks"
+        },
+        {
+          "name": "authorization",
+          "coverage": "gap",
+          "notes": "No auth middleware"
+        },
+        {
+          "name": "rate-limiting",
+          "coverage": "gap",
+          "notes": "Package installed, not configured"
+        },
+        {
+          "name": "api-docs",
+          "coverage": "gap",
+          "notes": "OpenAPI package installed, not configured"
+        }
+      ],
+      "dependencies": {
+        "database": "none",
+        "messaging": "none",
+        "external": [
+          {
+            "name": "contracts-legal",
+            "status": "healthy"
+          },
+          {
+            "name": "data-privacy",
+            "status": "healthy"
+          },
+          {
+            "name": "insurance",
+            "status": "healthy"
+          },
+          {
+            "name": "intellectual-property",
+            "status": "healthy"
+          }
+        ]
+      },
+      "health": {
+        "runnable": true,
+        "tests": "none",
+        "linting": "warnings",
+        "typecheck": "warnings"
+      },
+      "lastUpdated": "2026-01-29",
+      "updatedBy": "claude-code",
+      "notes": "Central aggregation point for all operational queries.\nEntity overview returns unified view across all 4 domains.\nCompliance aggregation working with real data from data-privacy.\nMissing: authorization, rate limiting, API documentation.\n"
+    },
+    {
+      "service": "@ecosystem/workflow-engine",
+      "version": "0.1.0",
+      "description": "Cross-domain workflow orchestration with saga pattern",
+      "phase": "5-build",
+      "progress": {
+        "percentage": 70,
+        "status": "in-progress"
+      },
+      "waypoints": [
+        {
+          "id": "WP1",
+          "name": "yaml-parsing",
+          "status": "complete",
+          "completedAt": "2026-01-15"
+        },
+        {
+          "id": "WP2",
+          "name": "dependency-resolution",
+          "status": "complete",
+          "completedAt": "2026-01-18"
+        },
+        {
+          "id": "WP3",
+          "name": "execution-engine",
+          "status": "complete",
+          "completedAt": "2026-01-20"
+        },
+        {
+          "id": "WP4",
+          "name": "rabbitmq-integration",
+          "status": "complete",
+          "completedAt": "2026-01-28"
+        },
+        {
+          "id": "WP5",
+          "name": "event-triggered-workflows",
+          "status": "complete",
+          "completedAt": "2026-01-28"
+        },
+        {
+          "id": "WP6",
+          "name": "domain-action-handlers",
+          "status": "pending",
+          "blockedBy": "Domains need to implement action endpoints"
+        },
+        {
+          "id": "WP7",
+          "name": "compensation-flow",
+          "status": "pending"
+        },
+        {
+          "id": "WP8",
+          "name": "persistent-state",
+          "status": "pending"
+        }
+      ],
+      "modules": [
+        {
+          "name": "workflow-definitions",
+          "coverage": "solid",
+          "notes": "YAML parsing with validation, entity-onboarding and breach-response defined"
+        },
+        {
+          "name": "execution-engine",
+          "coverage": "solid",
+          "notes": "Step execution with retry logic"
+        },
+        {
+          "name": "event-subscription",
+          "coverage": "deep",
+          "notes": "RabbitMQ subscriber connected, listens to domain events"
+        },
+        {
+          "name": "domain-actions",
+          "coverage": "stub",
+          "notes": "Action handler interfaces defined, implementations pending"
+        },
+        {
+          "name": "compensation",
+          "coverage": "surface",
+          "notes": "Pattern supported in YAML, not tested"
+        },
+        {
+          "name": "state-persistence",
+          "coverage": "gap",
+          "notes": "In-memory only, needs Redis/DB"
+        }
+      ],
+      "dependencies": {
+        "database": "none",
+        "messaging": "subscriber",
+        "external": [
+          {
+            "name": "rabbitmq",
+            "status": "healthy"
+          },
+          {
+            "name": "contracts-legal",
+            "status": "pending"
+          },
+          {
+            "name": "data-privacy",
+            "status": "pending"
+          },
+          {
+            "name": "insurance",
+            "status": "pending"
+          },
+          {
+            "name": "intellectual-property",
+            "status": "pending"
+          }
+        ]
+      },
+      "health": {
+        "runnable": true,
+        "tests": "none",
+        "linting": "warnings",
+        "typecheck": "warnings"
+      },
+      "lastUpdated": "2026-01-29",
+      "updatedBy": "claude-code",
+      "notes": "Core workflow orchestration operational.\nSubscribes to data-privacy.breach.identified events.\nbreach-response workflow triggers automatically on breach creation.\nDomain action handlers need implementation in each domain.\nState is in-memory only - needs persistence for production.\n"
+    },
+    {
+      "service": "@ecosystem/compliance-aggregator",
+      "version": "0.1.0",
+      "description": "Cross-domain compliance status aggregation",
+      "phase": "5-build",
+      "progress": {
+        "percentage": 50,
+        "status": "in-progress"
+      },
+      "waypoints": [
+        {
+          "id": "WP1",
+          "name": "aggregation-framework",
+          "status": "complete",
+          "completedAt": "2026-01-20"
+        },
+        {
+          "id": "WP2",
+          "name": "regulatory-mappings",
+          "status": "complete",
+          "completedAt": "2026-01-22"
+        },
+        {
+          "id": "WP3",
+          "name": "domain-clients",
+          "status": "in-progress",
+          "blockedBy": "Most domains use mock clients"
+        },
+        {
+          "id": "WP4",
+          "name": "real-time-status",
+          "status": "pending"
+        },
+        {
+          "id": "WP5",
+          "name": "compliance-rules",
+          "status": "pending"
+        },
+        {
+          "id": "WP6",
+          "name": "reporting-integration",
+          "status": "pending"
+        }
+      ],
+      "modules": [
+        {
+          "name": "aggregation",
+          "coverage": "solid",
+          "notes": "Collects compliance status from all domains"
+        },
+        {
+          "name": "regulatory-mapping",
+          "coverage": "surface",
+          "notes": "GDPR mapping exists, others needed"
+        },
+        {
+          "name": "domain-clients",
+          "coverage": "surface",
+          "notes": "data-privacy has real endpoint, others mock"
+        },
+        {
+          "name": "rule-evaluation",
+          "coverage": "gap",
+          "notes": "Always returns 'compliant' currently"
+        },
+        {
+          "name": "caching",
+          "coverage": "gap",
+          "notes": "No caching of compliance status"
+        }
+      ],
+      "dependencies": {
+        "database": "none",
+        "messaging": "none",
+        "external": [
+          {
+            "name": "contracts-legal",
+            "status": "pending"
+          },
+          {
+            "name": "data-privacy",
+            "status": "healthy"
+          },
+          {
+            "name": "insurance",
+            "status": "pending"
+          },
+          {
+            "name": "intellectual-property",
+            "status": "pending"
+          }
+        ]
+      },
+      "health": {
+        "runnable": true,
+        "tests": "none",
+        "linting": "warnings",
+        "typecheck": "clean"
+      },
+      "lastUpdated": "2026-01-29",
+      "updatedBy": "claude-code",
+      "notes": "Aggregates compliance status across all operational domains.\ndata-privacy returns real compliance data.\nOther domains still using mock clients.\nRule evaluation logic needs implementation for accurate status.\n"
+    },
+    {
+      "service": "@ecosystem/operational-reporting",
+      "version": "0.1.0",
+      "description": "Cross-operational reporting and export service",
+      "phase": "5-build",
+      "progress": {
+        "percentage": 45,
+        "status": "in-progress"
+      },
+      "waypoints": [
+        {
+          "id": "WP1",
+          "name": "report-framework",
+          "status": "complete",
+          "completedAt": "2026-01-18"
+        },
+        {
+          "id": "WP2",
+          "name": "pdf-generation",
+          "status": "complete",
+          "completedAt": "2026-01-20"
+        },
+        {
+          "id": "WP3",
+          "name": "excel-export",
+          "status": "complete",
+          "completedAt": "2026-01-22"
+        },
+        {
+          "id": "WP4",
+          "name": "scheduled-reports",
+          "status": "in-progress"
+        },
+        {
+          "id": "WP5",
+          "name": "distribution",
+          "status": "pending",
+          "blockedBy": "Email, Slack, webhook not implemented"
+        },
+        {
+          "id": "WP6",
+          "name": "s3-storage",
+          "status": "pending"
+        }
+      ],
+      "modules": [
+        {
+          "name": "report-definitions",
+          "coverage": "solid",
+          "notes": "YAML-based report definitions"
+        },
+        {
+          "name": "pdf-generation",
+          "coverage": "solid",
+          "notes": "pdf-lib integration working"
+        },
+        {
+          "name": "excel-export",
+          "coverage": "solid",
+          "notes": "exceljs integration working"
+        },
+        {
+          "name": "scheduling",
+          "coverage": "surface",
+          "notes": "Cron scheduling, generates but doesn't distribute"
+        },
+        {
+          "name": "distribution",
+          "coverage": "gap",
+          "notes": "TODO: email, slack, webhook"
+        },
+        {
+          "name": "storage",
+          "coverage": "gap",
+          "notes": "S3 package installed, not configured"
+        }
+      ],
+      "dependencies": {
+        "database": "none",
+        "messaging": "none",
+        "external": [
+          {
+            "name": "s3",
+            "status": "pending"
+          },
+          {
+            "name": "ses",
+            "status": "pending"
+          }
+        ]
+      },
+      "health": {
+        "runnable": true,
+        "tests": "none",
+        "linting": "warnings",
+        "typecheck": "clean"
+      },
+      "lastUpdated": "2026-01-29",
+      "updatedBy": "claude-code",
+      "notes": "Generates reports in PDF and Excel formats.\nScheduling works but distribution not implemented.\nReports go nowhere currently - need email/S3 integration.\n"
+    }
+  ],
+  "byPhase": {
+    "5-build": [
+      "@ecosystem/contracts-legal",
+      "@ecosystem/data-privacy",
+      "@ecosystem/intellectual-property",
+      "@ecosystem/gateway",
+      "@ecosystem/workflow-engine",
+      "@ecosystem/compliance-aggregator",
+      "@ecosystem/operational-reporting"
+    ],
+    "2-assess": [
+      "@ecosystem/insurance"
+    ]
+  },
+  "blockers": []
+}

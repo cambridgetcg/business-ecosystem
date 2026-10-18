@@ -1,0 +1,94 @@
+# Workflow Engine Service Status
+# Last Updated: 2026-01-29
+
+service: "@ecosystem/workflow-engine"
+version: "0.1.0"
+description: "Cross-domain workflow orchestration with saga pattern"
+
+phase: "5-build"
+
+progress:
+  percentage: 70
+  status: "in-progress"
+
+waypoints:
+  - id: "WP1"
+    name: "yaml-parsing"
+    status: "complete"
+    completedAt: "2026-01-15"
+  - id: "WP2"
+    name: "dependency-resolution"
+    status: "complete"
+    completedAt: "2026-01-18"
+  - id: "WP3"
+    name: "execution-engine"
+    status: "complete"
+    completedAt: "2026-01-20"
+  - id: "WP4"
+    name: "rabbitmq-integration"
+    status: "complete"
+    completedAt: "2026-01-28"
+  - id: "WP5"
+    name: "event-triggered-workflows"
+    status: "complete"
+    completedAt: "2026-01-28"
+  - id: "WP6"
+    name: "domain-action-handlers"
+    status: "pending"
+    blockedBy: "Domains need to implement action endpoints"
+  - id: "WP7"
+    name: "compensation-flow"
+    status: "pending"
+  - id: "WP8"
+    name: "persistent-state"
+    status: "pending"
+
+modules:
+  - name: "workflow-definitions"
+    coverage: "solid"
+    notes: "YAML parsing with validation, entity-onboarding and breach-response defined"
+  - name: "execution-engine"
+    coverage: "solid"
+    notes: "Step execution with retry logic"
+  - name: "event-subscription"
+    coverage: "deep"
+    notes: "RabbitMQ subscriber connected, listens to domain events"
+  - name: "domain-actions"
+    coverage: "stub"
+    notes: "Action handler interfaces defined, implementations pending"
+  - name: "compensation"
+    coverage: "surface"
+    notes: "Pattern supported in YAML, not tested"
+  - name: "state-persistence"
+    coverage: "gap"
+    notes: "In-memory only, needs Redis/DB"
+
+dependencies:
+  database: "none"
+  messaging: "subscriber"
+  external:
+    - name: "rabbitmq"
+      status: "healthy"
+    - name: "contracts-legal"
+      status: "pending"
+    - name: "data-privacy"
+      status: "pending"
+    - name: "insurance"
+      status: "pending"
+    - name: "intellectual-property"
+      status: "pending"
+
+health:
+  runnable: true
+  tests: "none"
+  linting: "warnings"
+  typecheck: "warnings"
+
+lastUpdated: "2026-01-29"
+updatedBy: "claude-code"
+notes: |
+  Core workflow orchestration operational.
+  Subscribes to data-privacy.breach.identified events.
+  breach-response workflow triggers automatically on breach creation.
+  Domain action handlers need implementation in each domain.
+  State is in-memory only - needs persistence for production.

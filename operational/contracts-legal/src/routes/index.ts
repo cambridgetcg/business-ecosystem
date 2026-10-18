@@ -17,6 +17,7 @@ import { createForceMajeureRouter } from './force-majeure.routes.js';
 import { createBreachRouter } from './breach.routes.js';
 import { createRevenueRouter } from './revenue.routes.js';
 import { createCovenantsRouter } from './covenants.routes.js';
+import { lifecycleRoutes } from './lifecycle.routes.js';
 
 export function createRoutes(prisma: PrismaClient) {
   const api = new Hono();
@@ -43,6 +44,9 @@ export function createRoutes(prisma: PrismaClient) {
   // Phase 4: Revenue and Covenants
   api.route('/revenue', createRevenueRouter(prisma));
   api.route('/covenants', createCovenantsRouter(prisma));
+
+  // Contract Lifecycle Management
+  api.route('/lifecycle', lifecycleRoutes);
 
   return api;
 }

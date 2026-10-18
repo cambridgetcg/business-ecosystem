@@ -28,3 +28,18 @@ export type {
   ProjectionHorizon,
   ProjectionAssumption,
 } from './types.js';
+
+// Intercompany eliminations
+export {
+  IntercompanyService,
+  InMemoryIntercompanyDataSource,
+  createIntercompanyService,
+} from './intercompany-service.js';
+
+export type {
+  IntercompanyBalance,
+  IntercompanyType,
+  EliminationResult,
+  EliminationEntry,
+  IIntercompanyDataSource,
+} from './intercompany-service.js';

@@ -6,6 +6,7 @@ import amqplib from 'amqplib';
 import type { Channel, ChannelModel } from 'amqplib';
 import { randomUUID } from 'crypto';
 import { logger } from './logger.js';
+import { messagingConfig, serviceConfig } from '../env.js';
 
 interface DomainEvent<T = unknown> {
   id: string;
@@ -31,7 +32,7 @@ class EventPublisher {
   private readonly url: string;
 
   constructor() {
-    this.url = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
+    this.url = messagingConfig.rabbitMqUrl;
   }
 
   async connect(): Promise<void> {
@@ -127,12 +128,47 @@ export const eventPublisher = new EventPublisher();
 
 // Event type constants
 export const EventTypes = {
+  // Consent Management
+  CONSENT_GIVEN: 'data-privacy.consent.given',
+  CONSENT_WITHDRAWN: 'data-privacy.consent.withdrawn',
+
+  // Data Subject Access Requests
   DSAR_SUBMITTED: 'data-privacy.dsar.submitted',
   DSAR_VERIFIED: 'data-privacy.dsar.verified',
   DSAR_COMPLETED: 'data-privacy.dsar.completed',
+  DSAR_REJECTED: 'data-privacy.dsar.rejected',
+  DSAR_EXTENDED: 'data-privacy.dsar.extended',
+
+  // Breach Management
   BREACH_IDENTIFIED: 'data-privacy.breach.identified',
   BREACH_CONTAINED: 'data-privacy.breach.contained',
   BREACH_AUTHORITY_NOTIFIED: 'data-privacy.breach.authority-notified',
-  CONSENT_GIVEN: 'data-privacy.consent.given',
-  CONSENT_WITHDRAWN: 'data-privacy.consent.withdrawn',
+  BREACH_SUBJECTS_NOTIFIED: 'data-privacy.breach.subjects-notified',
+  BREACH_RESOLVED: 'data-privacy.breach.resolved',
+
+  // Privacy Impact Assessment
+  DPIA_CREATED: 'data-privacy.dpia.created',
+  DPIA_SUBMITTED: 'data-privacy.dpia.submitted',
+  DPIA_APPROVED: 'data-privacy.dpia.approved',
+  DPIA_REJECTED: 'data-privacy.dpia.rejected',
+
+  // Processing Activities
+  ACTIVITY_CREATED: 'data-privacy.activity.created',
+  ACTIVITY_ACTIVATED: 'data-privacy.activity.activated',
+  ACTIVITY_SUSPENDED: 'data-privacy.activity.suspended',
+  ACTIVITY_ARCHIVED: 'data-privacy.activity.archived',
+
+  // Data Processors
+  PROCESSOR_CREATED: 'data-privacy.processor.created',
+  PROCESSOR_ACTIVATED: 'data-privacy.processor.activated',
+  PROCESSOR_SUSPENDED: 'data-privacy.processor.suspended',
+  PROCESSOR_TERMINATED: 'data-privacy.processor.terminated',
+  PROCESSOR_DPA_RECORDED: 'data-privacy.processor.dpa-recorded',
+
+  // Cross-Border Transfers
+  TRANSFER_CREATED: 'data-privacy.transfer.created',
+  TRANSFER_SUBMITTED: 'data-privacy.transfer.submitted',
+  TRANSFER_APPROVED: 'data-privacy.transfer.approved',
+  TRANSFER_REJECTED: 'data-privacy.transfer.rejected',
+  TRANSFER_SUSPENDED: 'data-privacy.transfer.suspended',
 } as const;

@@ -52,3 +52,19 @@ export {
   type FindAllOptions as DomainNameFindAllOptions,
   type CountFilters as DomainNameCountFilters
 } from './domain-name.repository.js';
+
+// Enforcement Repository
+export {
+  EnforcementRepository,
+  type EnforcementSearchFilters,
+} from './enforcement.repository.js';
+
+// Strategy Repositories (Valuation, FTO, Due Diligence)
+export {
+  IPValuationRepository,
+  type ValuationSearchFilters,
+  FTOAnalysisRepository,
+  type FTOSearchFilters,
+  DueDiligenceRepository,
+  type DDSearchFilters,
+} from './strategy.repository.js';

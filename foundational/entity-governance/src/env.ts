@@ -31,6 +31,10 @@ export const env = createEnv({
     COMPLIANCE_SERVICE_URL: z.string().url().optional(),
     KYC_IDENTITY_SERVICE_URL: z.string().url().optional(),
     BANKING_TREASURY_SERVICE_URL: z.string().url().optional(),
+
+    // Companies House API Configuration
+    COMPANIES_HOUSE_API_KEY: z.string().min(1).optional(), // Required for Companies House integration
+    COMPANIES_HOUSE_API_URL: z.string().url().default('https://api.company-information.service.gov.uk'),
   },
   runtimeEnv: process.env,
 });

@@ -1,0 +1,78 @@
+# Reporting Service Status
+# Last Updated: 2026-01-29
+
+service: "@ecosystem/operational-reporting"
+version: "0.1.0"
+description: "Cross-operational reporting and export service"
+
+phase: "5-build"
+
+progress:
+  percentage: 45
+  status: "in-progress"
+
+waypoints:
+  - id: "WP1"
+    name: "report-framework"
+    status: "complete"
+    completedAt: "2026-01-18"
+  - id: "WP2"
+    name: "pdf-generation"
+    status: "complete"
+    completedAt: "2026-01-20"
+  - id: "WP3"
+    name: "excel-export"
+    status: "complete"
+    completedAt: "2026-01-22"
+  - id: "WP4"
+    name: "scheduled-reports"
+    status: "in-progress"
+  - id: "WP5"
+    name: "distribution"
+    status: "pending"
+    blockedBy: "Email, Slack, webhook not implemented"
+  - id: "WP6"
+    name: "s3-storage"
+    status: "pending"
+
+modules:
+  - name: "report-definitions"
+    coverage: "solid"
+    notes: "YAML-based report definitions"
+  - name: "pdf-generation"
+    coverage: "solid"
+    notes: "pdf-lib integration working"
+  - name: "excel-export"
+    coverage: "solid"
+    notes: "exceljs integration working"
+  - name: "scheduling"
+    coverage: "surface"
+    notes: "Cron scheduling, generates but doesn't distribute"
+  - name: "distribution"
+    coverage: "gap"
+    notes: "TODO: email, slack, webhook"
+  - name: "storage"
+    coverage: "gap"
+    notes: "S3 package installed, not configured"
+
+dependencies:
+  database: "none"
+  messaging: "none"
+  external:
+    - name: "s3"
+      status: "pending"
+    - name: "ses"
+      status: "pending"
+
+health:
+  runnable: true
+  tests: "none"
+  linting: "warnings"
+  typecheck: "clean"
+
+lastUpdated: "2026-01-29"
+updatedBy: "claude-code"
+notes: |
+  Generates reports in PDF and Excel formats.
+  Scheduling works but distribution not implemented.
+  Reports go nowhere currently - need email/S3 integration.

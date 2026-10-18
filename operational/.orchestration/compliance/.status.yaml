@@ -1,0 +1,79 @@
+# Compliance Aggregator Service Status
+# Last Updated: 2026-01-29
+
+service: "@ecosystem/compliance-aggregator"
+version: "0.1.0"
+description: "Cross-domain compliance status aggregation"
+
+phase: "5-build"
+
+progress:
+  percentage: 50
+  status: "in-progress"
+
+waypoints:
+  - id: "WP1"
+    name: "aggregation-framework"
+    status: "complete"
+    completedAt: "2026-01-20"
+  - id: "WP2"
+    name: "regulatory-mappings"
+    status: "complete"
+    completedAt: "2026-01-22"
+  - id: "WP3"
+    name: "domain-clients"
+    status: "in-progress"
+    blockedBy: "Most domains use mock clients"
+  - id: "WP4"
+    name: "real-time-status"
+    status: "pending"
+  - id: "WP5"
+    name: "compliance-rules"
+    status: "pending"
+  - id: "WP6"
+    name: "reporting-integration"
+    status: "pending"
+
+modules:
+  - name: "aggregation"
+    coverage: "solid"
+    notes: "Collects compliance status from all domains"
+  - name: "regulatory-mapping"
+    coverage: "surface"
+    notes: "GDPR mapping exists, others needed"
+  - name: "domain-clients"
+    coverage: "surface"
+    notes: "data-privacy has real endpoint, others mock"
+  - name: "rule-evaluation"
+    coverage: "gap"
+    notes: "Always returns 'compliant' currently"
+  - name: "caching"
+    coverage: "gap"
+    notes: "No caching of compliance status"
+
+dependencies:
+  database: "none"
+  messaging: "none"
+  external:
+    - name: "contracts-legal"
+      status: "pending"
+    - name: "data-privacy"
+      status: "healthy"
+    - name: "insurance"
+      status: "pending"
+    - name: "intellectual-property"
+      status: "pending"
+
+health:
+  runnable: true
+  tests: "none"
+  linting: "warnings"
+  typecheck: "clean"
+
+lastUpdated: "2026-01-29"
+updatedBy: "claude-code"
+notes: |
+  Aggregates compliance status across all operational domains.
+  data-privacy returns real compliance data.
+  Other domains still using mock clients.
+  Rule evaluation logic needs implementation for accurate status.

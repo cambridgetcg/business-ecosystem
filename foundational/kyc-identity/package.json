@@ -17,6 +17,7 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
+    "@ecosystem/messaging": "workspace:*",
     "fastify": "^4.26.0",
     "zod": "^3.22.0",
     "drizzle-orm": "^0.29.0",

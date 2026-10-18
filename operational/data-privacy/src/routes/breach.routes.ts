@@ -249,6 +249,19 @@ export function createBreachRouter(prisma: PrismaClient) {
       notificationMethod: input.notificationMethod,
     }, 'Subjects notified of breach');
 
+    // Publish domain event
+    await eventPublisher.publish(
+      EventTypes.BREACH_SUBJECTS_NOTIFIED,
+      'DataBreach',
+      id,
+      {
+        breachNumber: result.data.breachNumber,
+        affectedCount: result.data.affectedCount,
+        notificationMethod: input.notificationMethod,
+      },
+      input.notifiedBy
+    );
+
     return c.json(result.data);
   });
 
@@ -302,6 +315,19 @@ export function createBreachRouter(prisma: PrismaClient) {
       breachId: id,
       breachNumber: result.data.breachNumber,
     }, 'Breach resolved');
+
+    // Publish domain event
+    await eventPublisher.publish(
+      EventTypes.BREACH_RESOLVED,
+      'DataBreach',
+      id,
+      {
+        breachNumber: result.data.breachNumber,
+        resolvedAt: result.data.resolvedAt,
+        lessonsLearned: result.data.lessonsLearned,
+      },
+      resolvedBy
+    );
 
     return c.json(result.data);
   });

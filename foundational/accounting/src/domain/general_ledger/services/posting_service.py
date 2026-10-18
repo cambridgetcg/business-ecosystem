@@ -9,7 +9,7 @@ Responsibilities:
 2. Verify fiscal period is open
 3. Update entry status to POSTED
 4. Update account balances (denormalized)
-5. Emit domain events for audit trail
+5. Emit domain events for audit trail and ecosystem integration
 
 Research Grounding:
 - docs/research/02-journal-entry-immutability.md (immutability rules)
@@ -25,6 +25,8 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Protocol
 
+import structlog
+
 from src.domain.general_ledger.models.journal_entry import JournalEntry
 from src.domain.general_ledger.models.journal_entry_line import JournalEntryLine, EntryType
 from src.domain.general_ledger.models.posting_status import PostingStatus
@@ -35,6 +37,15 @@ from src.domain.shared.exceptions import (
     InvariantViolationError,
     EntityNotFoundError,
 )
+from src.infrastructure.messaging.events import (
+    JournalEntryPosted,
+    JournalEntryReversed,
+    EventMetadata,
+)
+from src.infrastructure.messaging.publisher import IEventPublisher, InMemoryEventPublisher
+
+
+logger = structlog.get_logger()
 
 
 class JournalEntryRepository(Protocol):
@@ -99,6 +110,7 @@ class PostingService:
     - It makes entries permanent and immutable
     - It updates account balances
     - It creates audit trail records
+    - It emits domain events for ecosystem integration
 
     Once posted, entries CANNOT be modified.
     Corrections are made via reversing entries only.
@@ -110,6 +122,7 @@ class PostingService:
         fiscal_period_repository: FiscalPeriodRepository,
         account_repository: AccountRepository,
         balance_validator: BalanceValidator | None = None,
+        event_publisher: IEventPublisher | None = None,
     ) -> None:
         """
         Initialize the posting service.
@@ -119,11 +132,13 @@ class PostingService:
             fiscal_period_repository: Repository for fiscal periods
             account_repository: Repository for accounts
             balance_validator: Optional custom validator (defaults to standard)
+            event_publisher: Optional event publisher for domain events
         """
         self.journal_entry_repo = journal_entry_repository
         self.fiscal_period_repo = fiscal_period_repository
         self.account_repo = account_repository
         self.balance_validator = balance_validator or BalanceValidator()
+        self.event_publisher = event_publisher or InMemoryEventPublisher()
 
     async def post_entry(
         self,
@@ -191,6 +206,9 @@ class PostingService:
 
         # Step 7: Update period statistics
         await self._update_period_statistics(period, entry)
+
+        # Step 8: Emit domain event for ecosystem integration
+        await self._emit_journal_entry_posted(entry, posted_by)
 
         return PostingResult(
             success=True,
@@ -310,6 +328,79 @@ class PostingService:
         period.total_credits += entry.total_credits
         period.entry_count += 1
         await self.fiscal_period_repo.save(period)
+
+    async def _emit_journal_entry_posted(
+        self, entry: JournalEntry, posted_by: str
+    ) -> None:
+        """
+        Emit JournalEntryPosted domain event.
+
+        This event notifies other services (Tax, Compliance, Banking)
+        that a journal entry has been permanently recorded.
+        """
+        try:
+            event = JournalEntryPosted(
+                entry_id=entry.id,
+                entry_number=entry.entry_number,
+                entry_date=entry.entry_date.isoformat() if entry.entry_date else "",
+                fiscal_period_id=entry.fiscal_period_id,
+                total_debits=str(entry.total_debits),
+                total_credits=str(entry.total_credits),
+                currency_code=entry.currency_code,
+                description=entry.description or "",
+                posted_by=posted_by,
+                metadata=EventMetadata(user_id=posted_by),
+            )
+            await self.event_publisher.publish(event)
+            logger.info(
+                "journal_entry_posted_event_emitted",
+                entry_id=entry.id,
+                entry_number=entry.entry_number,
+                event_id=event.event_id,
+            )
+        except Exception as e:
+            # Log but don't fail the posting - event publishing is best-effort
+            logger.error(
+                "journal_entry_posted_event_failed",
+                entry_id=entry.id,
+                error=str(e),
+            )
+
+    async def _emit_journal_entry_reversed(
+        self,
+        original: JournalEntry,
+        reversal: JournalEntry,
+        reversed_by: str,
+        reason: str,
+    ) -> None:
+        """
+        Emit JournalEntryReversed domain event.
+
+        This event notifies other services that a reversal has occurred.
+        """
+        try:
+            event = JournalEntryReversed(
+                original_entry_id=original.id,
+                original_entry_number=original.entry_number,
+                reversal_entry_id=reversal.id,
+                reversal_entry_number=reversal.entry_number,
+                reversed_by=reversed_by,
+                reason=reason,
+                metadata=EventMetadata(user_id=reversed_by),
+            )
+            await self.event_publisher.publish(event)
+            logger.info(
+                "journal_entry_reversed_event_emitted",
+                original_id=original.id,
+                reversal_id=reversal.id,
+                event_id=event.event_id,
+            )
+        except Exception as e:
+            logger.error(
+                "journal_entry_reversed_event_failed",
+                original_id=original.id,
+                error=str(e),
+            )
 
 
 # Import at bottom for type hints

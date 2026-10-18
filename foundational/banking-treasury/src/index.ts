@@ -2,16 +2,25 @@ import 'reflect-metadata';
 import { buildApp } from './api/rest/app.js';
 import { env } from './env.js';
 import { getPool, closePool } from './infrastructure/database.js';
+import { initializeEventBus, shutdownEventBus } from './infrastructure/messaging/index.js';
 
 async function start(): Promise<void> {
   try {
     // Initialize database connection
     console.log('Initializing database connection...');
-    await getPool();
+    const pool = await getPool();
+
+    // Initialize event bus (optional - graceful degradation if unavailable)
+    await initializeEventBus(env.RABBITMQ_URL, pool);
 
     // Build and start Fastify app
     const app = await buildApp();
-    
+
+    // Graceful shutdown
+    app.addHook('onClose', async () => {
+      await shutdownEventBus();
+    });
+
     await app.listen({ port: env.PORT, host: '0.0.0.0' });
     console.log(`Banking-Treasury service running on http://localhost:${env.PORT}`);
     console.log(`Environment: ${env.NODE_ENV}`);

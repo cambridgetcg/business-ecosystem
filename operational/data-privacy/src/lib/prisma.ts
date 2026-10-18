@@ -4,6 +4,7 @@
 
 import { PrismaClient } from '@prisma/client';
 import { logger } from './logger.js';
+import { serverConfig } from '../env.js';
 
 declare global {
   // eslint-disable-next-line no-var
@@ -18,7 +19,7 @@ export async function initializePrisma(): Promise<PrismaClient> {
 
   logger.info('Initializing Prisma client...');
 
-  const isDev = process.env.NODE_ENV !== 'production';
+  const isDev = serverConfig.isDevelopment;
 
   const client = new PrismaClient({
     log: isDev
