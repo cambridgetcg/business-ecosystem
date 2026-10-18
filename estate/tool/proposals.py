@@ -775,7 +775,9 @@ def rule_p15(q, lock):
 
 def rule_p16(q, curated):
     for note in (curated or {}).get("upstream_notes") or []:
-        owner = note.get("owner") if note.get("owner") in ("kingdom-os", "pr1-owner", "repo", "yu") else "yu"
+        if note.get("status") == "applied":
+            continue  # its owner made the change; the lifecycle keeps a resolved stub
+        owner =note.get("owner") if note.get("owner") in ("kingdom-os", "pr1-owner", "repo", "yu") else "yu"
         q.add("P16", note.get("title") or note.get("id"),
               {"owner": owner, "repo_id": note.get("repo_id"), "file": note.get("file"), "record_id": None,
                "field": note.get("id")},
