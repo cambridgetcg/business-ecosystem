@@ -19,24 +19,48 @@ from src.domain.shared.exceptions import (
     ValidationError,
 )
 from src.infrastructure.persistence.database import get_database
+from src.infrastructure.messaging import create_event_publisher, IEventPublisher
 from src.api.rest.accounts import router as accounts_router
 from src.api.rest.imports import router as imports_router
 from src.api.rest.journal_entries import router as journal_entries_router
+from src.api.rest.reports import router as reports_router
+from src.api.rest.accounts_payable import router as ap_router
+from src.api.rest.accounts_receivable import router as ar_router
 from src.api.rest.middleware import RateLimitMiddleware
 
 
 logger = structlog.get_logger()
 
+# Global event publisher instance
+_event_publisher: IEventPublisher | None = None
+
+
+def get_event_publisher() -> IEventPublisher:
+    """Get the global event publisher instance."""
+    global _event_publisher
+    if _event_publisher is None:
+        _event_publisher = create_event_publisher()
+    return _event_publisher
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager - startup and shutdown."""
+    global _event_publisher
     settings = get_settings()
     logger.info("Starting application", environment=settings.environment)
 
     # Startup
     db = get_database()
     logger.info("Database connection pool initialized")
+
+    # Initialize event publisher
+    _event_publisher = create_event_publisher(settings)
+    logger.info(
+        "Event publisher initialized",
+        provider=settings.messaging.provider,
+        enabled=settings.messaging.enabled,
+    )
 
     yield
 
@@ -128,11 +152,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         }
 
     # Register routers
-    # Register domain routers
     app.include_router(accounts_router, prefix=settings.api_prefix)
     app.include_router(imports_router, prefix=settings.api_prefix)
     app.include_router(journal_entries_router, prefix=settings.api_prefix)
-    # app.include_router(reports_router, prefix=settings.api_prefix)
+    app.include_router(reports_router, prefix=settings.api_prefix)
+    app.include_router(ap_router, prefix=settings.api_prefix)
+    app.include_router(ar_router, prefix=settings.api_prefix)
 
     return app
 

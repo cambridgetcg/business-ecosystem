@@ -7,9 +7,14 @@ import { createApp } from './app.js';
 import { initializePrisma, disconnectPrisma } from './lib/prisma.js';
 import { logger } from './lib/logger.js';
 import { eventPublisher } from './lib/events.js';
+import { serverConfig, serviceConfig } from './env.js';
 
 async function main() {
-  logger.info('Starting Data Privacy service...');
+  logger.info({
+    service: serviceConfig.name,
+    version: serviceConfig.version,
+    env: serverConfig.nodeEnv,
+  }, 'Starting Data Privacy service...');
 
   // Initialize database connection
   const prisma = await initializePrisma();
@@ -21,8 +26,7 @@ async function main() {
   const app = createApp({ prisma });
 
   // Start server
-  const port = parseInt(process.env.PORT || '3012', 10);
-  const host = process.env.HOST || '0.0.0.0';
+  const { port, host } = serverConfig;
 
   const server = serve({
     fetch: app.fetch,
@@ -32,7 +36,8 @@ async function main() {
     logger.info({
       port: info.port,
       host,
-      env: process.env.NODE_ENV || 'development',
+      env: serverConfig.nodeEnv,
+      version: serviceConfig.version,
     }, `Data-Privacy service running at http://${host}:${info.port}`);
   });
 

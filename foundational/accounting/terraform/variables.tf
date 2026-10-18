@@ -93,3 +93,102 @@ variable "container_port" {
   type        = number
   default     = 8000
 }
+
+# =============================================================================
+# ECS Configuration
+# =============================================================================
+
+variable "ecs_task_cpu" {
+  description = "CPU units for ECS task (256, 512, 1024, 2048, 4096)"
+  type        = number
+  default     = 512
+}
+
+variable "ecs_task_memory" {
+  description = "Memory for ECS task in MB"
+  type        = number
+  default     = 1024
+}
+
+variable "ecs_desired_count" {
+  description = "Desired number of ECS tasks"
+  type        = number
+  default     = 1
+}
+
+variable "ecs_min_capacity" {
+  description = "Minimum number of ECS tasks for auto-scaling"
+  type        = number
+  default     = 1
+}
+
+variable "ecs_max_capacity" {
+  description = "Maximum number of ECS tasks for auto-scaling"
+  type        = number
+  default     = 4
+}
+
+variable "ecs_cpu_target" {
+  description = "Target CPU utilization for auto-scaling"
+  type        = number
+  default     = 70
+}
+
+# =============================================================================
+# ALB Configuration
+# =============================================================================
+
+variable "health_check_path" {
+  description = "Health check path for ALB target group"
+  type        = string
+  default     = "/health"
+}
+
+variable "certificate_arn" {
+  description = "ACM certificate ARN for HTTPS (optional, uses HTTP if not provided)"
+  type        = string
+  default     = ""
+}
+
+variable "allowed_origins" {
+  description = "Allowed origins for CORS"
+  type        = list(string)
+  default     = ["https://app.example.com"]
+}
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+
+variable "log_retention_days" {
+  description = "CloudWatch log retention in days"
+  type        = number
+  default     = 30
+}
+
+# =============================================================================
+# API Configuration
+# =============================================================================
+
+variable "api_keys" {
+  description = "Comma-separated API key:user_id pairs"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+# =============================================================================
+# Redis Configuration
+# =============================================================================
+
+variable "redis_node_type" {
+  description = "ElastiCache node type"
+  type        = string
+  default     = "cache.t3.micro"
+}
+
+variable "redis_auth_token" {
+  description = "Redis AUTH token (min 16 characters)"
+  type        = string
+  sensitive   = true
+}

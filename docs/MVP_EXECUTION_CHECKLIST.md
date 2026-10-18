@@ -22,9 +22,9 @@
 
 | # | Task | Location | Status | Blocks |
 |---|------|----------|--------|--------|
-| 1.3 | Repository Pattern | `/shared/libs/repository/` | ⬜ Not started | All data access |
-| 1.1 | Event Bus Broker | `/shared/libs/event-bus/` | ⬜ Not started | All events |
-| 1.2 | Message Queue | `/shared/libs/message-queue/` | ⬜ Not started | Async ops |
+| 1.3 | Repository Pattern | `/shared/libs/repository/` | ✅ Complete | All data access |
+| 1.1 | Event Bus Broker | `/shared/libs/messaging/` | ✅ Complete | All events |
+| 1.2 | Message Queue | `/shared/libs/messaging/` | ✅ Complete (via messaging) | Async ops |
 
 ### 🟠 Priority 2: HIGH (Production Readiness)
 
@@ -52,8 +52,8 @@
 | banking-treasury | 90% | 95% | ✅ Nearly done |
 | contracts-legal | 90% | 95% | ✅ Nearly done |
 | kyc-identity | 85% | 90% | ✅ Nearly done |
-| gateway | 40% | 70% | 🟡 Needs work |
-| entity-governance | 25% | 60% | 🔴 Needs work |
+| gateway | 85% | 90% | ✅ Nearly done |
+| entity-governance | 50% | 60% | ✅ Nearly done |
 
 ---
 

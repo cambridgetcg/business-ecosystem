@@ -3,6 +3,7 @@ import { env } from '../../env.js';
 import { accountRoutes } from './routes/accounts.js';
 import { paymentRoutes } from './routes/payments.js';
 import { treasuryRoutes } from './routes/treasury.js';
+import { approvalRoutes } from './routes/approvals.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const loggerConfig = env.NODE_ENV === 'development' 
@@ -35,6 +36,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(accountRoutes, { prefix: '/api/v1' });
   await app.register(paymentRoutes, { prefix: '/api/v1' });
   await app.register(treasuryRoutes, { prefix: '/api/v1' });
+  await app.register(approvalRoutes, { prefix: '/api/v1' });
 
   // Global error handler
   app.setErrorHandler((error: FastifyError, request: FastifyRequest, reply: FastifyReply) => {

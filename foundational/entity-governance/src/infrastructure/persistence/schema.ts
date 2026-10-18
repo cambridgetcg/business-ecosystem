@@ -94,6 +94,9 @@ export const legalEntities = pgTable('legal_entities', {
   dissolutionDate: timestamp('dissolution_date', { withTimezone: true }),
   taxId: varchar('tax_id', { length: 50 }),
   registrationNumber: varchar('registration_number', { length: 100 }),
+  // Compliance tracking
+  complianceStatus: varchar('compliance_status', { length: 50 }).default('pending'),
+  lastComplianceCheck: timestamp('last_compliance_check', { withTimezone: true }),
   metadata: jsonb('metadata'),
 });
 

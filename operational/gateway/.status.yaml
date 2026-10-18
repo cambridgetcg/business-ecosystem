@@ -1,0 +1,90 @@
+# Gateway Service Status
+# Last Updated: 2026-01-29
+
+service: "@ecosystem/gateway"
+version: "0.1.0"
+description: "Cross-operational aggregation and routing gateway"
+
+phase: "5-build"
+
+progress:
+  percentage: 65
+  status: "in-progress"
+
+waypoints:
+  - id: "WP1"
+    name: "core-routing"
+    status: "complete"
+    completedAt: "2026-01-20"
+  - id: "WP2"
+    name: "domain-fan-out"
+    status: "complete"
+    completedAt: "2026-01-22"
+  - id: "WP3"
+    name: "entity-overview"
+    status: "complete"
+    completedAt: "2026-01-28"
+  - id: "WP4"
+    name: "compliance-aggregation"
+    status: "complete"
+    completedAt: "2026-01-28"
+  - id: "WP5"
+    name: "authorization"
+    status: "pending"
+    blockedBy: "Auth model not designed"
+  - id: "WP6"
+    name: "rate-limiting"
+    status: "pending"
+  - id: "WP7"
+    name: "api-documentation"
+    status: "pending"
+
+modules:
+  - name: "routing"
+    coverage: "deep"
+    notes: "Entity-scoped routing to all domains"
+  - name: "aggregation"
+    coverage: "solid"
+    notes: "Partial failure handling works"
+  - name: "domain-clients"
+    coverage: "solid"
+    notes: "HTTP clients for all 4 domains"
+  - name: "compliance-view"
+    coverage: "solid"
+    notes: "Real data from data-privacy, others use mocks"
+  - name: "authorization"
+    coverage: "gap"
+    notes: "No auth middleware"
+  - name: "rate-limiting"
+    coverage: "gap"
+    notes: "Package installed, not configured"
+  - name: "api-docs"
+    coverage: "gap"
+    notes: "OpenAPI package installed, not configured"
+
+dependencies:
+  database: "none"
+  messaging: "none"
+  external:
+    - name: "contracts-legal"
+      status: "healthy"
+    - name: "data-privacy"
+      status: "healthy"
+    - name: "insurance"
+      status: "healthy"
+    - name: "intellectual-property"
+      status: "healthy"
+
+health:
+  runnable: true
+  tests: "none"
+  linting: "warnings"
+  typecheck: "warnings"
+
+lastUpdated: "2026-01-29"
+updatedBy: "claude-code"
+notes: |
+  Central aggregation point for all operational queries.
+  Entity overview returns unified view across all 4 domains.
+  Compliance aggregation working with real data from data-privacy.
+  Missing: authorization, rate limiting, API documentation.

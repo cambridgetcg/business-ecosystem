@@ -1,11 +1,12 @@
 /**
- * contract-lifecycle Domain
- * 
- * TODO: Implement following the customer-contracts pattern:
- * - validators.ts: Zod schemas for input validation
- * - repository.ts: Data access layer with Prisma
- * - service.ts: Business logic
+ * Contract Lifecycle Domain
+ *
+ * Handles contract state transitions, renewal workflows, and lifecycle events
  */
 
+export * from './validators.js';
+export * from './repository.js';
+export * from './service.js';
+
 export const DOMAIN_NAME = 'contract-lifecycle';
-export const DOMAIN_STATUS = 'stub';
+export const DOMAIN_STATUS = 'complete';

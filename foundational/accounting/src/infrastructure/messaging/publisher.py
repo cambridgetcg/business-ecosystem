@@ -275,3 +275,55 @@ class CompositeEventPublisher:
         """Publish batch to all registered publishers."""
         for event in events:
             await self.publish(event)
+
+
+def create_event_publisher(settings=None) -> IEventPublisher:
+    """
+    Factory function to create the appropriate event publisher.
+
+    Based on configuration, returns:
+    - InMemoryEventPublisher for testing/development
+    - SNSEventPublisher for AWS production
+    - CompositeEventPublisher for logging + production
+
+    Args:
+        settings: Optional settings (uses get_settings() if not provided)
+
+    Returns:
+        Configured event publisher instance
+    """
+    from src.config import get_settings
+    import structlog
+
+    settings = settings or get_settings()
+    logger = structlog.get_logger()
+
+    if not settings.messaging.enabled:
+        logger.info("Event publishing disabled, using no-op publisher")
+        return InMemoryEventPublisher()
+
+    publishers: list[IEventPublisher] = []
+
+    # Always add logging in non-production
+    if not settings.is_production:
+        publishers.append(LoggingEventPublisher(logger))
+
+    # Add the primary publisher based on provider
+    if settings.messaging.provider == "sns":
+        from src.infrastructure.messaging.sns_publisher import SNSEventPublisher
+        publishers.append(SNSEventPublisher(settings))
+        logger.info("Using SNS event publisher", topic_arn=settings.messaging.sns_topic_arn)
+
+    elif settings.messaging.provider == "rabbitmq":
+        # Future: Add RabbitMQ publisher
+        logger.warning("RabbitMQ publisher not yet implemented, using in-memory")
+        publishers.append(InMemoryEventPublisher())
+
+    else:  # in_memory
+        publishers.append(InMemoryEventPublisher())
+        logger.info("Using in-memory event publisher")
+
+    if len(publishers) == 1:
+        return publishers[0]
+
+    return CompositeEventPublisher(publishers)

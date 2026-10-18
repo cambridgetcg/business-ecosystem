@@ -59,6 +59,74 @@ export abstract class AggregateRoot extends Entity {
   public get domainEvents(): ReadonlyArray<DomainEvent> {
     return this._domainEvents;
   }
+
+  /**
+   * Get uncommitted domain events without clearing them.
+   * Useful for testing to inspect events before committing.
+   */
+  public getUncommittedEvents(): DomainEvent[] {
+    return [...this._domainEvents];
+  }
+
+  /**
+   * Clear all uncommitted domain events.
+   * Useful for testing to reset event state between assertions.
+   */
+  public clearEvents(): void {
+    this._domainEvents = [];
+  }
+}
+
+/**
+ * Props-based aggregate root for entities that use the props pattern.
+ * Used by entities like EnforcementMatter that store state in a props object.
+ */
+export abstract class PropsAggregateRoot<T extends { id: string }> {
+  protected readonly props: T;
+  private _domainEvents: DomainEvent[] = [];
+
+  protected constructor(props: T) {
+    this.props = props;
+  }
+
+  public get id(): string {
+    return this.props.id;
+  }
+
+  protected addDomainEvent(event: DomainEvent): void {
+    this._domainEvents.push(event);
+  }
+
+  public pullDomainEvents(): DomainEvent[] {
+    const events = [...this._domainEvents];
+    this._domainEvents = [];
+    return events;
+  }
+
+  public get domainEvents(): ReadonlyArray<DomainEvent> {
+    return this._domainEvents;
+  }
+
+  /**
+   * Get uncommitted domain events without clearing them.
+   * Useful for testing to inspect events before committing.
+   */
+  public getUncommittedEvents(): DomainEvent[] {
+    return [...this._domainEvents];
+  }
+
+  /**
+   * Clear all uncommitted domain events.
+   * Useful for testing to reset event state between assertions.
+   */
+  public clearEvents(): void {
+    this._domainEvents = [];
+  }
+
+  public equals(other: PropsAggregateRoot<T>): boolean {
+    if (!(other instanceof PropsAggregateRoot)) return false;
+    return this.props.id === other.props.id;
+  }
 }
 
 export abstract class ValueObject<T> {

@@ -5,6 +5,7 @@ import { getPool } from '../../../infrastructure/database.js';
 import { eventPublisher } from '../../../infrastructure/aws/event-publisher.js';
 import { env } from '../../../env.js';
 import type { PaymentMethod } from '../../../types/index.js';
+import { ApprovalService } from '../../../services/approval/index.js';
 
 const initiatePaymentSchema = z.object({
   transactionId: z.string().uuid(),
@@ -24,70 +25,114 @@ const processPaymentSchema = z.object({
   reason: z.string().max(500).optional(),
 });
 
+const approvalService = new ApprovalService();
+
 export async function paymentRoutes(app: FastifyInstance): Promise<void> {
-  
+
   // Initiate a new payment
   app.post('/payments', async (request: FastifyRequest, reply: FastifyReply) => {
     const body = initiatePaymentSchema.parse(request.body);
     const pool = await getPool();
     const client = await pool.connect();
-    
+
     try {
       await client.query('BEGIN');
-      
+
       const paymentId = randomUUID();
       const now = new Date();
-      
-      // Insert payment record
+
+      // Get entity ID for approval check (from source account or use a default entity)
+      let entityId: string | undefined;
+      if (body.sourceAccountId) {
+        const accountResult = await client.query(
+          'SELECT entity_id FROM banking.bank_accounts WHERE id = $1',
+          [body.sourceAccountId]
+        );
+        entityId = accountResult.rows[0]?.entity_id;
+      }
+
+      // Check if approval is required for this payment
+      const approvalCheck = await approvalService.checkApprovalRequired(
+        body.amount.value,
+        body.amount.currency,
+        entityId || 'default',
+        body.method
+      );
+
+      const initialStatus = approvalCheck.requiresApproval ? 'pending_approval' : 'pending';
+
+      // Insert payment record with appropriate initial status
       await client.query(`
         INSERT INTO banking.payments (
-          id, transaction_id, amount_value, amount_currency, method, 
-          invoice_id, status, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7, $7)
-      `, [paymentId, body.transactionId, body.amount.value, body.amount.currency, 
-          body.method, body.invoiceId, now]);
-      
+          id, transaction_id, amount_value, amount_currency, method,
+          invoice_id, status, created_at, updated_at, metadata
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8, $9)
+      `, [paymentId, body.transactionId, body.amount.value, body.amount.currency,
+          body.method, body.invoiceId, initialStatus, now,
+          JSON.stringify({ source_account_id: body.sourceAccountId })]);
+
       // Insert transaction record
       await client.query(`
         INSERT INTO banking.transactions (
           id, entity_id, type, status, amount_value, amount_currency,
           description, source_account_id, destination_account_id, created_at, updated_at
-        ) VALUES ($1, $2, 'payment', 'pending', $3, $4, $5, $6, $7, $8, $8)
-      `, [body.transactionId, randomUUID(), body.amount.value, body.amount.currency,
+        ) VALUES ($1, $2, 'payment', $3, $4, $5, $6, $7, $8, $9, $9)
+      `, [body.transactionId, entityId || randomUUID(), initialStatus, body.amount.value, body.amount.currency,
           body.description, body.sourceAccountId, body.destinationAccountId, now]);
-      
+
       // Audit log
       await client.query(`
         INSERT INTO banking.audit_log (entity_type, entity_id, action, occurred_at, changes)
         VALUES ('Payment', $1, 'created', $2, $3)
-      `, [paymentId, now, JSON.stringify({ amount: body.amount, method: body.method })]);
-      
+      `, [paymentId, now, JSON.stringify({
+        amount: body.amount,
+        method: body.method,
+        requiresApproval: approvalCheck.requiresApproval,
+        matchedPolicy: approvalCheck.matchedPolicy?.name,
+      })]);
+
       await client.query('COMMIT');
-      
+
+      // Create approval workflow if required (after commit to ensure payment exists)
+      let approval = null;
+      if (approvalCheck.requiresApproval && approvalCheck.matchedPolicy) {
+        approval = await approvalService.createApproval(paymentId, approvalCheck.matchedPolicy);
+      }
+
       // Publish event
       if (env.ENABLE_EVENT_PUBLISHING) {
         await eventPublisher.publish({
-          type: 'payment.initiated',
+          type: approvalCheck.requiresApproval ? 'payment.pending_approval' : 'payment.initiated',
           aggregateId: paymentId,
           aggregateType: 'Payment',
           payload: {
             transactionId: body.transactionId,
             amount: body.amount,
             method: body.method,
+            requiresApproval: approvalCheck.requiresApproval,
+            approvalId: approval?.id,
           },
           occurredAt: now,
         });
       }
-      
+
       return reply.status(201).send({
         id: paymentId,
         transactionId: body.transactionId,
-        status: 'pending',
+        status: initialStatus,
         amount: body.amount,
         method: body.method,
         createdAt: now,
+        approval: approval ? {
+          id: approval.id,
+          status: approval.status,
+          currentLevel: approval.currentLevel,
+          totalLevels: approval.totalLevels,
+          expiresAt: approval.expiresAt,
+          policyName: approvalCheck.matchedPolicy?.name,
+        } : undefined,
       });
-      
+
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;

@@ -281,3 +281,181 @@ export const routingDecisions = pgTable(
     selectedRailIdx: index('idx_routing_decisions_selected_rail').on(table.selectedRailId),
   })
 );
+
+// =============================================================================
+// AUDIT & COMPLIANCE TABLES
+// =============================================================================
+
+/**
+ * Audit Log Table
+ * Immutable log of all significant actions for compliance and debugging
+ */
+export const auditLog = pgTable(
+  'audit_log',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    entityType: varchar('entity_type', { length: 50 }).notNull(),
+    entityId: uuid('entity_id').notNull(),
+    action: varchar('action', { length: 50 }).notNull(),
+    actorId: uuid('actor_id'),
+    actorType: varchar('actor_type', { length: 30 }).default('user'),
+    occurredAt: timestamp('occurred_at').notNull().defaultNow(),
+    previousState: jsonb('previous_state'),
+    newState: jsonb('new_state'),
+    changes: jsonb('changes'),
+    metadata: jsonb('metadata'),
+    ipAddress: varchar('ip_address', { length: 45 }),
+    userAgent: varchar('user_agent', { length: 500 }),
+  },
+  (table) => ({
+    entityIdx: index('idx_audit_log_entity').on(table.entityType, table.entityId),
+    actorIdx: index('idx_audit_log_actor').on(table.actorId),
+    actionIdx: index('idx_audit_log_action').on(table.action),
+    occurredAtIdx: index('idx_audit_log_occurred_at').on(table.occurredAt),
+  })
+);
+
+// =============================================================================
+// PAYMENT APPROVAL TABLES
+// =============================================================================
+
+/**
+ * Approval Policies Table
+ * Defines when payments require approval based on amount, entity, or other criteria
+ */
+export const approvalPolicies = pgTable(
+  'approval_policies',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: varchar('name', { length: 200 }).notNull(),
+    entityId: uuid('entity_id'),
+    minAmount: decimal('min_amount', { precision: 20, scale: 2 }).notNull(),
+    maxAmount: decimal('max_amount', { precision: 20, scale: 2 }),
+    currency: varchar('currency', { length: 3 }),
+    paymentMethod: varchar('payment_method', { length: 50 }),
+    requiredLevels: integer('required_levels').notNull().default(1),
+    approversPerLevel: jsonb('approvers_per_level').notNull(),
+    priority: integer('priority').notNull().default(0),
+    isActive: boolean('is_active').notNull().default(true),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    createdBy: uuid('created_by'),
+  },
+  (table) => ({
+    entityIdx: index('idx_approval_policies_entity').on(table.entityId),
+    activeIdx: index('idx_approval_policies_active').on(table.isActive),
+    priorityIdx: index('idx_approval_policies_priority').on(table.priority),
+  })
+);
+
+/**
+ * Payment Approvals Table
+ * Tracks approval workflow state for payments requiring approval
+ */
+export const paymentApprovals = pgTable(
+  'payment_approvals',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    paymentId: uuid('payment_id').notNull().references(() => payments.id),
+    policyId: uuid('policy_id').notNull().references(() => approvalPolicies.id),
+    currentLevel: integer('current_level').notNull().default(1),
+    totalLevels: integer('total_levels').notNull(),
+    status: varchar('status', { length: 20 }).notNull().default('pending'),
+    expiresAt: timestamp('expires_at'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    completedAt: timestamp('completed_at'),
+  },
+  (table) => ({
+    paymentIdx: index('idx_payment_approvals_payment').on(table.paymentId),
+    statusIdx: index('idx_payment_approvals_status').on(table.status),
+    expiresIdx: index('idx_payment_approvals_expires').on(table.expiresAt),
+  })
+);
+
+/**
+ * Approval Decisions Table
+ * Individual approval/rejection decisions within an approval workflow
+ */
+export const approvalDecisions = pgTable(
+  'approval_decisions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    approvalId: uuid('approval_id').notNull().references(() => paymentApprovals.id),
+    level: integer('level').notNull(),
+    approverId: uuid('approver_id').notNull(),
+    decision: varchar('decision', { length: 20 }).notNull(),
+    reason: varchar('reason', { length: 500 }),
+    decidedAt: timestamp('decided_at').notNull().defaultNow(),
+    metadata: jsonb('metadata'),
+  },
+  (table) => ({
+    approvalIdx: index('idx_approval_decisions_approval').on(table.approvalId),
+    approverIdx: index('idx_approval_decisions_approver').on(table.approverId),
+    levelIdx: index('idx_approval_decisions_level').on(table.level),
+  })
+);
+
+// =============================================================================
+// FORECAST ACCURACY TABLES
+// =============================================================================
+
+/**
+ * Forecast Accuracy Table
+ * Tracks forecast predictions vs actual outcomes for MAPE calculation
+ */
+export const forecastAccuracy = pgTable(
+  'forecast_accuracy',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    forecastId: uuid('forecast_id').notNull().references(() => cashForecasts.id),
+    measurementDate: timestamp('measurement_date').notNull(),
+    horizonDays: integer('horizon_days').notNull(),
+    forecastedAmount: decimal('forecasted_amount', { precision: 20, scale: 2 }).notNull(),
+    actualAmount: decimal('actual_amount', { precision: 20, scale: 2 }).notNull(),
+    absoluteError: decimal('absolute_error', { precision: 20, scale: 2 }).notNull(),
+    percentageError: decimal('percentage_error', { precision: 8, scale: 4 }).notNull(),
+    currency: varchar('currency', { length: 3 }).notNull(),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    forecastIdx: index('idx_forecast_accuracy_forecast').on(table.forecastId),
+    dateIdx: index('idx_forecast_accuracy_date').on(table.measurementDate),
+    horizonIdx: index('idx_forecast_accuracy_horizon').on(table.horizonDays),
+  })
+);
+
+// =============================================================================
+// BANK CONNECTIVITY TABLES
+// =============================================================================
+
+/**
+ * Bank Connections Table
+ * Stores bank connection configurations (Plaid, direct API, SFTP)
+ */
+export const bankConnections = pgTable(
+  'bank_connections',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    bankAccountId: uuid('bank_account_id').references(() => bankAccounts.id),
+    provider: varchar('provider', { length: 50 }).notNull(),
+    connectionType: varchar('connection_type', { length: 30 }).notNull(),
+    status: varchar('status', { length: 20 }).notNull().default('pending'),
+    accessToken: varchar('access_token', { length: 500 }),
+    itemId: varchar('item_id', { length: 200 }),
+    institutionId: varchar('institution_id', { length: 100 }),
+    institutionName: varchar('institution_name', { length: 200 }),
+    lastSyncAt: timestamp('last_sync_at'),
+    lastSyncStatus: varchar('last_sync_status', { length: 20 }),
+    syncErrorMessage: varchar('sync_error_message', { length: 500 }),
+    capabilities: jsonb('capabilities').default([]),
+    metadata: jsonb('metadata'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+    expiresAt: timestamp('expires_at'),
+  },
+  (table) => ({
+    bankAccountIdx: index('idx_bank_connections_account').on(table.bankAccountId),
+    providerIdx: index('idx_bank_connections_provider').on(table.provider),
+    statusIdx: index('idx_bank_connections_status').on(table.status),
+  })
+);

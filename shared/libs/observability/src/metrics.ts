@@ -92,3 +92,8 @@ export async function shutdownMetrics(): Promise<void> {
 }
 
 export { Counter, Histogram, Gauge, Meter };
+
+// Type exports
+export type HttpMetrics = ReturnType<typeof createHttpMetrics>;
+export type DatabaseMetrics = ReturnType<typeof createDatabaseMetrics>;
+export type BusinessMetrics = ReturnType<typeof createBusinessMetrics>;

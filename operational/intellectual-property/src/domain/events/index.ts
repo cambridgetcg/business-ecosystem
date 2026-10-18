@@ -12,3 +12,6 @@ export * from './trade-secret.events.js';
 export * from './patent-family.events.js';
 export * from './maintenance-fee.events.js';
 export * from './domain-name.events.js';
+export * from './enforcement.events.js';
+export * from './strategy.events.js';
+export * from './ecosystem-integration.events.js';

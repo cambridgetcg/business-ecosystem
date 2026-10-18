@@ -1,0 +1,667 @@
+// Insurance Service Prisma Schema
+// PostgreSQL database schema for insurance policy and claims management
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+enum PolicyType {
+  directors_officers
+  professional_indemnity
+  public_liability
+  employers_liability
+  cyber_liability
+  property
+  business_interruption
+  product_liability
+  motor_fleet
+  keyman
+  trade_credit
+  marine_cargo
+  other
+}
+
+enum PolicyStatus {
+  draft
+  quoted
+  bound
+  active
+  expired
+  cancelled
+  lapsed
+  renewed
+  pending_renewal
+}
+
+enum ClaimStatus {
+  draft
+  submitted
+  under_review
+  investigation
+  approved
+  partially_approved
+  denied
+  settled
+  closed
+  reopened
+  withdrawn
+}
+
+enum ClaimType {
+  first_party
+  third_party
+  business_interruption
+  cyber_incident
+  professional_negligence
+  employment_practice
+  product_defect
+  property_damage
+  bodily_injury
+  other
+}
+
+enum PaymentFrequency {
+  annual
+  semi_annual
+  quarterly
+  monthly
+}
+
+enum LimitType {
+  per_occurrence
+  aggregate
+  per_claim
+  per_person
+  any_one_event
+  any_one_period
+}
+
+enum InsurerType {
+  primary
+  excess
+  reinsurer
+  coinsurer
+  captive
+}
+
+enum PriorityLevel {
+  low
+  medium
+  high
+  critical
+}
+
+enum ClaimantType {
+  insured
+  third_party
+  employee
+  customer
+  supplier
+  other
+}
+
+enum PaymentType {
+  indemnity
+  expense
+  defence_cost
+  recovery
+  salvage
+  subrogation
+}
+
+enum PaymentMethod {
+  bank_transfer
+  cheque
+  direct_debit
+  other
+}
+
+enum LitigationStatus {
+  none
+  pre_action
+  filed
+  discovery
+  trial
+  appeal
+  settled
+}
+
+enum SubrogationStatus {
+  none
+  investigating
+  pursuing
+  recovered
+  abandoned
+}
+
+enum DocumentType {
+  policy_wording
+  schedule
+  endorsement
+  certificate
+  claim_form
+  evidence
+  correspondence
+  other
+}
+
+// =============================================================================
+// Insurance Policies
+// =============================================================================
+
+model Policy {
+  id                    String       @id @default(uuid())
+  tenantId              String       @map("tenant_id")
+  entityId              String       @map("entity_id")
+
+  // Policy identification
+  policyNumber          String       @map("policy_number")
+  externalPolicyNumber  String?      @map("external_policy_number")
+  policyType            PolicyType   @map("policy_type")
+  status                PolicyStatus @default(draft)
+
+  // Policy details
+  policyName            String       @map("policy_name")
+  description           String?
+
+  // Period
+  inceptionDate         DateTime     @map("inception_date")
+  expiryDate            DateTime     @map("expiry_date")
+  retroactiveDate       DateTime?    @map("retroactive_date")
+
+  // Broker
+  brokerId              String?      @map("broker_id")
+  brokerReference       String?      @map("broker_reference")
+
+  // Total limits
+  totalLimitAmount      Float        @map("total_limit_amount")
+  totalLimitCurrency    String       @default("GBP") @map("total_limit_currency")
+  totalDeductibleAmount Float?       @map("total_deductible_amount")
+  totalDeductibleCurrency String?    @map("total_deductible_currency")
+
+  // Premium
+  grossPremiumAmount    Float?       @map("gross_premium_amount")
+  grossPremiumCurrency  String?      @map("gross_premium_currency")
+  iptAmount             Float?       @map("ipt_amount")
+  brokerFeeAmount       Float?       @map("broker_fee_amount")
+  netPremiumAmount      Float?       @map("net_premium_amount")
+  paymentFrequency      PaymentFrequency? @map("payment_frequency")
+  isPremiumPaid         Boolean      @default(false) @map("is_premium_paid")
+  premiumPaidAt         DateTime?    @map("premium_paid_at")
+
+  // Risk assessment
+  riskScore             Float?       @map("risk_score")
+  riskLevel             PriorityLevel? @map("risk_level")
+  riskAssessment        Json?        @map("risk_assessment")
+
+  // Renewal
+  renewalOfPolicyId     String?      @map("renewal_of_policy_id")
+  renewedByPolicyId     String?      @map("renewed_by_policy_id")
+  autoRenewal           Boolean      @default(false) @map("auto_renewal")
+  renewalReminderDays   Int          @default(60) @map("renewal_reminder_days")
+
+  // Territorial scope
+  territorialLimits     String[]     @map("territorial_limits")
+  jurisdictionOfCourts  String?      @map("jurisdiction_of_courts")
+
+  // Audit
+  metadata              Json?
+  tags                  String[]
+  createdAt             DateTime     @default(now()) @map("created_at")
+  updatedAt             DateTime     @updatedAt @map("updated_at")
+  createdBy             String?      @map("created_by")
+  updatedBy             String?      @map("updated_by")
+  version               Int          @default(1)
+  deletedAt             DateTime?    @map("deleted_at")
+
+  // Relations
+  insurers              PolicyInsurer[]
+  coverages             PolicyCoverage[]
+  endorsements          PolicyEndorsement[]
+  documents             PolicyDocument[]
+  claims                Claim[]
+  premiumInstallments   PremiumInstallment[]
+  renewedFrom           Policy?      @relation("PolicyRenewal", fields: [renewalOfPolicyId], references: [id])
+  renewedTo             Policy?      @relation("PolicyRenewal")
+
+  @@unique([tenantId, policyNumber])
+  @@index([tenantId])
+  @@index([entityId])
+  @@index([status])
+  @@index([policyType])
+  @@index([expiryDate])
+  @@map("policies")
+}
+
+// =============================================================================
+// Policy Insurers (for coinsurance/layered programs)
+// =============================================================================
+
+model PolicyInsurer {
+  id                String      @id @default(uuid())
+  policyId          String      @map("policy_id")
+
+  name              String
+  insurerType       InsurerType @map("insurer_type")
+  sharePercentage   Float       @default(100) @map("share_percentage")
+
+  contactName       String?     @map("contact_name")
+  contactEmail      String?     @map("contact_email")
+  contactPhone      String?     @map("contact_phone")
+  underwriterName   String?     @map("underwriter_name")
+  underwriterEmail  String?     @map("underwriter_email")
+  externalReference String?     @map("external_reference")
+
+  metadata          Json?
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+
+  policy            Policy      @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@index([policyId])
+  @@map("policy_insurers")
+}
+
+// =============================================================================
+// Policy Coverages
+// =============================================================================
+
+model PolicyCoverage {
+  id                    String    @id @default(uuid())
+  policyId              String    @map("policy_id")
+
+  name                  String
+  description           String?
+  limitType             LimitType @map("limit_type")
+  limitAmount           Float     @map("limit_amount")
+  limitCurrency         String    @default("GBP") @map("limit_currency")
+  deductibleAmount      Float?    @map("deductible_amount")
+  deductibleCurrency    String?   @map("deductible_currency")
+  coinsurancePercentage Float?    @map("coinsurance_percentage")
+  sublimits             Json?
+  exclusions            String[]
+  conditions            String[]
+
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  policy                Policy    @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@index([policyId])
+  @@map("policy_coverages")
+}
+
+// =============================================================================
+// Policy Endorsements
+// =============================================================================
+
+model PolicyEndorsement {
+  id              String   @id @default(uuid())
+  policyId        String   @map("policy_id")
+
+  number          String
+  effectiveDate   DateTime @map("effective_date")
+  description     String
+  documentKey     String?  @map("document_key")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  createdBy       String?  @map("created_by")
+
+  policy          Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@index([policyId])
+  @@map("policy_endorsements")
+}
+
+// =============================================================================
+// Policy Documents
+// =============================================================================
+
+model PolicyDocument {
+  id           String       @id @default(uuid())
+  policyId     String       @map("policy_id")
+
+  name         String
+  type         DocumentType
+  storageKey   String       @map("storage_key")
+  fileSize     Int?         @map("file_size")
+  mimeType     String?      @map("mime_type")
+
+  uploadedAt   DateTime     @default(now()) @map("uploaded_at")
+  uploadedBy   String?      @map("uploaded_by")
+
+  policy       Policy       @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@index([policyId])
+  @@map("policy_documents")
+}
+
+// =============================================================================
+// Premium Installments
+// =============================================================================
+
+model PremiumInstallment {
+  id            String    @id @default(uuid())
+  policyId      String    @map("policy_id")
+
+  dueDate       DateTime  @map("due_date")
+  amount        Float
+  currency      String    @default("GBP")
+  paidDate      DateTime? @map("paid_date")
+  paidAmount    Float?    @map("paid_amount")
+  reference     String?
+
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  policy        Policy    @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@index([policyId])
+  @@index([dueDate])
+  @@map("premium_installments")
+}
+
+// =============================================================================
+// Claims
+// =============================================================================
+
+model Claim {
+  id                    String        @id @default(uuid())
+  tenantId              String        @map("tenant_id")
+  entityId              String        @map("entity_id")
+  policyId              String        @map("policy_id")
+
+  // Claim identification
+  claimNumber           String        @map("claim_number")
+  externalClaimNumber   String?       @map("external_claim_number")
+  claimType             ClaimType     @map("claim_type")
+  status                ClaimStatus   @default(draft)
+  priority              PriorityLevel @default(medium)
+
+  // Claim details
+  title                 String
+  description           String
+  incidentDate          DateTime      @map("incident_date")
+  discoveryDate         DateTime      @map("discovery_date")
+  notificationDate      DateTime      @map("notification_date")
+  location              String?
+
+  // Adjuster
+  adjusterId            String?       @map("adjuster_id")
+  adjusterName          String?       @map("adjuster_name")
+  solicitorId           String?       @map("solicitor_id")
+  solicitorName         String?       @map("solicitor_name")
+
+  // Financial - claimed
+  claimedAmount         Float?        @map("claimed_amount")
+  claimedCurrency       String?       @map("claimed_currency")
+
+  // Financial - reserves
+  indemnityReserve      Float         @default(0) @map("indemnity_reserve")
+  expenseReserve        Float         @default(0) @map("expense_reserve")
+  totalReserve          Float         @default(0) @map("total_reserve")
+  reserveCurrency       String        @default("GBP") @map("reserve_currency")
+  lastReserveReviewDate DateTime?     @map("last_reserve_review_date")
+  nextReserveReviewDate DateTime?     @map("next_reserve_review_date")
+
+  // Financial - paid
+  totalPaidAmount       Float         @default(0) @map("total_paid_amount")
+  totalPaidCurrency     String        @default("GBP") @map("total_paid_currency")
+  deductibleApplied     Float?        @map("deductible_applied")
+  recoveriesAmount      Float?        @map("recoveries_amount")
+
+  // Settlement
+  settlementAmount      Float?        @map("settlement_amount")
+  settlementCurrency    String?       @map("settlement_currency")
+  settlementDate        DateTime?     @map("settlement_date")
+  settlementNotes       String?       @map("settlement_notes")
+
+  // Denial
+  denialDate            DateTime?     @map("denial_date")
+  denialReason          String?       @map("denial_reason")
+
+  // Coverage
+  coverageName          String?       @map("coverage_name")
+  coverageConfirmed     Boolean       @default(false) @map("coverage_confirmed")
+  coverageNotes         String?       @map("coverage_notes")
+
+  // Litigation
+  isLitigation          Boolean       @default(false) @map("is_litigation")
+  litigationStatus      LitigationStatus? @map("litigation_status")
+  courtReference        String?       @map("court_reference")
+  trialDate             DateTime?     @map("trial_date")
+
+  // Subrogation
+  subrogationPotential  Boolean       @default(false) @map("subrogation_potential")
+  subrogationStatus     SubrogationStatus? @map("subrogation_status")
+  subrogationTarget     String?       @map("subrogation_target")
+
+  // Assignment
+  handlerId             String?       @map("handler_id")
+  handlerName           String?       @map("handler_name")
+  teamId                String?       @map("team_id")
+
+  // Dates
+  closedDate            DateTime?     @map("closed_date")
+  reopenedDate          DateTime?     @map("reopened_date")
+  lastActivityDate      DateTime?     @map("last_activity_date")
+
+  // Audit
+  metadata              Json?
+  tags                  String[]
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+  createdBy             String?       @map("created_by")
+  updatedBy             String?       @map("updated_by")
+  version               Int           @default(1)
+  deletedAt             DateTime?     @map("deleted_at")
+
+  // Relations
+  policy                Policy        @relation(fields: [policyId], references: [id])
+  claimants             Claimant[]
+  payments              ClaimPayment[]
+  activities            ClaimActivity[]
+  documents             ClaimDocument[]
+  reserveHistory        ClaimReserveHistory[]
+
+  @@unique([tenantId, claimNumber])
+  @@index([tenantId])
+  @@index([entityId])
+  @@index([policyId])
+  @@index([status])
+  @@index([claimType])
+  @@index([incidentDate])
+  @@index([handlerId])
+  @@map("claims")
+}
+
+// =============================================================================
+// Claimants
+// =============================================================================
+
+model Claimant {
+  id                String       @id @default(uuid())
+  claimId           String       @map("claim_id")
+
+  claimantType      ClaimantType @map("claimant_type")
+  name              String
+  email             String?
+  phone             String?
+  address           String?
+  companyName       String?      @map("company_name")
+  solicitorName     String?      @map("solicitor_name")
+  solicitorReference String?     @map("solicitor_reference")
+
+  metadata          Json?
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  claim             Claim        @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
+  @@map("claimants")
+}
+
+// =============================================================================
+// Claim Payments
+// =============================================================================
+
+model ClaimPayment {
+  id              String        @id @default(uuid())
+  claimId         String        @map("claim_id")
+
+  paymentType     PaymentType   @map("payment_type")
+  amount          Float
+  currency        String        @default("GBP")
+  payee           String
+  payeeReference  String?       @map("payee_reference")
+  description     String?
+  paymentDate     DateTime      @map("payment_date")
+  paymentMethod   PaymentMethod? @map("payment_method")
+  reference       String?
+  approvedBy      String?       @map("approved_by")
+  approvedAt      DateTime?     @map("approved_at")
+
+  metadata        Json?
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  claim           Claim         @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
+  @@index([paymentDate])
+  @@map("claim_payments")
+}
+
+// =============================================================================
+// Claim Activities
+// =============================================================================
+
+model ClaimActivity {
+  id            String   @id @default(uuid())
+  claimId       String   @map("claim_id")
+
+  activityType  String   @map("activity_type")
+  description   String
+  details       Json?
+  isInternal    Boolean  @default(true) @map("is_internal")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  createdBy     String?  @map("created_by")
+
+  claim         Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
+  @@index([createdAt])
+  @@map("claim_activities")
+}
+
+// =============================================================================
+// Claim Documents
+// =============================================================================
+
+model ClaimDocument {
+  id           String       @id @default(uuid())
+  claimId      String       @map("claim_id")
+
+  name         String
+  type         DocumentType
+  storageKey   String       @map("storage_key")
+  fileSize     Int?         @map("file_size")
+  mimeType     String?      @map("mime_type")
+
+  uploadedAt   DateTime     @default(now()) @map("uploaded_at")
+  uploadedBy   String?      @map("uploaded_by")
+
+  claim        Claim        @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
+  @@map("claim_documents")
+}
+
+// =============================================================================
+// Claim Reserve History
+// =============================================================================
+
+model ClaimReserveHistory {
+  id              String   @id @default(uuid())
+  claimId         String   @map("claim_id")
+
+  previousTotal   Float    @map("previous_total")
+  newTotal        Float    @map("new_total")
+  reason          String
+  adjustedBy      String?  @map("adjusted_by")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  claim           Claim    @relation(fields: [claimId], references: [id], onDelete: Cascade)
+
+  @@index([claimId])
+  @@map("claim_reserve_history")
+}
+
+// =============================================================================
+// Certificates of Insurance
+// =============================================================================
+
+model CertificateOfInsurance {
+  id                String   @id @default(uuid())
+  tenantId          String   @map("tenant_id")
+  policyId          String   @map("policy_id")
+
+  certificateNumber String   @map("certificate_number")
+  holderName        String   @map("holder_name")
+  holderAddress     String?  @map("holder_address")
+
+  coveragesSummary  Json     @map("coverages_summary")
+  validFrom         DateTime @map("valid_from")
+  validTo           DateTime @map("valid_to")
+
+  documentKey       String?  @map("document_key")
+  issuedAt          DateTime @default(now()) @map("issued_at")
+  issuedBy          String?  @map("issued_by")
+
+  revokedAt         DateTime? @map("revoked_at")
+  revokedReason     String?   @map("revoked_reason")
+
+  metadata          Json?
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@unique([tenantId, certificateNumber])
+  @@index([tenantId])
+  @@index([policyId])
+  @@map("certificates_of_insurance")
+}
+
+// =============================================================================
+// Renewal Reminders
+// =============================================================================
+
+model RenewalReminder {
+  id              String   @id @default(uuid())
+  policyId        String   @map("policy_id")
+
+  reminderDate    DateTime @map("reminder_date")
+  daysBefore      Int      @map("days_before")
+  sentAt          DateTime? @map("sent_at")
+  acknowledged    Boolean  @default(false)
+  acknowledgedBy  String?  @map("acknowledged_by")
+  acknowledgedAt  DateTime? @map("acknowledged_at")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([policyId])
+  @@index([reminderDate])
+  @@map("renewal_reminders")
+}

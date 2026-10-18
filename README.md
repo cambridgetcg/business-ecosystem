@@ -160,6 +160,8 @@ pnpm dev --filter=insurance
 |----------|-------------|
 | [MISSION.md](./docs/MISSION.md) | Mission statement, vision, and values |
 | [BACKBONE.md](./docs/BACKBONE.md) | Architecture guide and app initialization |
+| [BASELINE.md](./docs/BASELINE.md) | Current ecosystem status (zero point reference) |
+| [DEVELOPMENT_ROADMAP.md](./docs/DEVELOPMENT_ROADMAP.md) | Development opportunities and path to purpose |
 | [operational/README.md](./operational/README.md) | Operational layer documentation |
 | [operational/ARCHITECTURE.md](./operational/ARCHITECTURE.md) | Cross-domain patterns and workflows |
 

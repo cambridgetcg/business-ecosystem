@@ -23,6 +23,12 @@ import { createEventPublisher, type EventPublisher } from '../../infrastructure/
 import { legalEntitiesRoutes } from './routes/legal-entities.js';
 import { officerRoutes } from './routes/officers.js';
 import { shareholderRoutes } from './routes/shareholders.js';
+import { filingsRoutes } from './routes/filings.js';
+import { directorsRoutes } from './routes/directors.js';
+import { registeredAgentRoutes } from './routes/registered-agents.js';
+import { shareClassesRoutes } from './routes/share-classes.js';
+import { meetingMinutesRoutes } from './routes/meeting-minutes.js';
+import { resolutionsRoutes } from './routes/resolutions.js';
 
 let rabbitMQPublisher: RabbitMQPublisher | null = null;
 
@@ -210,6 +216,54 @@ export async function buildApp() {
         entityRepository: legalEntityRepository,
         eventPublisher,
       });
+    },
+    { prefix: '/api/v1' }
+  );
+
+  // Filings routes (annual filings, compliance)
+  await app.register(
+    async (instance) => {
+      await filingsRoutes(instance, { db: db as any });
+    },
+    { prefix: '/api/v1' }
+  );
+
+  // Directors/Boards routes
+  await app.register(
+    async (instance) => {
+      await directorsRoutes(instance, { db: db as any });
+    },
+    { prefix: '/api/v1' }
+  );
+
+  // Registered agent routes
+  await app.register(
+    async (instance) => {
+      await registeredAgentRoutes(instance, { db: db as any });
+    },
+    { prefix: '/api/v1' }
+  );
+
+  // Share classes routes
+  await app.register(
+    async (instance) => {
+      await shareClassesRoutes(instance, { db: db as any });
+    },
+    { prefix: '/api/v1' }
+  );
+
+  // Meeting minutes routes
+  await app.register(
+    async (instance) => {
+      await meetingMinutesRoutes(instance, { db: db as any });
+    },
+    { prefix: '/api/v1' }
+  );
+
+  // Resolutions routes
+  await app.register(
+    async (instance) => {
+      await resolutionsRoutes(instance, { db: db as any });
     },
     { prefix: '/api/v1' }
   );

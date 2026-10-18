@@ -284,6 +284,20 @@ export function createDSARRouter(prisma: PrismaClient) {
       reason: input.reason,
     }, 'DSAR deadline extended');
 
+    // Publish domain event
+    await eventPublisher.publish(
+      EventTypes.DSAR_EXTENDED,
+      'DSAR',
+      id,
+      {
+        requestNumber: result.data.requestNumber,
+        originalDeadline: result.data.deadline,
+        extendedDeadline: result.data.extendedDeadline,
+        reason: input.reason,
+      },
+      extendedBy
+    );
+
     return c.json(result.data);
   });
 
@@ -304,6 +318,20 @@ export function createDSARRouter(prisma: PrismaClient) {
     }
 
     logger.warn({ dsarId: id, reason: input.reason }, 'DSAR rejected');
+
+    // Publish domain event
+    await eventPublisher.publish(
+      EventTypes.DSAR_REJECTED,
+      'DSAR',
+      id,
+      {
+        requestNumber: result.data.requestNumber,
+        entityId: result.data.entityId,
+        requestType: result.data.requestType,
+        reason: input.reason,
+      },
+      rejectedBy
+    );
 
     return c.json(result.data);
   });

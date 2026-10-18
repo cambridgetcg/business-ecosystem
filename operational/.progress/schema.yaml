@@ -1,0 +1,282 @@
+# Service Status Schema
+# Version: 1.0.0
+#
+# This schema defines the structure of .status.yaml files used for progress tracking.
+# Each service in the operational ecosystem should have a .status.yaml file
+# following this schema.
+
+# ============================================================================
+# SCHEMA DEFINITION
+# ============================================================================
+
+schema:
+  version: "1.0.0"
+  description: "Service progress tracking metadata"
+
+# ============================================================================
+# FIELD DEFINITIONS
+# ============================================================================
+
+fields:
+  # ---------------------------------------------------------------------------
+  # IDENTITY
+  # ---------------------------------------------------------------------------
+  service:
+    type: string
+    required: true
+    description: "Service name (matches package.json name)"
+    example: "@ecosystem/data-privacy"
+
+  version:
+    type: string
+    required: true
+    description: "Service version (matches package.json version)"
+    example: "0.1.0"
+
+  description:
+    type: string
+    required: true
+    description: "Brief description of service purpose"
+    example: "GDPR compliance and data subject rights management"
+
+  # ---------------------------------------------------------------------------
+  # PROGRESS TRACKING
+  # ---------------------------------------------------------------------------
+  phase:
+    type: enum
+    required: true
+    values:
+      - "1-define"      # Purpose definition
+      - "2-assess"      # Current state assessment
+      - "3-reconnoiter" # Terrain mapping
+      - "4-waypoint"    # Milestone planning
+      - "5-build"       # Construction
+      - "6-operate"     # Production operation
+    description: "Current PATH phase"
+
+  progress:
+    type: object
+    required: true
+    description: "Overall progress metrics"
+    fields:
+      percentage:
+        type: number
+        min: 0
+        max: 100
+        description: "Estimated completion percentage"
+      status:
+        type: enum
+        values:
+          - "not-started"
+          - "in-progress"
+          - "blocked"
+          - "complete"
+        description: "Overall service status"
+
+  # ---------------------------------------------------------------------------
+  # WAYPOINTS (from PATH.md)
+  # ---------------------------------------------------------------------------
+  waypoints:
+    type: array
+    required: true
+    description: "List of PATH waypoints"
+    items:
+      type: object
+      fields:
+        id:
+          type: string
+          description: "Waypoint identifier (e.g., WP1, WP2)"
+        name:
+          type: string
+          description: "Waypoint name"
+        status:
+          type: enum
+          values:
+            - "pending"
+            - "in-progress"
+            - "complete"
+            - "blocked"
+        completedAt:
+          type: date
+          optional: true
+          description: "Completion date (ISO 8601)"
+        blockedBy:
+          type: string
+          optional: true
+          description: "What's blocking this waypoint"
+
+  # ---------------------------------------------------------------------------
+  # MODULES (domain structure)
+  # ---------------------------------------------------------------------------
+  modules:
+    type: array
+    required: true
+    description: "List of domain modules and their coverage"
+    items:
+      type: object
+      fields:
+        name:
+          type: string
+          description: "Module name (e.g., consent-management, breach-management)"
+        coverage:
+          type: enum
+          values:
+            - "gap"       # Not implemented
+            - "stub"      # Scaffolded only
+            - "surface"   # Basic implementation
+            - "solid"     # Good implementation, minor gaps
+            - "deep"      # Complete, well-tested
+          description: "Implementation depth"
+        notes:
+          type: string
+          optional: true
+          description: "Additional context"
+
+  # ---------------------------------------------------------------------------
+  # DEPENDENCIES
+  # ---------------------------------------------------------------------------
+  dependencies:
+    type: object
+    required: false
+    description: "Status of key dependencies"
+    fields:
+      database:
+        type: enum
+        values: ["none", "schema-only", "connected", "migrated"]
+      messaging:
+        type: enum
+        values: ["none", "publisher", "subscriber", "both"]
+      external:
+        type: array
+        description: "External service dependencies"
+        items:
+          type: object
+          fields:
+            name:
+              type: string
+            status:
+              type: enum
+              values: ["not-needed", "pending", "connected", "healthy"]
+
+  # ---------------------------------------------------------------------------
+  # HEALTH
+  # ---------------------------------------------------------------------------
+  health:
+    type: object
+    required: true
+    description: "Service health indicators"
+    fields:
+      runnable:
+        type: boolean
+        description: "Can the service start?"
+      tests:
+        type: enum
+        values: ["none", "failing", "partial", "passing"]
+        description: "Test coverage status"
+      linting:
+        type: enum
+        values: ["none", "errors", "warnings", "clean"]
+        description: "Lint status"
+      typecheck:
+        type: enum
+        values: ["none", "errors", "warnings", "clean"]
+        description: "TypeScript status"
+
+  # ---------------------------------------------------------------------------
+  # METADATA
+  # ---------------------------------------------------------------------------
+  lastUpdated:
+    type: date
+    required: true
+    description: "Last status update (ISO 8601)"
+
+  updatedBy:
+    type: string
+    required: false
+    description: "Who updated the status"
+
+  notes:
+    type: string
+    required: false
+    description: "Free-form notes about current state"
+
+# ============================================================================
+# EXAMPLE
+# ============================================================================
+
+example: |
+  service: "@ecosystem/data-privacy"
+  version: "0.1.0"
+  description: "GDPR compliance and data subject rights management"
+
+  phase: "5-build"
+
+  progress:
+    percentage: 37
+    status: "in-progress"
+
+  waypoints:
+    - id: "WP1"
+      name: "consent-management"
+      status: "complete"
+      completedAt: "2026-01-29"
+    - id: "WP2"
+      name: "data-subject-rights"
+      status: "complete"
+      completedAt: "2026-01-29"
+    - id: "WP3"
+      name: "breach-management"
+      status: "complete"
+      completedAt: "2026-01-29"
+    - id: "WP4"
+      name: "privacy-impact"
+      status: "pending"
+    - id: "WP5"
+      name: "data-inventory"
+      status: "pending"
+    - id: "WP6"
+      name: "vendor-privacy"
+      status: "pending"
+    - id: "WP7"
+      name: "cross-border-transfer"
+      status: "pending"
+    - id: "WP8"
+      name: "privacy-program"
+      status: "pending"
+
+  modules:
+    - name: "consent-management"
+      coverage: "deep"
+      notes: "Full CRUD + withdraw + entity/subject queries"
+    - name: "data-subject-rights"
+      coverage: "deep"
+      notes: "DSAR workflow with 30-day deadline tracking"
+    - name: "breach-management"
+      coverage: "deep"
+      notes: "72-hour notification, severity assessment"
+    - name: "privacy-impact"
+      coverage: "stub"
+      notes: "Schema exists, API not implemented"
+    - name: "data-inventory"
+      coverage: "gap"
+    - name: "vendor-privacy"
+      coverage: "gap"
+    - name: "cross-border-transfer"
+      coverage: "gap"
+    - name: "privacy-program"
+      coverage: "gap"
+
+  dependencies:
+    database: "migrated"
+    messaging: "publisher"
+    external: []
+
+  health:
+    runnable: true
+    tests: "none"
+    linting: "warnings"
+    typecheck: "warnings"
+
+  lastUpdated: "2026-01-29"
+  updatedBy: "claude-code"
+  notes: "Core 3 modules (consent, DSAR, breach) complete. 5 modules pending."
