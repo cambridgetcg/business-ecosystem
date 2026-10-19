@@ -81,8 +81,11 @@ class VocabularyTests(fixture.EstateTestCase):
         self.assertEqual((problems, len(rows)), ([], len(raw)))
         self.assertEqual({r["reviewed"] for r in raw}, {False})
         sale = rows["sale-to-ledger"]
-        self.assertEqual((sale["stage"], sale["code_state"], sale["flow"]), ("designed", "declared", "sale-to-ledger"))
-        self.assertNotIn("demonstrated_by", sale)
+        self.assertEqual((sale["stage"], sale["code_state"], sale["flow"]), ("designed", "wired", "sale-to-ledger"))
+        # W5: it names, as build --forge reads it, the workflow whose green run on main will demonstrate it.
+        self.assertTrue(sources.WORKFLOW_FILE.fullmatch(sale["demonstrated_by"]))
+        self.assertTrue(os.path.isfile(os.path.join(os.path.dirname(fixture.LAYER_DIR), ".github", "workflows",
+                                                    sale["demonstrated_by"])))
         self.assertEqual({r["stage"] for r in rows.values()}, {"designed"})
         for item in rows.values():
             for end in (item["from"], item["to"]):
