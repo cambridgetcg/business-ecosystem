@@ -533,6 +533,12 @@ class RenderInputTests(fixture.EstateTestCase):
         view = render.View({"records": records, "capability": {}}, [], None, None, test_model.VOCAB, None, None, "x", "/")
         self.assertEqual([p["id"] for p, _e in render._holders(view)["goods-sales"]], [G + "trunk"])
         self.assertEqual(field(projects, G + "mirror")["basis"], capability.MIRROR)
+        self.assertEqual(capability.summary(projects, FACETS, rows)["by_value"]["goods-sales"], [G + "trunk"])
+
+    def test_a_private_entry_that_is_not_a_table_is_a_problem_not_a_crash(self):
+        rows, problems = index({"id": G + "shop", "values": ["goods-sales"]}, private=["not a table", None])
+        self.assertEqual(list(rows), [G + "shop"])
+        self.assertEqual(problems, ["capability: a row in private/%s has no id or is not a table" % capability.PRIVATE_FILE] * 2)
 
 
 if __name__ == "__main__":  # pragma: no cover

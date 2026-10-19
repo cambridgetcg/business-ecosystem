@@ -198,12 +198,15 @@ def curated_index(curated, facets):
             continue
         rows[entry["id"]] = entry
     for row in ((curated.get("private") or {}).get("capability") or {}).get("capability") or []:
-        ident = (row or {}).get("id")
+        if not isinstance(row, dict):
+            problems.append("capability: a row in private/%s has no id or is not a table" % PRIVATE_FILE)
+            continue
+        ident = row.get("id")
         if ident in rows:
             if row.get("evidence"):
                 rows[ident]["evidence_full"] = row["evidence"]
             continue
-        if not isinstance(row, dict) or "values" not in row:
+        if "values" not in row:
             continue  # the evidence of a committed row that is no longer there: kept, not a row
         entry, found = check_row(row, voc, "private/" + PRIVATE_FILE)
         problems += found
@@ -342,6 +345,8 @@ def summary(projects, facets, rows=None, problems=(), checks=None):
     fields = {pid: (project.get("display") or {}).get("capability") or {} for pid, project in projects.items()}
     by_value = {value: [] for value in allowed}
     for pid, field in sorted(fields.items()):
+        if field.get("basis") == MIRROR:
+            continue  # a mirror holds its project's values again, as in the atlas
         for value in field.get("values") or []:
             by_value.setdefault(value, []).append(pid)
     checks = checks or {"unmatched": [], "overdue": [], "unreviewed": []}
