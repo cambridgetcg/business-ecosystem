@@ -1,0 +1,20 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "inputs": [
+        "src/**",
+        "tests/**",
+        "fixtures/**",
+        "package.json",
+        "vitest.config.ts",
+        "$TURBO_ROOT$/shared/events/financial-events/conformance/**"
+      ],
+      "passThroughEnv": ["TMPDIR"]
+    }
+  }
+}
