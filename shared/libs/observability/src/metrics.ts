@@ -4,7 +4,7 @@
 
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 import { MeterProvider } from '@opentelemetry/sdk-metrics';
-import { metrics, Counter, Histogram, Gauge, Meter } from '@opentelemetry/api';
+import { metrics, type Counter, type Histogram, type Gauge, type Meter } from '@opentelemetry/api';
 import type { ObservabilityConfig } from './types.js';
 
 let meterProvider: MeterProvider | null = null;
@@ -91,4 +91,4 @@ export async function shutdownMetrics(): Promise<void> {
   await meterProvider?.shutdown();
 }
 
-export { Counter, Histogram, Gauge, Meter };
+export type { Counter, Histogram, Gauge, Meter };

@@ -10,7 +10,7 @@
  * Includes compensation logic for rollback if any step fails.
  */
 
-import pino from 'pino';
+import { pino } from 'pino';
 import type { Logger } from 'pino';
 
 // Local type definitions matching @ecosystem/saga
@@ -29,7 +29,7 @@ export interface SagaDefinition<TPayload = unknown, TContext = unknown> {
   defaultTimeout?: number;
 }
 
-const logger: Logger = (pino as unknown as (options: object) => Logger)({ name: 'entity-onboarding' });
+const logger: Logger = pino({ name: 'entity-onboarding' });
 
 export interface EntityOnboardingPayload {
   name: string;

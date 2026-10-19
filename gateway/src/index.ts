@@ -122,7 +122,7 @@ async function buildGateway() {
     );
 
     const serviceHealth = results.map((r, i) => 
-      r.status === 'fulfilled' ? r.value : { name: services[i].name, status: 'unhealthy' }
+      r.status === 'fulfilled' ? r.value : { name: services[i]?.name ?? 'unknown', status: 'unhealthy' }
     );
 
     const allHealthy = serviceHealth.every(s => s.status === 'healthy');

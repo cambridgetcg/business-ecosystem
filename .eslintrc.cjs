@@ -17,5 +17,6 @@ module.exports = {
     '@typescript-eslint/no-floating-promises': 'error',
     '@typescript-eslint/strict-boolean-expressions': 'warn',
   },
-  ignorePatterns: ['dist', 'node_modules', '*.js', '*.cjs'],
+  // ESLint ignores dot-folders by default; the orchestration packages live in one.
+  ignorePatterns: ['dist', 'node_modules', '*.js', '*.cjs', '!.orchestration'],
 };

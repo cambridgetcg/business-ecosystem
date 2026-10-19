@@ -3,7 +3,7 @@
  * Combines data from all operational domains into unified views
  */
 
-import pino from 'pino';
+import { pino } from 'pino';
 import type { DomainClient } from './domain-client.js';
 import type {
   OperationalDomain,

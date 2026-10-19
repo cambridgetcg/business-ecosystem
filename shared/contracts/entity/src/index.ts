@@ -144,12 +144,18 @@ export type Shareholder = z.infer<typeof shareholderSchema>;
 // Corporate Structure
 // ============================================================================
 
-export const corporateStructureNodeSchema = z.object({
+export interface CorporateStructureNode {
+  entityId: string;
+  name: string;
+  type: EntityType;
+  ownershipPercentage: number;
+  children?: CorporateStructureNode[] | undefined;
+}
+
+export const corporateStructureNodeSchema: z.ZodType<CorporateStructureNode> = z.object({
   entityId: z.string().uuid(),
   name: z.string(),
   type: entityTypeSchema,
   ownershipPercentage: z.number().min(0).max(100),
   children: z.array(z.lazy(() => corporateStructureNodeSchema)).optional(),
 });
-
-export type CorporateStructureNode = z.infer<typeof corporateStructureNodeSchema>;

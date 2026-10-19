@@ -4,7 +4,7 @@
  */
 
 import { randomUUID } from 'crypto';
-import pino from 'pino';
+import { pino } from 'pino';
 import {
   type WorkflowDefinition,
   type WorkflowExecution,

@@ -3,7 +3,7 @@
  * HTTP client for calling operational domain service APIs
  */
 
-import pino from 'pino';
+import { pino } from 'pino';
 import type { DomainClient, DomainActionRequest, DomainActionResult } from './types.js';
 
 const logger = pino({ name: 'domain-client' });

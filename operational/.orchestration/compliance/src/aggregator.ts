@@ -3,7 +3,7 @@
  * Aggregates compliance status from all operational domains
  */
 
-import pino from 'pino';
+import { pino } from 'pino';
 import type {
   EntityComplianceOverview,
   DomainComplianceStatus,
