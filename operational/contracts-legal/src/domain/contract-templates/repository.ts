@@ -2,7 +2,7 @@
  * Contract Templates - Repository
  */
 
-import { PrismaClient, ContractTemplate, TemplateClause, Prisma } from '@prisma/client';
+import { PrismaClient, ContractTemplate, TemplateClause, Prisma } from '#prisma';
 import { TemplateQuery } from './validators.js';
 
 export type TemplateWithClauses = ContractTemplate & { clauses: TemplateClause[] };

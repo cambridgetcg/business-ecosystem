@@ -2,7 +2,7 @@
  * Prisma Client Singleton for Data Privacy Service
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '#prisma';
 import { logger } from './logger.js';
 
 declare global {

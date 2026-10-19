@@ -2,7 +2,7 @@
  * Real Estate - Service Layer
  */
 
-import { Prisma } from '@prisma/client';
+import { Prisma } from '#prisma';
 import { PropertyRepository } from './repository.js';
 import { CreatePropertyInput, UpdatePropertyInput, PropertyQuery } from './validators.js';
 import { NotFoundError } from '../../lib/errors.js';

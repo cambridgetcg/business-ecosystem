@@ -90,15 +90,6 @@
       "exit": "F6; lint exits 0."
     },
     {
-      "package": "@ecosystem/contracts-legal",
-      "task": "typecheck",
-      "reason": "Its Prisma client is never generated, so only the default stub exists: 82 TS2694 and 65 TS2305 missing Prisma types, and 30 implicit any that follow from them.",
-      "first_error": "src/domain/contract-templates/repository.ts(5,24): error TS2305: Module '\"@prisma/client\"' has no exported member 'ContractTemplate'.",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 177,
-      "exit": "F7: generate a client per schema before typecheck and build; typecheck exits 0. Remove with the build entry."
-    },
-    {
       "package": "@ecosystem/data-privacy",
       "task": "typecheck",
       "reason": "Same Prisma cause: the stub client leaves query results unknown (TS2339 x7) and 2 implicit any (TS7006), plus one exactOptionalPropertyTypes error in src/lib/events.ts.",
@@ -124,15 +115,6 @@
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
       "errors": 4,
       "exit": "O1 (outbox defects); typecheck exits 0. Remove with the build entry."
-    },
-    {
-      "package": "@ecosystem/contracts-legal",
-      "task": "build",
-      "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
-      "first_error": "src/domain/contract-templates/repository.ts(5,24): error TS2305: Module '\"@prisma/client\"' has no exported member 'ContractTemplate'.",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 177,
-      "exit": "F7; build exits 0. Remove with the typecheck entry."
     },
     {
       "package": "@ecosystem/data-privacy",

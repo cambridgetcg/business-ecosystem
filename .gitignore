@@ -58,6 +58,8 @@ coverage/
 
 # Generated
 src/**/generated/
+# One Prisma client per schema, written by the package's db:generate script
+**/generated/prisma/
 
 # Docker volumes (if stored locally)
 .docker-data/

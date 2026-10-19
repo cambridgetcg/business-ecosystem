@@ -2,7 +2,7 @@
  * Shared Types for Contracts & Legal Service
  */
 
-import { Contract, Party, Document, ContractTemplate, LegalMatter, Property, EmploymentAgreement } from '@prisma/client';
+import { Contract, Party, Document, ContractTemplate, LegalMatter, Property, EmploymentAgreement } from '#prisma';
 
 // Re-export Prisma types for convenience
 export type { Contract, Party, Document, ContractTemplate, LegalMatter, Property, EmploymentAgreement };

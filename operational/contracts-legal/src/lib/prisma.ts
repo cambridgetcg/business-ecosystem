@@ -5,7 +5,7 @@
  * Includes connection handling for AWS RDS with IAM authentication support.
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '#prisma';
 import { Signer } from '@aws-sdk/rds-signer';
 import { logger } from './logger.js';
 

@@ -2,7 +2,7 @@
  * Real Estate - Repository
  */
 
-import { PrismaClient, Property, Prisma } from '@prisma/client';
+import { PrismaClient, Property, Prisma } from '#prisma';
 import { PropertyQuery } from './validators.js';
 
 export class PropertyRepository {

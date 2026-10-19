@@ -2,7 +2,7 @@
  * Prisma Implementation of DSAR Repository
  */
 
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '#prisma';
 import type { DSARRepository } from '../../domain/data-subject-rights/repositories/dsar.repository.js';
 import type {
   DSARRequest,

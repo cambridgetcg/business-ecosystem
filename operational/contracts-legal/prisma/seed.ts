@@ -4,7 +4,7 @@
  * Seeds the database with sample data for development.
  */
 
-import { PrismaClient, ContractType, ContractStatus, PartyType, PartyRole } from '@prisma/client';
+import { PrismaClient, ContractType, ContractStatus, PartyType, PartyRole } from '#prisma';
 import { faker } from '@faker-js/faker';
 import { createId } from '@paralleldrive/cuid2';
 

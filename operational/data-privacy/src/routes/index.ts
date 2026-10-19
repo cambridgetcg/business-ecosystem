@@ -3,7 +3,7 @@
  */
 
 import { Hono } from 'hono';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '#prisma';
 import { createConsentRouter } from './consent.routes.js';
 import { createDSARRouter } from './dsar.routes.js';
 import { createBreachRouter } from './breach.routes.js';

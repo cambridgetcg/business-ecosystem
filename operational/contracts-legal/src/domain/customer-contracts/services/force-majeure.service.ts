@@ -14,7 +14,7 @@ import {
   FMStatus,
   FMResolution,
   Prisma
-} from '@prisma/client';
+} from '#prisma';
 import { logger } from '../../../lib/logger.js';
 import { NotFoundError, ValidationError } from '../../../lib/errors.js';
 

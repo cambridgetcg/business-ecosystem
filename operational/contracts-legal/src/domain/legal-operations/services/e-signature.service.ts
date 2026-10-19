@@ -5,7 +5,7 @@
  * Captures the four requirements: Intent, Consent, Association, Retention.
  */
 
-import { PrismaClient, SignatureEvent, SignatureType, Prisma } from '@prisma/client';
+import { PrismaClient, SignatureEvent, SignatureType, Prisma } from '#prisma';
 import { logger } from '../../../lib/logger.js';
 import { NotFoundError, ValidationError } from '../../../lib/errors.js';
 

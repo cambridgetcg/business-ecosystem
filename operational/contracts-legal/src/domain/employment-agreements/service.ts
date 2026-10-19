@@ -3,7 +3,7 @@
  */
 
 import { nanoid } from 'nanoid';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '#prisma';
 import { EmploymentRepository } from './repository.js';
 import { CreateEmploymentAgreementInput, UpdateEmploymentAgreementInput, EmploymentQuery, TerminateEmploymentInput } from './validators.js';
 import { NotFoundError, BusinessRuleError } from '../../lib/errors.js';

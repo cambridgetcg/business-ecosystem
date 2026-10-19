@@ -3,7 +3,7 @@
  */
 
 import { nanoid } from 'nanoid';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '#prisma';
 import { LitigationRepository, MatterWithActivities } from './repository.js';
 import { CreateMatterInput, UpdateMatterInput, CloseMatterInput, MatterActivityInput, MatterQuery } from './validators.js';
 import { NotFoundError, BusinessRuleError } from '../../lib/errors.js';

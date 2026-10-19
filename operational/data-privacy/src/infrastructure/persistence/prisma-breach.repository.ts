@@ -2,7 +2,7 @@
  * Prisma Implementation of Breach Repository
  */
 
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '#prisma';
 import type { BreachRepository } from '../../domain/breach-management/repositories/breach.repository.js';
 import type {
   DataBreach,

@@ -2,7 +2,7 @@
  * Litigation / Legal Matters - Repository
  */
 
-import { PrismaClient, LegalMatter, MatterActivity, Prisma, MatterStatus } from '@prisma/client';
+import { PrismaClient, LegalMatter, MatterActivity, Prisma, MatterStatus } from '#prisma';
 import { MatterQuery } from './validators.js';
 
 export type MatterWithActivities = LegalMatter & { activities: MatterActivity[] };
