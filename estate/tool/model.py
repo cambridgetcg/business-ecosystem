@@ -1868,11 +1868,13 @@ class _Join:
     def build_wires(self):
         """Wires on the relation kind (wires.py): the import and manifest edges between package records,
         then every curated [[wire]] row, its anchors re-found in each side's canonical checkout, its
-        code_state and stage measured and compared with its claim. A row whose ends this run holds
-        becomes (or joins) a relation record; one naming an end not built yet is still measured and
+        code_state and stage measured (a demonstrated claim against the workflow run build --forge read,
+        srcs["workflow_runs"]; not read without it) and compared with its claim. A row whose ends this run
+        holds becomes (or joins) a relation record; one naming an end not built yet is still measured and
         shown. QUEUE lists curated wired claims with no consuming code and claims measurement
         contradicts."""
         rows, problems = wires.rows(self.curated)
+        runs = self.srcs.get("workflow_runs")
         edges = wires.measured_edges(self.packages)
         for edge in edges:
             rid = self._relation(edge["from"], "depends_on", edge["to"], edge["basis"],
@@ -1892,7 +1894,7 @@ class _Join:
             row = rows[name]
             unbuilt = {end: (self.packages[end].get("build") or {}).get("unbuilt") for end in (row["from"], row["to"])
                        if end in self.packages}
-            entry = wires.evaluate(row, found_by_repo, unbuilt, decision_ids)
+            entry = wires.evaluate(row, found_by_repo, unbuilt, decision_ids, runs)
             entry["ends"] = {side: self._known_end(row[side]) for side in wires.SIDES}
             entry["id"] = None
             if all(entry["ends"].values()):
@@ -1900,7 +1902,7 @@ class _Join:
                                              row.get("evidence"), "src:curated", row["channel"])
                 relation = self.relations[entry["id"]]
                 relation.update({k: entry[k] for k in ("name", "channel", "anchors", "claimed", "code_state", "reason",
-                                                       "stage", "stage_reason", "verdict")})
+                                                       "stage", "stage_reason", "run", "verdict")})
                 relation.update({k: row[k] for k in wires.META_KEYS if k in row})
             evaluated.append(entry)
             if entry["verdict"] == "unevidenced":
@@ -1910,7 +1912,7 @@ class _Join:
                 self.queue.append({"reason": "wire-differs", "id": name, "detail": "curated %s, %s; measured %s, %s" % (
                     row["code_state"], row["stage"], entry["code_state"], entry["stage"])})
         self._attach_relations()
-        self.wires = wires.summary(evaluated, edges, problems)
+        self.wires = wires.summary(evaluated, edges, problems, runs)
         self.problems += problems
 
     def _curation(self, pid, project):

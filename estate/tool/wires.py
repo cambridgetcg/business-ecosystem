@@ -16,10 +16,11 @@ Two fields, independent of each other. code_state is what the code shows:
   declared       no code consumes it yet (a manifest, a workflow or a document names it), or one side is
                  not built yet (nothing is tracked where its anchors point)
   contradicted   one side has the code and the other side's tracked code does not answer it
-stage is how far it has been shown to work: designed; demonstrated only when the latest run of the
-workflow the row names is read green on main; accepted or active only with the owner decision the row
-names; unknown when the evidence a claimed stage needs cannot be read. Neither says live: in the estate
-that word means observed up.
+stage is how far it has been shown to work: designed; demonstrated only when the latest run on main of
+the workflow the row names (demonstrated_by, in the repository of its consuming side) is read green by
+`build --forge` (read_runs: one allowlisted, read-only gh call per workflow, for host repositories only);
+accepted or active only with the owner decision the row names; unknown when the evidence a claimed stage
+needs cannot be read. Neither says live: in the estate that word means observed up.
 
 A curated row states a claim, the build measures it, and the verdict compares the two. check --wires
 exits 1 when a curated wired claim has no consuming code (unevidenced), and 10 when another curated state
@@ -29,6 +30,7 @@ import re
 from collections import Counter
 
 import packages
+import sources
 
 FILE = "curated/wires.toml"
 CODE_STATES = ("wired", "wired-unbuilt", "declared", "contradicted")
@@ -43,7 +45,6 @@ MEASURED_IMPORT, MEASURED_MANIFEST, CURATED = "measured-import", "measured-manif
 # The keys a row may carry beyond its claim; they are shown, never measured.
 META_KEYS = ("flow", "hop", "decision", "demonstrated_by", "evidence", "source", "reviewed", "as_of", "review_after")
 _NAME = re.compile(r"[a-z0-9][a-z0-9-]*")
-_WORKFLOW = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\.ya?ml")
 
 
 def consumer_side(verb):
@@ -87,7 +88,7 @@ def _row_problems(row):
     if stage not in STAGES or stage == "unknown":
         problems.append("stage must be one of %s" % ", ".join(s for s in STAGES if s != "unknown"))
     if stage == "demonstrated" and not (isinstance(row.get("demonstrated_by"), str)
-                                        and _WORKFLOW.fullmatch(row["demonstrated_by"])):
+                                        and sources.WORKFLOW_FILE.fullmatch(row["demonstrated_by"])):
         problems.append("a demonstrated stage needs demonstrated_by, the workflow file whose runs on main show it")
     if stage in ("accepted", "active") and not isinstance(row.get("decision"), str):
         problems.append("an accepted or active stage needs the owner decision that gives it")
@@ -173,18 +174,71 @@ def measure(row, found, unbuilt):
     return "declared", "no code consumes it yet"
 
 
-def stage_of(row, decision_ids):
-    """(stage, reason): designed as claimed; demonstrated needs a read of the latest run of the workflow
-    the row names, which this version does not make, so it reads unknown; accepted or active as claimed
-    only when the owner decision the row names is in the curation, else unknown."""
+def workflow_repo(row):
+    """The repository whose workflow runs can demonstrate a row: the one holding its consuming side."""
+    return repo_of(row[consumer_side(row["verb"])])
+
+
+def run_key(repo, workflow):
+    return "%s|%s" % (repo, workflow)
+
+
+def read_runs(wire_rows, hosts, allow_network=False, transport=None):
+    """build --forge: the latest run on main of each workflow a row claiming demonstrated names, in
+    the repository of its consuming side (sources.workflow_runs: one read-only gh call per workflow).
+    Only host repositories (a [[host]] row) are read; another repository is refused without a call.
+    None without allow_network, so every demonstrated claim reads unknown."""
+    if allow_network is not True:
+        return None
+    wanted, refused = [], {}
+    for row in wire_rows.values():
+        if row["stage"] != "demonstrated":
+            continue
+        repo, workflow = workflow_repo(row), row["demonstrated_by"]
+        if repo in (hosts or {}):
+            wanted.append((repo, workflow))
+        else:
+            refused[run_key(repo, workflow)] = {"status": "refused", "run": None,
+                                                "reason": "%s is not a host repository ([[host]] row)" % repo}
+    out = sources.workflow_runs(sorted(set(wanted)), allow_network=True, transport=transport)
+    out["runs"].update(refused)
+    if refused:
+        out["status"] = "partial"
+    return out
+
+
+def _run_text(run):
+    return "run %s of %s at %s" % (run["id"], run["created_at"], run["head_sha"][:12])
+
+
+def stage_of(row, decision_ids, runs=None):
+    """(stage, reason, run): designed as claimed; demonstrated when the latest run on main of the workflow
+    the row names was read (runs: read_runs) and is green, designed when it was read red or there is no run
+    on main, unknown when it was not read or is still running; accepted or active as claimed only when
+    the owner decision the row names is in the curation, else unknown. run: the run read, if any."""
     claimed = row["stage"]
     if claimed == "designed":
-        return "designed", None
+        return "designed", None, None
     if claimed == "demonstrated":
-        return "unknown", "the latest run of %s on main was not read" % row.get("demonstrated_by")
+        workflow = row.get("demonstrated_by")
+        if runs is None:
+            return "unknown", "the latest run of %s on main was not read (build --forge reads it)" % workflow, None
+        item = (runs.get("runs") or {}).get(run_key(workflow_repo(row), workflow))
+        if item is None or item.get("status") not in ("read", "none"):
+            return "unknown", "the latest run of %s on main could not be read: %s" % (
+                workflow, (item or {}).get("reason") or "not requested"), None
+        if item["status"] == "none":
+            return "designed", "%s has no run on main" % workflow, None
+        run = item["run"]
+        if run["status"] != "completed":
+            return "unknown", "the latest run of %s on main, %s, is %s" % (workflow, _run_text(run), run["status"]), run
+        if run["conclusion"] == "success":
+            return "demonstrated", "the latest run of %s on main, %s, is green" % (workflow, _run_text(run)), run
+        return "designed", "the latest run of %s on main, %s, concluded %s" % (
+            workflow, _run_text(run), run["conclusion"] or "without a conclusion"), run
     if row.get("decision") in decision_ids:
-        return claimed, "owner decision %s" % row["decision"]
-    return "unknown", "the owner decision %s is not in the curation" % row.get("decision")
+        return claimed, "owner decision %s" % row["decision"], None
+    return "unknown", "the owner decision %s is not in the curation" % row.get("decision"), None
 
 
 def verdict_of(row, code_state, found, stage):
@@ -201,15 +255,15 @@ def verdict_of(row, code_state, found, stage):
     return "differs" if stage != row["stage"] else "agrees"
 
 
-def evaluate(row, found_by_repo, unbuilt, decision_ids):
-    """One curated row measured: its claim beside the measured code_state and stage, the verdict, and
-    every anchor with what this run found."""
+def evaluate(row, found_by_repo, unbuilt, decision_ids, runs=None):
+    """One curated row measured: its claim beside the measured code_state and stage (and the workflow run
+    read for it), the verdict, and every anchor with what this run found."""
     found = sides(row, found_by_repo)
     code_state, reason = measure(row, found, unbuilt)
-    stage, stage_reason = stage_of(row, decision_ids)
+    stage, stage_reason, run = stage_of(row, decision_ids, runs)
     out = {k: row[k] for k in ("name", "from", "verb", "to", "channel")}
     out.update({"claimed": {"code_state": row["code_state"], "stage": row["stage"]}, "code_state": code_state,
-                "reason": reason, "stage": stage, "stage_reason": stage_reason,
+                "reason": reason, "stage": stage, "stage_reason": stage_reason, "run": run,
                 "verdict": verdict_of(row, code_state, found, stage),
                 "anchors": [a for side in SIDES for a in found[side]]})
     out.update({k: row[k] for k in META_KEYS if k in row})
@@ -263,9 +317,13 @@ def flows(evaluated):
     return summary
 
 
-def summary(evaluated, edges, problems):
-    """What the views and check --wires say about wires in one build."""
+def summary(evaluated, edges, problems, runs=None):
+    """What the views and check --wires say about wires in one build; runs: what read_runs read (None
+    when the build did not ask the forge)."""
     return {"rows": evaluated, "flows": flows(evaluated),
+            "runs": None if runs is None else {"status": runs.get("status"), "runs": {
+                key: {k: item.get(k) for k in ("status", "reason", "run")} for key, item in sorted(
+                    (runs.get("runs") or {}).items())}},
             "verdicts": dict(sorted(Counter(r["verdict"] for r in evaluated).items())),
             "measured": {basis: dict(sorted(Counter(e["code_state"] or NOT_MEASURED for e in edges
                                                     if e["basis"] == basis).items()))
@@ -275,7 +333,8 @@ def summary(evaluated, edges, problems):
 
 def _claim_key(row):
     return (row["from"], row["verb"], row["to"], row.get("channel"), row["code_state"] if "code_state" in row else None,
-            row.get("stage"), [(a["side"], a["path"], a["text"]) for a in row.get("anchors") or []])
+            row.get("stage"), row.get("demonstrated_by"), row.get("decision"),
+            [(a["side"], a["path"], a["text"]) for a in row.get("anchors") or []])
 
 
 def check(run_summary, current, problems):

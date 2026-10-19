@@ -1367,12 +1367,20 @@ def _wires(doc, v, level, full=False):
               ", ".join("%s %d" % kv for kv in (measured.get("measured-import") or {}).items()) or "none",
               sum((measured.get("measured-manifest") or {}).values()), len(info.get("rows") or []),
               ", ".join("%s %d" % kv for kv in (info.get("verdicts") or {}).items()) or "none"))
+    runs = info.get("runs")
+    claimed = sum(1 for r in info.get("rows") or [] if r["claimed"]["stage"] == "demonstrated")
+    if runs is not None or claimed:
+        doc.p("Workflow runs on main, read only by build --forge for the wires that claim demonstrated: %s." % (
+            "not read in this build" if runs is None else ", ".join("%s %s" % (key.replace("|", " "), item["status"])
+                                                                   for key, item in (runs.get("runs") or {}).items())
+            or "none asked"))
     rows = sorted(info.get("rows") or [], key=lambda r: (r.get("flow") or "~", r.get("hop") or 0, r["name"]))
     doc.table(("wire", "from", "to", "channel", "claimed", "measured", "stage", "verdict", "flow"),
               [(r["name"], _wire_end(v, r["from"]), _wire_end(v, r["to"]),
                 "%s %s" % (r["channel"]["kind"], r["channel"]["name"]) if r.get("channel") else r["verb"],
                 "%s, %s" % (r["claimed"]["code_state"], r["claimed"]["stage"]), r.get("code_state") or "not measured",
-                r.get("stage"), r["verdict"], "%s %s" % (r["flow"], r.get("hop") or "") if r.get("flow") else "—")
+                "%s (run %s)" % (r.get("stage"), r["run"]["id"]) if r.get("run") else r.get("stage"), r["verdict"],
+                "%s %s" % (r["flow"], r.get("hop") or "") if r.get("flow") else "—")
                for r in rows])
     for flow, item in sorted((info.get("flows") or {}).items()):
         doc.p("Flow %s: %s; its worst hop reads %s, its least stage %s." % (

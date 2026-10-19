@@ -415,8 +415,9 @@ def check_link_slots(area):
 
 
 def merge_gh_listing(srcs, cfg, allowed, now):
-    """--forge: list each configured owner with gh (the only network access) and add the
-    listing to the forge source as the newest one. Returns (summary, [(run relpath, raw)], reasons)."""
+    """--forge: list each configured owner with gh (network access, as is the workflow-run read of
+    wires.read_runs) and add the listing to the forge source as the newest one. Returns (summary,
+    [(run relpath, raw)], reasons)."""
     if not allowed:
         return None, [], []
     owners = (cfg.get("forge") or {}).get("owners") or []
@@ -631,7 +632,15 @@ def build(ctx, args, cfg, cfg_note, lock):
     # The [[host]] rows name the repositories whose packages the canonical checkout reader also reads,
     # and the [[wire]] rows the anchors it re-finds; the join reports the problems of both.
     hosts = packages.host_rows(curated)[0]
-    anchors = wires.anchors_by_repo(wires.rows(curated)[0])
+    wire_rows = wires.rows(curated)[0]
+    anchors = wires.anchors_by_repo(wire_rows)
+    # --forge also reads the latest run on main of each workflow a demonstrated wire names: one
+    # read-only gh call per workflow, for host repositories only. A read that fails degrades the run.
+    runs = wires.read_runs(wire_rows, hosts, args.forge)
+    if runs is not None:
+        srcs["workflow_runs"] = runs
+        reasons += ["workflow run %s via gh: %s (%s)" % (key, item["status"], item["reason"])
+                    for key, item in sorted(runs["runs"].items()) if item["status"] not in ("read", "none")]
     snapshot = model.build_records(census_data, foundation, srcs, curated, vocab, prev["snapshot"], cfg, now=now,
                                    home=ctx.home, repo_reader=functools.partial(model.read_canonical, hosts=hosts,
                                                                                 anchors=anchors))
@@ -1938,7 +1947,9 @@ def make_parser():
     sub = verb("build", cmd_build, "measure, join, render and seal a new run")
     sub.add_argument("--full", action="store_true", help="walk every root at unlimited depth")
     sub.add_argument("--reuse-census", action="store_true", help="reuse the previous census (its age is shown)")
-    sub.add_argument("--forge", action="store_true", help="list forge repositories with gh (network)")
+    sub.add_argument("--forge", action="store_true",
+                     help="list forge repositories with gh, and read the latest run on main of each workflow a "
+                          "demonstrated wire names (network)")
     sub.add_argument("--no-tree", action="store_true", help="skip the symlink tree in this run")
     sub = verb("check", cmd_check, "verify the current run (checksums, age, stale sources) or run one check")
     sub.add_argument("--commit-ready", action="store_true", help="privacy lint and host checks before a commit")

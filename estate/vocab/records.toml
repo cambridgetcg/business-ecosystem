@@ -525,13 +525,16 @@ src = { type = "str", nullable = true }
 at = { type = "iso" }
 # Wires only (tool/wires.py). code_state: what the code shows (null when what decides it was not read);
 # claimed {code_state, stage}: a curated row's claim; stage: measured (designed, demonstrated, accepted,
-# active, unknown); verdict: the claim against measurement; anchors [{side, path, text, found, files}].
+# active, unknown); run: the latest run on main of the workflow a demonstrated claim names, as build --forge
+# read it ({id, status, conclusion, head_sha, event, created_at}; null when not read); verdict: the claim
+# against measurement; anchors [{side, path, text, found, files}].
 name = { type = "str", optional = true }
 code_state = { type = "str", nullable = true, optional = true, enum = "facets:vocab/wire_code_state" }
 reason = { type = "str", nullable = true, optional = true }
 claimed = { type = "dict", optional = true }
 stage = { type = "str", nullable = true, optional = true, enum = "facets:vocab/wire_stage" }
 stage_reason = { type = "str", nullable = true, optional = true }
+run = { type = "dict", nullable = true, optional = true }
 verdict = { type = "str", optional = true, enum = "facets:vocab/wire_verdict" }
 channel = { type = "dict", nullable = true, optional = true }
 anchors = { type = "list", optional = true }
