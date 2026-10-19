@@ -24,7 +24,7 @@
         "file": "operational/contracts-legal/STATUS.md",
         "lines": "14",
         "claim": "Blockers: None",
-        "measured": "Its build, typecheck, lint and test are all quarantined below."
+        "measured": "Its lint (127 errors) and test (no test files) are quarantined below. Its build and typecheck pass since F7."
       },
       {
         "file": "foundational/banking-treasury/STATUS.md",
@@ -47,20 +47,20 @@
     {
       "package": "@ecosystem/contracts-legal",
       "task": "lint",
-      "reason": "Its Prisma client is never generated (no CI step, and both Prisma schemas write one shared @prisma/client copy). Only the default stub client exists, so model types are missing and almost every use is no-unsafe-*.",
-      "first_error": "src/app.ts:20:11 Unsafe array destructuring of a tuple element with an `any` value @typescript-eslint/no-unsafe-assignment",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 1900,
-      "exit": "F7 (one generated client per schema) first, then F8 for what remains; lint exits 0."
+      "reason": "With its own generated Prisma client: no-unsafe-* (106) on untyped request bodies (c.req.json()) and decoded JWT claims, mostly in six route files and the auth middleware; unused variables (16); five others.",
+      "first_error": "src/domain/contract-templates/service.ts:64:64 'userId' is defined but never used. Allowed unused args must match /^_/u @typescript-eslint/no-unused-vars",
+      "measured_at": "5f403eb1cf6f51d15fb1b3f5a733e1f499d0e384",
+      "errors": 127,
+      "exit": "F8; lint exits 0."
     },
     {
       "package": "@ecosystem/data-privacy",
       "task": "lint",
-      "reason": "Same Prisma cause as contracts-legal: almost all errors are no-unsafe-* on missing Prisma model types.",
-      "first_error": "src/app.ts:18:11 Unsafe array destructuring of a tuple element with an `any` value @typescript-eslint/no-unsafe-assignment",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 272,
-      "exit": "F7 first, then F8 for what remains; lint exits 0."
+      "reason": "With its own generated Prisma client: two signal handlers that return promises (no-misused-promises), two any values (the main().catch error, a RabbitMQ error), one require-await, one unused import.",
+      "first_error": "src/domain/breach-management/repositories/breach.repository.ts:13:3 'RemediationStatus' is defined but never used @typescript-eslint/no-unused-vars",
+      "measured_at": "5f403eb1cf6f51d15fb1b3f5a733e1f499d0e384",
+      "errors": 6,
+      "exit": "F8; lint exits 0."
     },
     {
       "package": "@ecosystem/entity-governance",
