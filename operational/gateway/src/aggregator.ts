@@ -49,7 +49,7 @@ export class OperationalAggregator {
     logger.info({ entityId }, 'Fetching entity operational overview');
 
     const domains = includeDomains || 
-      (Array.from(this.domainClients.keys()) as OperationalDomain[]);
+      Array.from(this.domainClients.keys());
 
     // Fetch all data in parallel
     const [domainSummaries, pendingActions, expiringItems, compliance] = await Promise.all([
@@ -107,7 +107,7 @@ export class OperationalAggregator {
     const { entityId, domains, priority, assignee, dueBefore, limit = 100, offset = 0 } = query;
 
     const targetDomains = domains || 
-      (Array.from(this.domainClients.keys()) as OperationalDomain[]);
+      Array.from(this.domainClients.keys());
 
     const promises = targetDomains.map(async (domain) => {
       const client = this.domainClients.get(domain);
@@ -158,7 +158,7 @@ export class OperationalAggregator {
             limit = 100, offset = 0 } = query;
 
     const targetDomains = domains || 
-      (Array.from(this.domainClients.keys()) as OperationalDomain[]);
+      Array.from(this.domainClients.keys());
 
     const promises = targetDomains.map(async (domain) => {
       const client = this.domainClients.get(domain);

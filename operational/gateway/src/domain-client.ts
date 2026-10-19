@@ -132,7 +132,7 @@ export const DEFAULT_DOMAIN_ENDPOINTS: Record<OperationalDomain, string> = {
 };
 
 export function createDomainClients(
-  endpoints: Partial<Record<OperationalDomain, string>> = {}
+  endpoints: Partial<Record<OperationalDomain, string | undefined>> = {}
 ): Map<OperationalDomain, DomainClient> {
   const clients = new Map<OperationalDomain, DomainClient>();
 

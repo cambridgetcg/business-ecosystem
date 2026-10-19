@@ -81,15 +81,6 @@
       "exit": "F8; lint exits 0."
     },
     {
-      "package": "@ecosystem/operational-gateway",
-      "task": "lint",
-      "reason": "Linted for the first time now that its tsconfig extends the real base: unnecessary type assertions (3), no-unsafe-assignment (2), require-await.",
-      "first_error": "src/aggregator.ts:52:8 This assertion is unnecessary since it does not change the type of the expression @typescript-eslint/no-unnecessary-type-assertion",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 6,
-      "exit": "F4; lint exits 0."
-    },
-    {
       "package": "@ecosystem/operational-reporting",
       "task": "lint",
       "reason": "Linted for the first time now that ESLint reaches .orchestration: mostly no-unsafe-* that follow from its undeclared uuid and node-cron imports.",
@@ -115,15 +106,6 @@
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
       "errors": 10,
       "exit": "F7; typecheck exits 0. Remove with the build entry."
-    },
-    {
-      "package": "@ecosystem/operational-gateway",
-      "task": "typecheck",
-      "reason": "Five exactOptionalPropertyTypes errors once its tsconfig extends the real base.",
-      "first_error": "src/index.ts(27,9): error TS2375: Type '{ 'contracts-legal': string | undefined; insurance: string | undefined; 'intellectual-property': string | undefined; 'data-privacy': string | undefined; }' is not assignable to type 'Partial<Record<\"contracts-legal\" | \"insurance\" | \"intellectual-property\" | \"data-privacy\", string>>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 5,
-      "exit": "F4; typecheck exits 0. Remove with the build entry."
     },
     {
       "package": "@ecosystem/operational-reporting",
@@ -160,15 +142,6 @@
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
       "errors": 10,
       "exit": "F7; build exits 0. Remove with the typecheck entry."
-    },
-    {
-      "package": "@ecosystem/operational-gateway",
-      "task": "build",
-      "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
-      "first_error": "src/index.ts(27,9): error TS2375: Type '{ 'contracts-legal': string | undefined; insurance: string | undefined; 'intellectual-property': string | undefined; 'data-privacy': string | undefined; }' is not assignable to type 'Partial<Record<\"contracts-legal\" | \"insurance\" | \"intellectual-property\" | \"data-privacy\", string>>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 5,
-      "exit": "F4; build exits 0. Remove with the typecheck entry."
     },
     {
       "package": "@ecosystem/operational-reporting",

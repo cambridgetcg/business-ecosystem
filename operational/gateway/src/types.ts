@@ -118,28 +118,28 @@ export interface DomainDocument {
 // Query parameters
 export interface EntityOverviewQuery {
   entityId: string;
-  includeDomains?: OperationalDomain[];
-  includeCompliance?: boolean;
-  includePendingActions?: boolean;
-  includeExpiringItems?: boolean;
-  expiringWithinDays?: number;
+  includeDomains?: OperationalDomain[] | undefined;
+  includeCompliance?: boolean | undefined;
+  includePendingActions?: boolean | undefined;
+  includeExpiringItems?: boolean | undefined;
+  expiringWithinDays?: number | undefined;
 }
 
 export interface PendingActionsQuery {
-  entityId?: string;
-  domains?: OperationalDomain[];
-  priority?: 'high' | 'medium' | 'low';
-  assignee?: string;
-  dueBefore?: Date;
-  limit?: number;
-  offset?: number;
+  entityId?: string | undefined;
+  domains?: OperationalDomain[] | undefined;
+  priority?: 'high' | 'medium' | 'low' | undefined;
+  assignee?: string | undefined;
+  dueBefore?: Date | undefined;
+  limit?: number | undefined;
+  offset?: number | undefined;
 }
 
 export interface ExpiringItemsQuery {
-  entityId?: string;
-  domains?: OperationalDomain[];
+  entityId?: string | undefined;
+  domains?: OperationalDomain[] | undefined;
   withinDays: number;
-  renewalRequiredOnly?: boolean;
-  limit?: number;
-  offset?: number;
+  renewalRequiredOnly?: boolean | undefined;
+  limit?: number | undefined;
+  offset?: number | undefined;
 }
