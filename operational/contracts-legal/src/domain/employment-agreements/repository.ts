@@ -2,7 +2,7 @@
  * Employment Agreements - Repository
  */
 
-import { PrismaClient, EmploymentAgreement, Contract, Prisma } from '@prisma/client';
+import { PrismaClient, EmploymentAgreement, Contract, Prisma } from '#prisma';
 import { EmploymentQuery } from './validators.js';
 
 export type EmploymentWithContract = EmploymentAgreement & { contract?: Contract };

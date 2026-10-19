@@ -8,7 +8,7 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '#prisma';
 import { createDomainLogger } from '../lib/logger.js';
 import { eventPublisher, EventTypes } from '../lib/events.js';
 import { DSARService } from '../domain/data-subject-rights/index.js';

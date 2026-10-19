@@ -3,7 +3,7 @@
  */
 
 import { Hono } from 'hono';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '#prisma';
 import { createContractsRouter } from './contracts.routes.js';
 import { createVendorsRouter } from './vendors.routes.js';
 import { createEmploymentRouter } from './employment.routes.js';

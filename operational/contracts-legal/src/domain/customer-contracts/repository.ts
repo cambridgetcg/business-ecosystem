@@ -2,7 +2,7 @@
  * Customer Contracts - Repository
  */
 
-import { PrismaClient, Contract, ContractParty, Prisma } from '@prisma/client';
+import { PrismaClient, Contract, ContractParty, Prisma } from '#prisma';
 import { ContractQuery } from './validators.js';
 
 export type ContractWithParties = Contract & { parties: ContractParty[] };

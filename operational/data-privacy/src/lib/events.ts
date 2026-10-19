@@ -17,7 +17,7 @@ interface DomainEvent<T = unknown> {
     correlationId: string;
     source: string;
     timestamp: Date;
-    userId?: string;
+    userId?: string | undefined;
   };
   occurredAt: Date;
   version: number;

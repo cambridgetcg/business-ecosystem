@@ -6,7 +6,7 @@
 
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '#prisma';
 import { requestId, requestLogger, errorHandler, notFoundHandler, auditTrail } from './middleware/index.js';
 import { createRoutes } from './routes/index.js';
 import { checkDatabaseHealth } from './lib/prisma.js';

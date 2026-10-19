@@ -4,7 +4,7 @@
 
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { PrismaClient, SignatureType } from '@prisma/client';
+import { PrismaClient, SignatureType } from '#prisma';
 import { z } from 'zod';
 import { createESignatureService } from '../domain/legal-operations/services/e-signature.service.js';
 import { authenticate, requirePermissions } from '../middleware/index.js';

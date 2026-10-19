@@ -2,7 +2,7 @@
  * Legal Operations - Repository
  */
 
-import { PrismaClient, Notification, AuditLog, ContractModification, Prisma } from '@prisma/client';
+import { PrismaClient, Notification, AuditLog, ContractModification, Prisma } from '#prisma';
 import { NotificationQuery, AuditLogQuery, ModificationQuery } from './validators.js';
 
 export class LegalOpsRepository {

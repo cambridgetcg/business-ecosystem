@@ -5,7 +5,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger as honoLogger } from 'hono/logger';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '#prisma';
 import { createRoutes } from './routes/index.js';
 import { checkDatabaseHealth } from './lib/prisma.js';
 

@@ -4,7 +4,7 @@
 
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '#prisma';
 import { z } from 'zod';
 import { createRevenueRecognitionService } from '../domain/customer-contracts/services/revenue-recognition.service.js';
 import { authenticate, requirePermissions } from '../middleware/index.js';

@@ -16,8 +16,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**", "package.json", "tsconfig.json"],
-      "outputs": ["dist/**"],
+      "inputs": ["src/**", "package.json", "tsconfig.json", "prisma/schema.prisma"],
+      "outputs": ["dist/**", "generated/prisma/**"],
       "cache": true
     },
     "dev": {
@@ -45,7 +45,7 @@
     },
     "lint": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**", "tests/**", "*.json"],
+      "inputs": ["src/**", "tests/**", "*.json", "prisma/schema.prisma"],
       "outputs": [],
       "cache": true
     },
@@ -54,7 +54,7 @@
     },
     "typecheck": {
       "dependsOn": ["^build"],
-      "inputs": ["src/**", "tsconfig.json"],
+      "inputs": ["src/**", "tsconfig.json", "prisma/schema.prisma"],
       "outputs": [],
       "cache": true
     },
@@ -63,7 +63,7 @@
     },
     "db:generate": {
       "inputs": ["prisma/schema.prisma"],
-      "outputs": ["src/infrastructure/persistence/generated/**"],
+      "outputs": ["generated/prisma/**"],
       "cache": false
     },
     "db:migrate": {

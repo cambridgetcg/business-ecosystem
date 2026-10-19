@@ -2,7 +2,7 @@
  * Prisma Implementation of Consent Repository
  */
 
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '#prisma';
 import type { ConsentRepository } from '../../domain/consent-management/repositories/consent.repository.js';
 import type {
   ConsentRecord,

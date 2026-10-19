@@ -4,7 +4,7 @@
 
 import { nanoid } from 'nanoid';
 import { addDays } from 'date-fns';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '#prisma';
 import { ContractRepository, ContractWithParties } from './repository.js';
 import { CreateContractInput, UpdateContractInput, ContractQuery, SignContractInput } from './validators.js';
 import { NotFoundError, ContractStatusError, BusinessRuleError, ConflictError } from '../../lib/errors.js';

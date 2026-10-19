@@ -2,7 +2,7 @@
  * Legal Operations - Service Layer
  */
 
-import { Prisma, ModificationType } from '@prisma/client';
+import { Prisma, ModificationType } from '#prisma';
 import { LegalOpsRepository } from './repository.js';
 import {
   CreateNotificationInput, NotificationQuery, AuditLogQuery, DashboardQuery,

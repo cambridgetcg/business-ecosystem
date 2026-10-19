@@ -2,7 +2,7 @@
  * Contract Templates - Service Layer
  */
 
-import { Prisma } from '@prisma/client';
+import { Prisma } from '#prisma';
 import { TemplateRepository, TemplateWithClauses } from './repository.js';
 import { CreateTemplateInput, UpdateTemplateInput, TemplateQuery, GenerateContractInput } from './validators.js';
 import { NotFoundError, BusinessRuleError, ConflictError } from '../../lib/errors.js';
