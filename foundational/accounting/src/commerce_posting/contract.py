@@ -290,7 +290,9 @@ def check_refund_against_sale(refund, sale):
     payload, sold = refund["payload"], sale["payload"]
     if sale["type"] != SALE_RECORDED:
         raise ContractError("S7 saleIdempotencyKey names an event that is not a sale")
-    for name, ours, theirs in (("booksOf.entityId", payload["booksOf"]["entityId"], sold["booksOf"]["entityId"]),
+    # First the sale it names: another sale can share every field below.
+    for name, ours, theirs in (("saleIdempotencyKey", payload["saleIdempotencyKey"], sold["idempotencyKey"]),
+                               ("booksOf.entityId", payload["booksOf"]["entityId"], sold["booksOf"]["entityId"]),
                                ("currency", payload["currency"], sold["currency"]),
                                ("channel", payload["channel"], sold["channel"]),
                                ("provider.accountRef", payload["provider"]["accountRef"], sold["provider"]["accountRef"])):

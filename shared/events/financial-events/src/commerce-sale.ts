@@ -310,6 +310,8 @@ export function checkRefundAgainstSale(
   const ours = refund.payload;
   const sold = sale.payload;
   const same: [string, boolean][] = [
+    // First the sale it names: another sale can share every field below.
+    ['saleIdempotencyKey', ours.saleIdempotencyKey === sold.idempotencyKey],
     ['booksOf.entityId', ours.booksOf.entityId === sold.booksOf.entityId],
     ['currency', ours.currency === sold.currency],
     ['channel', ours.channel.kind === sold.channel.kind && ours.channel.name === sold.channel.name],
