@@ -42,7 +42,8 @@ repository, after claiming the paths through agenttool-collab.
   the owner's status and its log), and `tool/hygiene.py` the D8 hygiene plan on it and its join with a
   run; `tool/capability.py` holds the business capability map and the one business scope the Business
   view uses; `tool/packages.py` holds the package records of the host repositories the map reads;
-  `tool/wires.py` the wires between them and `tool/motifs.py` the motifs view.
+  `tool/wires.py` the wires between them and `tool/motifs.py` the motifs view; `tool/ideas.py` holds the
+  ideas plan, also an owner plan.
 - `vocab/`: the record contract ([`vocab/records.toml`](vocab/records.toml), the single source for
   every record's fields and privacy class), the facet registry, the raw-tag map and the KINGDOM
   integrity lock.
@@ -86,6 +87,10 @@ estate/bin/estate hygiene --severity P0 --status open   # filters: --wave, --sev
 estate/bin/estate hygiene --needs-yu      # the items the plan marks as needing Yu (also --agent-safe)
 estate/bin/estate hygiene --import ABS_PATH --write    # merge an estate.hygiene/1 plan by item id
 estate/bin/estate hygiene --set ID --status done --note TEXT --write   # record the owner's status of one item
+estate/bin/estate ideas                   # the ideas plan: proposals, each with what this run measures of its backing
+estate/bin/estate ideas --status proposed --kind adopt-motif   # filters: --status, --kind
+estate/bin/estate ideas --import ABS_PATH --write    # merge an estate.ideas/1 plan by idea id (it only proposes)
+estate/bin/estate ideas --set ID --status accepted --note TEXT --write   # record the owner's status of one idea
 estate/bin/estate untree                  # remove the symlink tree and stop building it
 ```
 
@@ -134,7 +139,7 @@ from reading under the Desktop folder, and a quietly failing job is worse than n
 
 - `private/ATLAS.html` (reached as `estate/atlas.html`) and `private/ATLAS.md`, the atlas;
 - `private/current/` (the newest run): `PROPOSALS.md`, `DRIFT.md`, `QUEUE.md`, `ATTENTION.md`,
-  `HYGIENE.md`, `CAPABILITIES.md`, `portfolio-join.json`, `records.jsonl`, `proposals.jsonl`, `run.json` and
+  `HYGIENE.md`, `CAPABILITIES.md` (with the ideas), `portfolio-join.json`, `records.jsonl`, `proposals.jsonl`, `run.json` and
   `SHA256SUMS`;
 - `private/tree` (reached as `estate/tree`), the symlink tree of canonical checkouts.
 
@@ -289,6 +294,23 @@ library that is no package of its host's checkout, or an anchor code no longer h
 and `estate capability` one line per motif. The first rows, all `reviewed = false`, are the plan's: domain
 events (messaging and the events packages), the transactional outbox, saga compensation, the append-only
 audit trail and the compensating entry, which no library embodies.
+
+## Ideas: proposals whose statuses only Yu sets
+
+Ideas are business ideas held as proposals: never a capability value, a wire or a motif. They carry
+business plans, so they are private: one file, `private/curated/ideas.json` (mode 0400), nothing of it
+committed. It is an owner plan like the hygiene plan below (`tool/plans.py` holds what the two share):
+`estate ideas --import ABS_PATH` merges an `estate.ideas/1` plan by stable idea id and only proposes, and
+every other status (accepted, declined, deferred, done) is the owner's, set one idea at a time with `estate
+ideas --set ID --status STATUS --note TEXT`, logged and kept across imports. Both print what changes and
+write only with `--write`, keeping the previous file as a new 0400 backup. An idea has a title, a kind
+(merge, wire, adopt-motif, quarantine, fill-gap, retire) and may name what would back it once built: a
+curated wire reading a `code_state` (and `stage`), a motif reading a state, a capability a record holds
+(with an `impl` or `operating` reading), or a record present in the run. Each build checks that backing
+against its own measurements (backed, not-backed, not-measured, or no-backing when an idea names none); an
+idea the owner marked done that the run does not back is listed in QUEUE (`idea-done-unbacked`), a reason to
+look again and never a change to the status. The Business section shows the counts and those ideas,
+`CAPABILITIES.md` every idea with what its backing measured, and Questions for Yu how many wait on a status.
 
 ## Hygiene: the plan of owner decision D8
 

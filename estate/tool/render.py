@@ -22,6 +22,7 @@ import capability
 import curate
 import decisions
 import hygiene
+import ideas
 import model
 import motifs
 import proposals as proposal_rules
@@ -52,7 +53,8 @@ LEGAL_QUESTION = "q:legal-entities"
 QUEUE_ORDER = ("uncurated", "family-unassigned", "role-unknown", "unmapped-tag", "topic-below-threshold",
                "orphaned-curation", "local-forge-migration", "local-alias", "review-overdue",
                "family-unreviewed", "what-heavy", "capability-unassigned", "capability-candidate",
-               "capability-review-overdue", "capability-orphan-row", "wire-unevidenced", "wire-differs", "motif-stale")
+               "capability-review-overdue", "capability-orphan-row", "wire-unevidenced", "wire-differs", "motif-stale",
+               "idea-done-unbacked")
 # ATTENTION order of spec 7; risks not named there follow alphabetically.
 ATTENTION_ORDER = tuple(curate.RISKS[key] for key in (
     "unsaved", "unpushed", "single", "partial", "lender", "borrower", "prunable", "secret-path",
@@ -408,6 +410,7 @@ class View:
         self.navigation = list(nav or model.NAVIGATION)
         self.hygiene = snapshot.get("hygiene") or {"status": "not provided", "reason": "not provided to the renderer"}
         self.hygiene_href = "HYGIENE.md"  # render_all sets the run's own file: URL
+        self.ideas = snapshot.get("ideas") or {"status": "not provided", "reason": "not provided to the renderer"}
         self.capabilities_href = "CAPABILITIES.md"  # likewise
 
     def kind(self, kind):
@@ -1446,6 +1449,50 @@ def _motifs(doc, v, level, full=False):
                 doc.p("Stale (QUEUE motif-stale): %s." % "; ".join(m["stale"]))
 
 
+def _idea_line(item):
+    join = item.get("join") or {}
+    return "%s [%s · %s%s · backing %s] %s" % (
+        item["id"], item["plan"].get("kind"), item["status"], " (owner)" if item.get("status_basis") == "owner" else "",
+        join.get("verdict") or "not joined", clip(item["plan"].get("title"), 160))
+
+
+def _ideas(doc, v, level, full=False):
+    """The ideas plan (ideas.py): business ideas as proposals, never values. Counts by status and kind and
+    the ideas marked done that this run does not back; full lists every idea with what its backing
+    measured."""
+    doc.h(level, "Ideas (proposals, not built)")
+    view = v.ideas
+    if view.get("status") == "not provided":
+        doc.p("Ideas plan: not provided to the renderer.")
+        return
+    if view.get("status") != "ok":
+        doc.p("No ideas plan in the private curation (%s is %s); import one with estate ideas --import ABS_PATH "
+              "--write." % (view.get("file"), view.get("reason")) if view.get("status") == "none" else
+              "The private ideas plan is not usable (%s): nothing is shown from it. Restore its newest backup beside "
+              "it." % view.get("reason"), None if view.get("status") == "none" else "warn")
+        return
+    items, counts = view.get("items") or [], view.get("counts") or {}
+    doc.p("%d ideas in the private ideas plan: proposals, never capability values, wires or motifs. Only Yu sets a "
+          "status beyond proposed (estate ideas --set ID --status STATUS --write); each build checks what would back "
+          "an idea against its own measurements. By status: %s. By kind: %s. Backing: %s." % (
+              len(items), ", ".join("%s %d" % kv for kv in (counts.get("by_status") or {}).items()) or "none",
+              ", ".join("%s %d" % kv for kv in (counts.get("by_kind") or {}).items()) or "none",
+              ", ".join("%s %d" % kv for kv in (counts.get("by_verdict") or {}).items()) or "none"))
+    unbacked = ideas.done_unbacked(items)
+    if unbacked:
+        doc.p("Marked done, and this run does not back them (QUEUE idea-done-unbacked):", "warn")
+        doc.ul(_idea_line(i) for i in unbacked)
+    if not full:
+        return
+    doc.table(("idea", "kind", "status", "title", "backing", "what this run measured"),
+              [(i["id"] + (" (missing since %s)" % i["missing_since"] if i.get("missing_since") else ""),
+                i["plan"].get("kind"), "%s (%s)" % (i["status"], i.get("status_basis")), clip(i["plan"].get("title"), 200),
+                (i.get("join") or {}).get("verdict") or "not joined",
+                "; ".join("%s: %s" % ({True: "holds", False: "does not hold", None: "not measured"}[b["holds"]],
+                                      b["detail"]) for b in (i.get("join") or {}).get("backing") or []) or "—")
+               for i in items])
+
+
 def _capability_scope(doc, v, level):
     """Every present project in business scope, with its capabilities, why it is in scope, and the
     other business fields, so the one population is visible as a whole."""
@@ -1499,14 +1546,15 @@ def _business(doc, v):
     _capability_gaps(doc, v, 3)
     _wires(doc, v, 3)
     _motifs(doc, v, 3)
+    _ideas(doc, v, 3)
     _capability_scope(doc, v, 3)
     _capability_waiting(doc, v)
 
 
 def capability_doc(v):
     """CAPABILITIES.md: the whole capability map, value by value with each holder's reading and
-    evidence, the gaps, the wires and motifs, the business population and what waits on curation or
-    review."""
+    evidence, the gaps, the wires and motifs, the ideas, the business population and what waits on
+    curation or review."""
     doc = Doc()
     doc.h(1, "Capabilities — run %s" % v.run_id)
     doc.p("Private view: the evidence column holds the private text of each curated row; never commit or publish "
@@ -1524,6 +1572,7 @@ def capability_doc(v):
     _capability_gaps(doc, v, 2)
     _wires(doc, v, 2, full=True)
     _motifs(doc, v, 2, full=True)
+    _ideas(doc, v, 2, full=True)
     _capability_scope(doc, v, 2)
     doc.h(2, "Waiting on curation or review")
     info = v.snapshot.get("capability") or {}
@@ -1654,6 +1703,11 @@ def _questions(doc, v):
                   " goods-sales reads operating unknown for %s: which channel sells today?" % ", ".join(unknown)
                   if unknown else ""))
         doc.link("Business: the capability map", "#business")
+    if v.ideas.get("status") == "ok":
+        waiting = [i for i in v.ideas.get("items") or [] if i.get("status") == ideas.PROPOSED and not i.get("missing_since")]
+        doc.p("Ideas plan (private): %d proposed, waiting on Yu's status (estate ideas --status proposed); %d marked "
+              "done and not backed in this run (QUEUE idea-done-unbacked)." % (
+                  len(waiting), len(ideas.done_unbacked(v.ideas.get("items") or []))))
     items = (v.hygiene or {}).get("items") or []
     if items:
         waiting = [i for i in items if i["plan"].get("needs_yu") is True and i.get("status") not in hygiene.CLOSED]
