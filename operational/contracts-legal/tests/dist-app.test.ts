@@ -77,6 +77,28 @@ describe('contracts-legal built app, without a database', () => {
     });
   });
 
+  it('rejects an API call without a bearer token with a JSON 401', () => {
+    const [none, malformed] = requestDist([
+      ['/api/v1/contracts', { 'x-request-id': 'req-401' }],
+      ['/api/v1/contracts', { authorization: 'Bearer not-a-jwt' }],
+    ]);
+    expect(none).toMatchObject({
+      status: 401,
+      type: expect.stringContaining('application/json'),
+      body: {
+        error: {
+          code: 'AUTHENTICATION_ERROR',
+          message: 'Authentication required',
+          requestId: 'req-401',
+        },
+      },
+    });
+    expect(malformed).toMatchObject({
+      status: 401,
+      body: { error: { code: 'AUTHENTICATION_ERROR', message: 'Invalid or expired token' } },
+    });
+  });
+
   it('answers an unknown route with a JSON 404 that carries the request id', () => {
     const [missing] = requestDist([['/api/v1/nothing-here', { 'x-request-id': 'req-404' }]]);
     expect(missing?.status).toBe(404);
