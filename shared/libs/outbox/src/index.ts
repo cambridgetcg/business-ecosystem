@@ -6,7 +6,7 @@
 import { pgTable, uuid, varchar, text, timestamp, integer, jsonb, boolean } from 'drizzle-orm/pg-core';
 import { eq, and, lt, isNull } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import pino from 'pino';
+import { pino } from 'pino';
 
 const logger = pino({ name: 'outbox' });
 

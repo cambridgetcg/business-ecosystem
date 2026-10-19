@@ -24,16 +24,16 @@ export interface AuditEntry {
   resource: string;
   resourceId: string;
   userId: string;
-  userEmail?: string;
-  tenantId?: string;
-  ipAddress?: string;
-  userAgent?: string;
-  oldValue?: Record<string, unknown>;
-  newValue?: Record<string, unknown>;
-  metadata?: Record<string, unknown>;
-  correlationId?: string;
+  userEmail?: string | undefined;
+  tenantId?: string | undefined;
+  ipAddress?: string | undefined;
+  userAgent?: string | undefined;
+  oldValue?: Record<string, unknown> | undefined;
+  newValue?: Record<string, unknown> | undefined;
+  metadata?: Record<string, unknown> | undefined;
+  correlationId?: string | undefined;
   success: boolean;
-  errorMessage?: string;
+  errorMessage?: string | undefined;
 }
 
 export interface AuditLoggerConfig {

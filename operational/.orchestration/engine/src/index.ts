@@ -39,7 +39,7 @@ import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger as honoLogger } from 'hono/logger';
-import pino from 'pino';
+import { pino } from 'pino';
 import { WorkflowEngine } from './engine.js';
 import { join } from 'path';
 import { createRabbitMQSubscriber, type RabbitMQSubscriber } from '@ecosystem/messaging';

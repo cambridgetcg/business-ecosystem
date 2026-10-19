@@ -15,7 +15,7 @@ import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger as honoLogger } from 'hono/logger';
-import pino from 'pino';
+import { pino } from 'pino';
 import { createDomainClients } from './domain-client.js';
 import { OperationalAggregator } from './aggregator.js';
 import type { OperationalDomain } from './types.js';

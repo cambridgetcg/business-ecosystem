@@ -4,7 +4,7 @@
  */
 
 import { ServiceClient as AuthClient, ServiceTokenConfig, ServiceIdentity } from '@ecosystem/service-auth';
-import pino from 'pino';
+import { pino } from 'pino';
 
 const logger = pino({ name: 'service-client' });
 
@@ -56,8 +56,8 @@ export class BaseServiceClient {
     path: string,
     options?: {
       body?: unknown;
-      headers?: Record<string, string>;
-      correlationId?: string;
+      headers?: Record<string, string> | undefined;
+      correlationId?: string | undefined;
     }
   ): Promise<T> {
     if (this.isCircuitOpen()) {
@@ -84,7 +84,7 @@ export class BaseServiceClient {
         const response = await fetch(url, {
           method,
           headers,
-          body: options?.body ? JSON.stringify(options.body) : undefined,
+          ...(options?.body ? { body: JSON.stringify(options.body) } : {}),
         });
 
         if (!response.ok) {

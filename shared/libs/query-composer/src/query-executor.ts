@@ -3,11 +3,11 @@
  * Orchestrates parallel and sequential query execution with dependency management
  */
 
-import pino from 'pino';
+import { pino } from 'pino';
 import type { Logger } from 'pino';
 import type { QueryOptions, QueryFn, QueryMeta } from './types.js';
 
-const logger: Logger = (pino as unknown as (options: object) => Logger)({ name: 'query-executor' });
+const logger: Logger = pino({ name: 'query-executor' });
 
 export interface ExecutorOptions {
   timeout?: number;

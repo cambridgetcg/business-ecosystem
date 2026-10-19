@@ -3,7 +3,7 @@
  * Production-ready Redis caching implementation using ioredis
  */
 
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 import type { CacheClient, CacheConfig, CacheOptions, CacheStats, CacheSerializer } from './types.js';
 import { jsonSerializer } from './serializer.js';
 

@@ -118,7 +118,7 @@ export class BankingTreasuryService implements IBankingTreasuryService {
     const currency: CurrencyCode = 'USD';
     return {
       poolId: query.poolId,
-      asOfDate: query.asOfDate ?? new Date().toISOString().split('T')[0],
+      asOfDate: query.asOfDate ?? new Date().toISOString().slice(0, 10),
       masterPosition: { amount: '0', currency },
       participantPositions: [],
       totalPoolBalance: { amount: '0', currency },

@@ -7,7 +7,7 @@ import { parse as parseYaml } from 'yaml';
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
 import { workflowDefinitionSchema, type WorkflowDefinition } from './types.js';
-import pino from 'pino';
+import { pino } from 'pino';
 
 const logger = pino({ name: 'workflow-parser' });
 
