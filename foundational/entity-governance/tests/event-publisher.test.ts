@@ -48,6 +48,9 @@ function publisher(confirmMode = true) {
     exchangeType: 'topic',
     confirmMode,
   });
+  // The stub takes the place of RabbitMQPublisher's private channel field. If
+  // messaging renames that field, fail here rather than on a confusing publish.
+  expect(rabbit).toHaveProperty('channel', null);
   Object.assign(rabbit, { channel });
   return createEventPublisher(rabbit);
 }
