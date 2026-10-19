@@ -5,8 +5,9 @@ proposes, keeps every owner status and keeps an idea a newer plan leaves out (ma
 records one owner status with a log, refusing other statuses and notes shaped like secrets. Each build
 joins every idea with its own measurements of the backing the idea names (a wire, a motif, a capability,
 a record): backed, not-backed, not-measured or no-backing, and an idea marked done that the run does not
-back is queued, its status left as it is. The plan lives in the private curation only. The D8 hygiene
-plan shares the store, and its own tests run unchanged. Ideas and titles here are synthetic."""
+back is queued, its status left as it is. A backing entry takes only its own kind's keys and values a build
+can measure, so every plan an import accepts joins. The plan lives in the private curation only. The D8
+hygiene plan shares the store, and its own tests run unchanged. Ideas and titles here are synthetic."""
 import copy
 import json
 import os
@@ -19,10 +20,12 @@ from . import test_motifs
 import capability
 import hygiene
 import ideas
+import model
 import plans
 import safety
 
 pkg = test_motifs.pkg
+FACETS = test_model.VOCAB["facets"]
 OBSERVED_AT = "2026-10-19T00:00:00Z"
 # A note shaped like a provider key, built in parts so this file passes the privacy lint.
 KEYLIKE_NOTE = "kept in " + "AK" + "IA" + "ABCDEFGHIJKLMNOP"
@@ -70,22 +73,53 @@ class StoreTests(fixture.EstateTestCase):
 class PlanCheckTests(fixture.EstateTestCase):
 
     def test_a_valid_plan_has_no_problems(self):
-        self.assertEqual(ideas.plan_problems(plan_doc(ITEMS)), [])
-        with_capability = plan_doc([idea("I-gap", "fill-gap", [{"capability": "marketing-outreach", "operating": "in-use"}])])
-        self.assertEqual(ideas.plan_problems(with_capability, capability.values(test_model.VOCAB["facets"])), [])
+        self.assertEqual(ideas.plan_problems(plan_doc(ITEMS), FACETS), [])
+        with_capability = plan_doc([idea("I-gap", "fill-gap", [{"capability": "marketing-outreach", "operating": "in-use"}]),
+                                    idea("I-held", "fill-gap", [{"capability": "accounting", "record": pkg("operational/ledger"),
+                                                                 "impl": "code-unbuilt", "operating": "unknown"}]),
+                                    idea("I-wire", "wire", [{"wire": "sale-to-ledger", "code_state": "wired-unbuilt",
+                                                             "stage": "demonstrated"}])])
+        self.assertEqual(ideas.plan_problems(with_capability, FACETS), [])
+        self.assertEqual(set(ideas.vocabularies(FACETS)["impl"]), set(capability.IMPL_ORDER))
 
     def test_an_import_only_proposes_and_shapes_are_refused(self):
         items = ITEMS + [dict(ITEMS[0]), idea("I-done", status="done"), idea("I-odd", kind="launch"),
                          idea("I spaced"), idea("I-two", backed_by=[{"motif": "a", "wire": "b"}]),
                          idea("I-empty", backed_by=[{"record": " "}]),
                          idea("I-value", backed_by=[{"capability": "teleportation"}])]
-        problems = ideas.plan_problems(plan_doc(items), capability.values(test_model.VOCAB["facets"]))
+        problems = ideas.plan_problems(plan_doc(items), FACETS)
         for expected in ("I-events appears twice", "I-done: status 'done': an import only proposes", "kind 'launch'",
                          "id must have no spaces", "names exactly one of wire, motif, capability or record",
                          "backed_by record must be a non-empty string", "'teleportation' is not a capability value"):
             self.assertTrue(any(expected in p for p in problems), (expected, problems))
-        self.assertEqual(ideas.plan_problems(dict(plan_doc(ITEMS), schema="estate.hygiene/1"))[0][:6], "schema")
-        self.assertIn("items must be a non-empty list", ideas.plan_problems(plan_doc([])))
+        self.assertEqual(ideas.plan_problems(dict(plan_doc(ITEMS), schema="estate.hygiene/1"), FACETS)[0][:6], "schema")
+        self.assertIn("items must be a non-empty list", ideas.plan_problems(plan_doc([]), FACETS))
+
+    def test_a_backing_entry_asks_only_what_its_kind_measures(self):
+        refused = {"I-stage-number": {"wire": "sale-to-ledger", "stage": 7},
+                   "I-stage-unknown": {"wire": "sale-to-ledger", "stage": "unknown"},
+                   "I-code-state": {"wire": "sale-to-ledger", "code_state": "wird"},
+                   "I-motif-state": {"motif": "domain-events", "state": "live"},
+                   "I-motif-unmeasurable": {"motif": "domain-events", "state": "not-measured"},
+                   "I-misspelt": {"motif": "domain-events", "stat": "unused"},
+                   "I-borrowed": {"wire": "sale-to-ledger", "state": "adopted"},
+                   "I-impl": {"capability": "accounting", "impl": "shipped"},
+                   "I-operating": {"capability": "accounting", "operating": 1},
+                   "I-record-extra": {"record": pkg("operational/engine"), "impl": "code"}}
+        problems = ideas.plan_problems(plan_doc([idea(ident, backed_by=[ref]) for ident, ref in refused.items()]), FACETS)
+        for ident in refused:
+            self.assertTrue(any(p.startswith(ident + ":") for p in problems), (ident, problems))
+        joined = "\n".join(problems)
+        for expected in ("I-stage-number: backed_by wire stage 7 is not one of designed, demonstrated, accepted, active",
+                         "I-motif-state: backed_by motif state 'live' is not one of adopted, reimplemented, unused, "
+                         "no-library", "I-misspelt: backed_by motif does not take stat (it takes state)",
+                         "I-borrowed: backed_by wire does not take state (it takes code_state, stage)",
+                         "I-record-extra: backed_by record does not take impl (it takes nothing more)"):
+            self.assertIn(expected, joined)
+        # A value of the wrong type that reached a build would still never raise.
+        holds, detail = ideas.check_backing({"wire": "w", "stage": 7}, {}, {"w": {"code_state": "wired",
+                                                                                  "stage": "designed"}}, {})
+        self.assertEqual((holds, detail), (False, "wire w measures wired, designed; wanted wired, 7"))
 
 
 class MergeAndStatusTests(fixture.EstateTestCase):
@@ -197,6 +231,8 @@ class JoinTests(fixture.EstateTestCase):
         unjoined = ideas.join(imported(), None, None)
         self.assertEqual({i["join"]["verdict"] for i in unjoined["items"]}, {None})
         self.assertEqual(ideas.queue_items(unjoined), [])
+        self.assertEqual(model.degraded_reasons({"ideas": broken}), [broken["degraded"]])
+        self.assertEqual(model.degraded_reasons({"ideas": none}), [])
 
 
 class CommandLineIdeasTests(fixture.EstateTestCase):
@@ -239,6 +275,18 @@ class CommandLineIdeasTests(fixture.EstateTestCase):
         cls.atlas = test_e2e.read_text(os.path.join(run_dir, "ATLAS.md"))
         cls.full = test_e2e.read_text(os.path.join(run_dir, "CAPABILITIES.md"))
         cls.queue = test_e2e.read_text(os.path.join(run_dir, "QUEUE.md"))
+        # A plan whose backing asks for a stage no build measures is refused, and the file is left as it was.
+        bad = plan_doc([idea("I-stage", "wire", [{"wire": "sale-to-ledger", "stage": 7}])])
+        cls.bad_import = test_e2e.cli(e.layer, "ideas", "--import", fixture.write_file(
+            os.path.join(e.tmp, "ideas-bad.json"), json.dumps(bad)), "--write")
+        # A file whose mode was changed by hand is named by check; one that no longer parses degrades a build.
+        target = os.path.join(e.private, "curated", "ideas.json")
+        cls.mode_kept = stat.S_IMODE(os.lstat(target).st_mode)
+        os.chmod(target, 0o600)
+        cls.mode_checked = test_e2e.cli(e.layer, "check")
+        with open(target, "w", encoding="utf-8") as stream:
+            stream.write("{")
+        cls.broken_build = test_e2e.cli(e.layer, "build", "--reuse-census")
 
     def test_the_import_and_set_write_only_with_write_and_keep_backups(self):
         code, out, err = self.dry
@@ -252,11 +300,24 @@ class CommandLineIdeasTests(fixture.EstateTestCase):
             self.assertIn("-> done (writing)", out)
         self.assertEqual(self.refused[0], 2)
         self.assertIn("--status must be one of proposed, accepted, declined, deferred, done", self.refused[2])
-        path = os.path.join(self.private, "curated", "ideas.json")
-        self.assertEqual(stat.S_IMODE(os.lstat(path).st_mode), 0o400)
+        self.assertEqual(self.mode_kept, 0o400)
         backups = [n for n in os.listdir(os.path.join(self.private, "curated")) if n.startswith("ideas.json.bak-")]
         self.assertEqual(len(backups), 3)  # one per --set; the first import created the file
         self.assertNotIn("ideas.json", self.checked[1])  # its mode is the one estate ideas keeps
+        self.assertIn("warning: private curated/ideas.json is 600, not 400 (only estate ideas changes it)",
+                      self.mode_checked[1])
+
+    def test_a_plan_asking_for_what_no_build_measures_is_refused(self):
+        code, out, err = self.bad_import
+        self.assertEqual(code, 2, out + err)
+        self.assertIn("I-stage: backed_by wire stage 7 is not one of", err)
+        self.assertNotIn("I-stage", self.listed[1])  # the plan written before is the one that was listed
+
+    def test_a_plan_that_no_longer_parses_degrades_the_build(self):
+        code, out, err = self.broken_build
+        self.assertEqual(code, 10, out + err)
+        self.assertIn("degraded because:", out)
+        self.assertIn("\n    - the private ideas plan (private/curated/ideas.json) is invalid json", out)
 
     def test_the_build_joins_the_ideas_and_queues_the_unbacked(self):
         code, out, err = self.built

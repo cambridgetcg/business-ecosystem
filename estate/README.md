@@ -306,11 +306,14 @@ ideas --set ID --status STATUS --note TEXT`, logged and kept across imports. Bot
 write only with `--write`, keeping the previous file as a new 0400 backup. An idea has a title, a kind
 (merge, wire, adopt-motif, quarantine, fill-gap, retire) and may name what would back it once built: a
 curated wire reading a `code_state` (and `stage`), a motif reading a state, a capability a record holds
-(with an `impl` or `operating` reading), or a record present in the run. Each build checks that backing
-against its own measurements (backed, not-backed, not-measured, or no-backing when an idea names none); an
-idea the owner marked done that the run does not back is listed in QUEUE (`idea-done-unbacked`), a reason to
-look again and never a change to the status. The Business section shows the counts and those ideas,
-`CAPABILITIES.md` every idea with what its backing measured, and Questions for Yu how many wait on a status.
+(with an `impl` or `operating` reading), or a record present in the run. An import refuses a backing entry
+that carries another kind's key or asks for a value no build measures (a `stage` of unknown, a motif state
+of not-measured, anything outside the vocabularies), so every plan it accepts joins. Each build checks
+that backing against its own measurements (backed, not-backed, not-measured, or no-backing when an idea
+names none); an idea the owner marked done that the run does not back is listed in QUEUE
+(`idea-done-unbacked`), a reason to look again and never a change to the status. The Business section shows
+the counts and those ideas, `CAPABILITIES.md` every idea with what its backing measured, and Questions for
+Yu how many wait on a status.
 
 ## Hygiene: the plan of owner decision D8
 

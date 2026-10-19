@@ -1922,7 +1922,7 @@ def list_ideas(ctx, args):
 
 def import_ideas(ctx, args, write):
     facets = model.load_vocab(ctx.layer)["facets"]
-    plan, sha = ideas.read_plan(args.import_path, capability.values(facets))
+    plan, sha = ideas.read_plan(args.import_path, facets)
     old = plan_file(ctx, ideas.STORE, "an import")
     new, counts = ideas.merge(plan, old, sha, safety.iso(safety.utc_now()))
     say("ideas --import: %s observed %s · %s (an import only proposes; statuses stay the owner's)" % (

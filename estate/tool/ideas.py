@@ -8,7 +8,9 @@ previous bytes as a new 0400 backup. Nothing of it is committed.
 
 A plan (schema estate.ideas/1, written outside this tool) lists ideas by stable id with a title, a kind and,
 optionally, what would back it once built: a curated wire reading a code_state (and stage), a motif reading a
-state, a capability held by a record (with an impl or operating claim), or a record present in the run. An
+state, a capability held by a record (with an impl or operating claim), or a record present in the run. Each
+backing entry may carry only its own kind's keys (QUALIFIERS), and each value it asks for must be one a build
+can measure (vocabularies), so an imported plan always joins and every verdict means what it says. An
 import can only propose: every status beyond proposed is the owner's, set one at a time with --set and kept
 across imports. Each build joins every idea with this run's measurements of its backing: backed when all of
 it holds, not-backed when some is measured not to, not-measured when what decides it could not be read, and
@@ -18,7 +20,9 @@ idea-done-unbacked: a reason to look again, never a change to the owner's status
 from collections import Counter
 
 import capability
+import motifs
 import plans
+import wires
 
 PLAN_SCHEMA = "estate.ideas/1"
 SCHEMA = "estate.ideas-curation/1"
@@ -33,13 +37,25 @@ MODE = plans.MODE
 CLOSED = ("declined", "done")
 KINDS = ("merge", "wire", "adopt-motif", "quarantine", "fill-gap", "retire")
 BACKING_KEYS = ("wire", "motif", "capability", "record")
+# What each kind of backing may ask for beyond its name; a capability may also name the record holding it.
+QUALIFIERS = {"wire": ("code_state", "stage"), "motif": ("state",), "capability": ("impl", "operating"), "record": ()}
 VERDICTS = ("backed", "not-backed", "not-measured", "no-backing")
 BACKED, NOT_BACKED, NOT_MEASURED, NO_BACKING = VERDICTS
 
 
 # ── the plan ────────────────────────────────────────────────────────────────────────────────
 
-def _backing_problems(ident, ref, capability_values):
+def vocabularies(facets):
+    """{qualifier: the values a backed_by entry may ask for}: those a build can measure. A wanted stage or
+    motif state of unknown or not-measured could never hold, so neither is one; impl and operating come from
+    vocab/facets.toml."""
+    return {"code_state": wires.CODE_STATES, "stage": tuple(s for s in wires.STAGES if s != "unknown"),
+            "state": tuple(s for s in motifs.STATES if s != motifs.NOT_MEASURED),
+            "impl": capability.vocabulary(facets, "capability_impl"),
+            "operating": capability.vocabulary(facets, "capability_operating")}
+
+
+def _backing_problems(ident, ref, capability_values, allowed):
     if not isinstance(ref, dict):
         return ["%s: each backed_by entry must be a table" % ident]
     named = [key for key in BACKING_KEYS if key in ref]
@@ -48,14 +64,23 @@ def _backing_problems(ident, ref, capability_values):
                 "add the record holding it)" % ident]
     out = ["%s: backed_by %s must be a non-empty string" % (ident, key) for key in named
            if not isinstance(ref.get(key), str) or not ref[key].strip()]
-    if "capability" in ref and capability_values is not None and ref.get("capability") not in capability_values:
+    kind = named[0]
+    own = QUALIFIERS[kind]
+    stray = sorted(str(key) for key in ref if key not in named and key not in own)
+    if stray:
+        out.append("%s: backed_by %s does not take %s (it takes %s)" % (
+            ident, kind, ", ".join(stray), ", ".join(own) if own else "nothing more"))
+    for key in own:
+        if key in ref and ref[key] not in allowed[key]:
+            out.append("%s: backed_by %s %s %r is not one of %s" % (ident, kind, key, ref[key], ", ".join(allowed[key])))
+    if "capability" in ref and ref.get("capability") not in capability_values:
         out.append("%s: backed_by capability %r is not a capability value" % (ident, ref.get("capability")))
     return out
 
 
-def plan_problems(plan, capability_values=None):
-    """Why a plan cannot be imported (empty when it can). capability_values: the capability vocabulary,
-    when backing that names a capability is to be checked against it."""
+def plan_problems(plan, facets):
+    """Why a plan cannot be imported (empty when it can), its backing checked against the vocabularies of
+    facets (vocab/facets.toml): the capability values and what each backing may ask for."""
     if not isinstance(plan, dict):
         return ["the plan must be a JSON object"]
     out = []
@@ -66,6 +91,7 @@ def plan_problems(plan, capability_values=None):
     items = plan.get("items")
     if not isinstance(items, list) or not items:
         return out + ["items must be a non-empty list"]
+    capability_values, allowed = capability.values(facets), vocabularies(facets)
     seen = set()
     for n, item in enumerate(items):
         if not isinstance(item, dict):
@@ -84,7 +110,7 @@ def plan_problems(plan, capability_values=None):
             out.append("%s: title must be a non-empty string" % where)
         if item.get("kind") not in KINDS:
             out.append("%s: kind %r is not one of %s" % (where, item.get("kind"), ", ".join(KINDS)))
-        if item.get("status", PROPOSED) != PROPOSED:
+        if item.get("status", PROPOSED) not in STORE.plan_statuses:
             out.append("%s: status %r: an import only proposes; the owner sets every other status with "
                        "estate ideas --set" % (where, item.get("status")))
         related = item.get("related_records", [])
@@ -95,13 +121,14 @@ def plan_problems(plan, capability_values=None):
             out.append("%s: backed_by must be a list" % where)
             continue
         for ref in backing:
-            out += _backing_problems(where, ref, capability_values)
+            out += _backing_problems(where, ref, capability_values, allowed)
     return out
 
 
-def read_plan(path, capability_values=None):
-    """(plan, sha256): the plan JSON at an absolute path, checked; GuardError when unusable."""
-    return plans.read_plan(STORE, path, lambda plan: plan_problems(plan, capability_values))
+def read_plan(path, facets):
+    """(plan, sha256): the plan JSON at an absolute path, checked against the vocabularies of facets;
+    GuardError when unusable."""
+    return plans.read_plan(STORE, path, lambda plan: plan_problems(plan, facets))
 
 
 def load(path):
@@ -154,7 +181,7 @@ def check_backing(ref, by_id, wire_rows, motif_rows):
             return None, "wire %s was not measured (%s)" % (ref["wire"], row.get("reason") or row.get("stage_reason"))
         holds = row["code_state"] == wanted_state and (not wanted_stage or row.get("stage") == wanted_stage)
         return holds, "wire %s measures %s, %s; wanted %s%s" % (ref["wire"], row["code_state"], row.get("stage"),
-                                                                 wanted_state, ", " + wanted_stage if wanted_stage else "")
+                                                                 wanted_state, ", %s" % wanted_stage if wanted_stage else "")
     if "motif" in ref:
         row = motif_rows.get(ref["motif"])
         wanted = ref.get("state", "adopted")
