@@ -24,6 +24,15 @@ import { legalEntitiesRoutes } from './routes/legal-entities.js';
 import { officerRoutes } from './routes/officers.js';
 import { shareholderRoutes } from './routes/shareholders.js';
 
+// The per-request values registered and set below.
+declare module '@fastify/request-context' {
+  interface RequestContextData {
+    requestId: string;
+    userId: string;
+    correlationId: string;
+  }
+}
+
 let rabbitMQPublisher: RabbitMQPublisher | null = null;
 
 export async function buildApp() {
@@ -43,8 +52,9 @@ export async function buildApp() {
     origin: env.NODE_ENV === 'production' ? false : true, // Configure for production
     credentials: true,
   });
+  // Helmet's default CSP in production; disabled elsewhere.
   await app.register(helmet, {
-    contentSecurityPolicy: env.NODE_ENV === 'production' ? undefined : false,
+    ...(env.NODE_ENV === 'production' ? {} : { contentSecurityPolicy: false }),
   });
   await app.register(cookie, {
     secret: env.JWT_SECRET || 'development-secret-change-in-production',

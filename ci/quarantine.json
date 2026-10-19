@@ -171,15 +171,6 @@
       "exit": "F7; typecheck exits 0. Remove with the build entry."
     },
     {
-      "package": "@ecosystem/entity-governance",
-      "task": "typecheck",
-      "reason": "helmet contentSecurityPolicy: undefined under exactOptionalPropertyTypes (src/api/rest/app.ts:46), and request-context keys typed never (:91-92). Its tsup build never reaches these files, so build passes.",
-      "first_error": "src/api/rest/app.ts(46,30): error TS2769: No overload matches this call.",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 3,
-      "exit": "F3; typecheck exits 0."
-    },
-    {
       "package": "@ecosystem/operational-gateway",
       "task": "typecheck",
       "reason": "Five exactOptionalPropertyTypes errors once its tsconfig extends the real base.",
