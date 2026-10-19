@@ -17,8 +17,13 @@ both use it, so one atlas never shows two different business populations.
 Whole repositories are curated: one [[capability]] row per project in curated/capabilities.toml,
 keyed by forge id, written by `estate capability --import` (reviewed = false until Yu reviews it),
 with local ids and the full evidence of every row in private/curated/capability.toml. The import
-merges by id and keeps every row Yu has reviewed. business-ecosystem's own packages get their values
-from code once package records exist (derived:packages), not from a curated row.
+merges by id and keeps every row Yu has reviewed, and keeps the file's [[host]] rows as they are.
+
+The packages of a host repository (a [[host]] row; tool/packages.py) get their values from code: a
+package takes its curated row (a [[capability]] row keyed by its package id), else the run-band value
+its directory names (rule:package-path: business-ecosystem's domain packages are named after their
+framework domain), else none, and its impl is measured. A host project with no curated row of its own
+takes the union of its packages that have code (derived:packages).
 """
 import datetime as dt
 import json
@@ -33,7 +38,13 @@ from safety import GuardError, require
 
 UNASSIGNED, NONE = "unassigned", "none"
 CURATED_PROJECT, DERIVED_PACKAGES, MIRROR = "curated:project", "derived:packages", "mirror"
+CURATED_PACKAGE, PACKAGE_PATH = "curated:package", "rule:package-path"
 SET = "set"
+# A host project holding a value through several packages reads the first of their impls in this
+# order: one package with compiled code is enough for code.
+IMPL_ORDER = ("code", "code-unbuilt", "stub", "manual", "unread")
+# Readings a curated package row may state; the other impls of a package are measured.
+CURATED_IMPL = ("stub", "manual")
 COMMITTED_FILE = "curated/capabilities.toml"
 PRIVATE_FILE = "curated/capability.toml"
 # The per-value maps of a row and the value each takes when a row does not name it.
@@ -45,13 +56,15 @@ CONFIDENCE = ("high", "medium", "low")
 SHORT_MAX = 300
 REVIEW_DAYS = 90
 COMMITTED_HEADER = (
-    "# The business capability map (vocab/facets.toml [business.capability]): one row per project, keyed by\n"
-    "# forge id. Written by `estate capability --import ABS_PATH --write`, which merges by id, keeps every row\n"
-    "# with reviewed = true, and renders this file anew (comments other than this header are not kept).\n"
-    "# impl, operating and serves name values whose reading a row states; the others read impl code,\n"
-    "# operating unknown, serves self. operating is a claim as of the row's as_of. A row with no values says\n"
-    "# the project has no business capability. Local ids and the full evidence of every row live in\n"
-    "# private/curated/capability.toml.\n\n")
+    "# The business capability map (vocab/facets.toml [business.capability]): one [[capability]] row per\n"
+    "# project, keyed by forge id, or per package, keyed by its package id (pkg:<forge id>//<subpath>), and\n"
+    "# one [[host]] row per repository whose packages are read (tool/packages.py). Written by\n"
+    "# `estate capability --import ABS_PATH --write`, which merges rows by id, keeps every row with\n"
+    "# reviewed = true and the [[host]] rows as they are, and renders this file anew (comments other than\n"
+    "# this header are not kept). impl, operating and serves name values whose reading a row states; the\n"
+    "# others read impl code (a package's impl is measured), operating unknown, serves self. operating is a\n"
+    "# claim as of the row's as_of. A row with no values says the project has no business capability.\n"
+    "# Local ids and the full evidence of every row live in private/curated/capability.toml.\n\n")
 PRIVATE_HEADER = ("# Capability rows behind the business capability map: local ids and the full evidence of every\n"
                   "# row. Private; one copy only. Written by `estate capability --import PATH --write`.\n\n")
 # Business scope (vocab/facets.toml [business.capability].rule). The layers and the purpose groups
@@ -246,12 +259,87 @@ def _curated(entry, scope, via):
                  reason=None if entry["values"] else "a curated row says it has no business capability")
 
 
-def _derived(found, scope):
-    """found: {value: {impl, via}} from the project's packages that have code."""
+def _derived(found, scope, designed=()):
+    """found: {value: {impl, via}} from the project's packages that have code; designed: the values
+    its packages only document."""
     held = sorted(found)
-    return facet(held, SET, DERIVED_PACKAGES, "src:packages", None, scope=scope, designed=[],
+    return facet(held, SET, DERIVED_PACKAGES, "src:packages", None, scope=scope,
+                 designed=[v for v in designed if v not in found],
                  by_value={v: {"impl": found[v].get("impl") or DEFAULTS["impl"], "operating": DEFAULTS["operating"],
                                "serves": DEFAULTS["serves"], "via": found[v].get("via")} for v in held})
+
+
+def _package_impl(record):
+    """The measured impl of a package: code-unbuilt when its build or typecheck is quarantined at the
+    checkout's HEAD (packages.build_state), code when it has readable source, unread when its only
+    source is files the reader may not open, None when it has no source at all."""
+    measures = record.get("measures") or {}
+    if measures.get("src_files"):
+        return "code-unbuilt" if (record.get("build") or {}).get("unbuilt") else "code"
+    if measures.get("unread_files"):
+        return "unread"
+    return None
+
+
+def resolve_packages(packages, rows=None, facets=None):
+    """Set capability on every package record (the facet shape; status set or none): its curated row
+    (a [[capability]] row keyed by its package id), else the run-band value its directory names
+    (rule:package-path), else none. impl is measured (_package_impl) unless a curated row states stub
+    or manual. A value whose package has no source at all is never held: it is listed as designed when
+    the package has documents, and left out otherwise. Returns (derived {host project id: {value:
+    {impl, via [package ids]}}}, designed {host project id: [values]}, problems): what derived:packages
+    gives each host project, the best impl of its packages per value (IMPL_ORDER)."""
+    rows = rows or {}
+    run = set(bands(facets).get("run") or [])
+    order = list(values(facets))
+    derived, designed, problems = {}, {}, []
+    for pid in sorted(packages):
+        record = packages[pid]
+        entry = rows.get(pid)
+        measured = _package_impl(record)
+        leaf = record["subpath"].rsplit("/", 1)[-1]
+        if entry is not None:
+            wanted, basis, stated = entry["values"], CURATED_PACKAGE, entry["stated"].get("impl") or {}
+            problems += ["capability: %s states impl %s for %s; a package's impl is measured, so it is not used"
+                         % (pid, impl, value) for value, impl in sorted(stated.items()) if impl not in CURATED_IMPL]
+        else:
+            wanted, basis, stated = ([leaf] if leaf in run else []), PACKAGE_PATH, {}
+        held, docs, by_value = [], [], {}
+        for value in wanted:
+            impl = stated[value] if stated.get(value) in CURATED_IMPL else measured
+            if impl is None:
+                if (record.get("measures") or {}).get("md_files"):
+                    docs.append(value)
+                continue
+            held.append(value)
+            reading = dict((entry or {}).get("by_value", {}).get(value) or {f: DEFAULTS[f] for f in FIELDS}, impl=impl)
+            by_value[value] = reading
+        if entry is not None:
+            field = facet(held, SET if held else NONE, CURATED_PACKAGE, "src:curated", entry.get("as_of"),
+                          by_value=by_value, designed=docs, confidence=entry.get("confidence"),
+                          reviewed=entry.get("reviewed"), review_after=entry.get("review_after"),
+                          source=entry.get("source"), evidence=entry.get("evidence") or entry.get("evidence_full"),
+                          reason=None if held else ("a curated row says it has no business capability"
+                                                    if not wanted else "its curated values have no source behind them"))
+        elif held or docs:
+            field = facet(held, SET if held else NONE, basis if held else NONE, "src:packages", record.get("commit_date"),
+                          by_value=by_value, designed=docs,
+                          reason=None if held else "the package has documents and no source")
+        else:
+            field = facet([], NONE, NONE, None, None, by_value={}, designed=[],
+                          reason="it has neither source nor documents" if wanted else
+                          "its directory names no run-band capability and no curated row names it")
+        record["capability"] = field
+        host = record.get("host")
+        for value in held:
+            slot = derived.setdefault(host, {}).setdefault(value, {"impl": by_value[value]["impl"], "via": []})
+            if IMPL_ORDER.index(by_value[value]["impl"]) < IMPL_ORDER.index(slot["impl"]):
+                slot["impl"] = by_value[value]["impl"]
+            slot["via"].append(pid)
+        designed.setdefault(host, set()).update(docs)
+    designed = {host: [v for v in order if v in found and v not in derived.get(host, {})]
+                for host, found in designed.items() if found}
+    return derived, designed, problems
 
 
 def _rows_for(pid, project, rows):
@@ -268,12 +356,12 @@ def _rows_for(pid, project, rows):
     return rows[hits[0]], hits[0], problem
 
 
-def resolve_projects(projects, rows=None, mirrors=None, derived=None):
+def resolve_projects(projects, rows=None, mirrors=None, derived=None, designed=None):
     """Set display["capability"] on every project (order: vocab/facets.toml [business.capability]
     .rule): its curated row, else its packages that have code (derived: {project id: {value:
-    {impl, via}}}, once package records exist), else the one project it mirrors, else unassigned in
-    business scope and none outside it. Returns the problems met."""
-    rows, mirrors, derived = rows or {}, mirrors or {}, derived or {}
+    {impl, via}}} and designed: {project id: [values]}, from resolve_packages), else the one project it
+    mirrors, else unassigned in business scope and none outside it. Returns the problems met."""
+    rows, mirrors, derived, designed = rows or {}, mirrors or {}, derived or {}, designed or {}
     base, problems = {}, []
     for pid in sorted(projects):
         project = projects[pid]
@@ -284,7 +372,7 @@ def resolve_projects(projects, rows=None, mirrors=None, derived=None):
         if entry is not None:
             base[pid] = _curated(entry, scope, via)
         elif derived.get(pid):
-            base[pid] = _derived(derived[pid], scope)
+            base[pid] = _derived(derived[pid], scope, designed.get(pid) or ())
         else:
             base[pid] = _unplaced(scope)
 
@@ -308,10 +396,10 @@ def resolve_projects(projects, rows=None, mirrors=None, derived=None):
     return problems
 
 
-def row_checks(projects, rows, today):
-    """{unmatched: [row ids naming no project or alias of this run], overdue: [(row id, review_after)],
-    unreviewed: [row ids not yet reviewed]}."""
-    known = set(projects)
+def row_checks(projects, rows, today, packages=()):
+    """{unmatched: [row ids naming no project, alias or package of this run], overdue: [(row id,
+    review_after)], unreviewed: [row ids not yet reviewed]}."""
+    known = set(projects) | set(packages)
     for project in projects.values():
         known |= set(project.get("aliases") or [])
     return {"unmatched": sorted(rid for rid in rows if rid not in known),
@@ -339,8 +427,42 @@ def queue_items(projects, checks):
     return out
 
 
-def summary(projects, facets, rows=None, problems=(), checks=None):
-    """What the atlas and `estate capability` say about the map in one build."""
+def host_text(summary):
+    """One host repository (packages.host_summary) in one line: where its packages were read and what
+    their build state rests on."""
+    if summary.get("status") != "read":
+        return "%s: packages not read (%s)" % (summary.get("id"), summary.get("reason") or "unknown")
+    total, workspace, folders = (summary.get(k) or 0 for k in ("packages", "workspace", "folders"))
+    head = "%s at %s (%s%s): %d packages: %d in its workspace, %d folder%s its host row names, %d outside the workspace" % (
+        summary["id"], (summary.get("at_commit") or "an unknown commit")[:12], summary.get("commit_date") or "date unknown",
+        "" if summary.get("at_head") else "; its working tree differs from HEAD or was not measured",
+        total, workspace, folders, "" if folders == 1 else "s", total - workspace - folders)
+    listing = summary.get("build_list")
+    if listing is None:
+        return head + "; build state not measured: the host row names no quarantine list"
+    if listing.get("status") != "ok" or listing.get("at_head") is not True:
+        return head + "; build state not measured: %s %s" % (listing.get("path"), listing.get("reason") if listing.get(
+            "status") != "ok" else "was not read as the one at HEAD (modified tracked files or an unmeasured checkout)")
+    commits = ", ".join("%s (%s; %s commits before HEAD)" % (
+        commit[:12], lag.get("commit_date") or "date unknown",
+        lag["commits_since"] if lag.get("commits_since") is not None else "an unknown number of")
+        for commit, lag in sorted((listing.get("commits") or {}).items()))
+    return head + "; build state from %s at HEAD, %d entries, error counts measured at %s" % (
+        listing.get("path"), listing.get("entries") or 0, commits or "no named commit")
+
+
+def package_summary(packages):
+    """{records, holding, by_basis, by_impl} over the package records of one build."""
+    fields = [p.get("capability") or {} for p in (packages or {}).values()]
+    return {"records": len(fields), "holding": sum(1 for f in fields if f.get("values")),
+            "by_basis": dict(sorted(Counter(f.get("basis") or "missing" for f in fields).items())),
+            "by_impl": dict(sorted(Counter(e.get("impl") for f in fields for e in (f.get("by_value") or {}).values()
+                                           ).items()))}
+
+
+def summary(projects, facets, rows=None, problems=(), checks=None, packages=None, hosts=None):
+    """What the atlas and `estate capability` say about the map in one build; packages and hosts
+    (packages.host_summary) say what was read of the host repositories."""
     allowed = values(facets)
     fields = {pid: (project.get("display") or {}).get("capability") or {} for pid, project in projects.items()}
     by_value = {value: [] for value in allowed}
@@ -357,7 +479,8 @@ def summary(projects, facets, rows=None, problems=(), checks=None):
             "unassigned": sorted(pid for pid, f in fields.items() if f.get("status") == UNASSIGNED),
             "candidates": sum(len(f.get("candidates") or []) for f in fields.values()),
             "by_value": by_value, "rows": len(rows or {}), "unreviewed": checks["unreviewed"],
-            "overdue": checks["overdue"], "unmatched": checks["unmatched"], "problems": list(problems)}
+            "overdue": checks["overdue"], "unmatched": checks["unmatched"], "problems": list(problems),
+            "packages": package_summary(packages), "hosts": list(hosts or [])}
 
 
 # ── importing a classification ──────────────────────────────────────────────────────────────
@@ -408,26 +531,32 @@ def _table_of(ident, row):
     return out
 
 
-def _read_rows(path):
-    """The [[capability]] rows of one TOML file, read as written (dates stay dates); [] when absent."""
+def _read_rows(path, table="capability"):
+    """The [[capability]] (or [[host]]) rows of one TOML file, read as written (dates stay dates); []
+    when absent."""
     raw, reason = safety.read_checked(path, 4 << 20)
     if raw is None:
         require(reason == "missing", "cannot read %s: %s" % (path, reason))
         return []
     try:
-        rows = tomllib.loads(raw.decode("utf-8")).get("capability") or []
+        rows = tomllib.loads(raw.decode("utf-8")).get(table) or []
     except (UnicodeDecodeError, tomllib.TOMLDecodeError) as exc:
         raise GuardError("%s is not valid TOML: %s" % (path, exc)) from exc
-    require(all(isinstance(r, dict) and isinstance(r.get("id"), str) for r in rows),
-            "%s: every [[capability]] row needs an id" % path)
+    require(isinstance(rows, list) and all(isinstance(r, dict) and isinstance(r.get("id"), str) for r in rows),
+            "%s: every [[%s]] row needs an id" % (path, table))
     return rows
+
+
+def _host_table(row):
+    """A [[host]] row as the file renders it: its keys in their written order, maps inline."""
+    return {key: safety.Inline(value) if isinstance(value, dict) else value for key, value in row.items()}
 
 
 def plan_import(data, facets, layer_dir=None, replace_reviewed=()):
     """The new text of curated/capabilities.toml and of the private file, merged by id:
     {committed {relpath: text}, private text, counts, kept_reviewed [ids]}. An imported row
     replaces the unreviewed row of its id; a reviewed row is kept unless replace_reviewed names it;
-    a row the import leaves out is kept. Nothing is written."""
+    a row the import leaves out is kept; the [[host]] rows are kept as they are. Nothing is written."""
     layer = os.path.realpath(layer_dir or safety.LAYER_DIR)
     voc = _vocab(facets)
     meta = data.get("meta") or {}
@@ -435,6 +564,7 @@ def plan_import(data, facets, layer_dir=None, replace_reviewed=()):
     as_of = dt.date.fromisoformat(str(meta.get("as_of") or safety.utc_now().date().isoformat()))
     stamp = {"source": source, "reviewed": False, "as_of": as_of, "review_after": as_of + dt.timedelta(days=REVIEW_DAYS)}
     old = {r["id"]: r for r in _read_rows(os.path.join(layer, COMMITTED_FILE))}
+    hosts = [_host_table(r) for r in _read_rows(os.path.join(layer, COMMITTED_FILE), "host")]
     old_private = {r["id"]: r for r in _read_rows(os.path.join(layer, "private", PRIVATE_FILE))}
     replace = set(replace_reviewed or ())
     for ident in sorted(replace):
@@ -467,11 +597,13 @@ def plan_import(data, facets, layer_dir=None, replace_reviewed=()):
     counts["kept"] = sum(1 for ident in old if ident not in seen)
     counts["kept_reviewed"] = len(kept_reviewed)
     rows = [_table_of(ident, committed[ident]) for ident in sorted(committed)]
-    text = COMMITTED_HEADER + (safety.toml_dumps({"capability": rows}) if rows else "")
+    tables = {key: value for key, value in (("host", hosts), ("capability", rows)) if value}
+    text = COMMITTED_HEADER + (safety.toml_dumps(tables) if tables else "")
     findings = curate.lint_text(text, COMMITTED_FILE, curate.scope_of(COMMITTED_FILE))
     require(not findings, "the capability rows would fail the privacy lint in %s: %s" % (COMMITTED_FILE, "; ".join(
         "%s line %s (%s)" % (f["rule"], f.get("line"), f.get("detail")) for f in findings[:5])))
-    require(_plain(tomllib.loads(text).get("capability") or []) == _plain(rows),
+    written = tomllib.loads(text)
+    require(_plain(written.get("capability") or []) == _plain(rows) and _plain(written.get("host") or []) == _plain(hosts),
             "the capability rows do not round-trip through TOML")
     private_rows = [_table_of(ident, private[ident]) for ident in sorted(private)]
     private_text = PRIVATE_HEADER + safety.toml_dumps({"meta": {"source": source, "as_of": as_of,

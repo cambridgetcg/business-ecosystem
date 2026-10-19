@@ -1,10 +1,20 @@
-# The business capability map (vocab/facets.toml [business.capability]): one row per project, keyed by
-# forge id. Written by `estate capability --import ABS_PATH --write`, which merges by id, keeps every row
-# with reviewed = true, and renders this file anew (comments other than this header are not kept).
-# impl, operating and serves name values whose reading a row states; the others read impl code,
-# operating unknown, serves self. operating is a claim as of the row's as_of. A row with no values says
-# the project has no business capability. Local ids and the full evidence of every row live in
-# private/curated/capability.toml.
+# The business capability map (vocab/facets.toml [business.capability]): one [[capability]] row per
+# project, keyed by forge id, or per package, keyed by its package id (pkg:<forge id>//<subpath>), and
+# one [[host]] row per repository whose packages are read (tool/packages.py). Written by
+# `estate capability --import ABS_PATH --write`, which merges rows by id, keeps every row with
+# reviewed = true and the [[host]] rows as they are, and renders this file anew (comments other than
+# this header are not kept). impl, operating and serves name values whose reading a row states; the
+# others read impl code (a package's impl is measured), operating unknown, serves self. operating is a
+# claim as of the row's as_of. A row with no values says the project has no business capability.
+# Local ids and the full evidence of every row live in private/curated/capability.toml.
+
+[[host]]
+id = "github.com/cambridgetcg/business-ecosystem"
+extra_folders = ["foundational/corporate-security", "foundational/research", "operational/.orchestration/workflows"]
+build_list = "ci/quarantine.json"
+note = "Its workspace packages and these three folders, which hold no manifest, are read from tracked files. The quarantine list is the build state its CI enforces."
+source = "capability-2026-10-19"
+as_of = 2026-10-19
 
 [[capability]]
 id = "codeberg.org/zerone-dev/ai-love"
@@ -538,3 +548,14 @@ source = "capability-2026-10-18"
 reviewed = false
 as_of = 2026-10-18
 review_after = 2027-01-16
+
+[[capability]]
+id = "pkg:github.com/cambridgetcg/business-ecosystem//operational/insurance"
+values = ["insurance"]
+impl = { insurance = "stub" }
+confidence = "high"
+evidence = "One source file of 34 lines that answers health and info routes; no policy or claims code."
+source = "capability-2026-10-19"
+reviewed = false
+as_of = 2026-10-19
+review_after = 2027-01-17

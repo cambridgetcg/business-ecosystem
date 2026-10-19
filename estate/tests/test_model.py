@@ -198,7 +198,7 @@ class VocabularyTests(fixture.EstateTestCase):
     def test_records_contract_holds_every_kind_of_spec_3(self):
         kinds = self.records["kind"]
         for kind in ("project", "checkout", "group", "family", "surface", "zone", "scheduler", "artifact",
-                     "device", "account", "relation", "proposal", "source"):
+                     "device", "account", "relation", "package", "proposal", "source"):
             self.assertIn(kind, kinds)
             self.assertTrue(kinds[kind]["fields"], kind)
             self.assertIn(kinds[kind].get("privacy"), ("committed", "private", "derived"), kind)

@@ -609,6 +609,8 @@ GENERATED_DIRS = ("node_modules", "dist", "build", ".turbo", "coverage")
 TEST_PATH = re.compile(r"(?:^|/)(?:tests?|__tests__|spec)/|\.(?:test|spec)\.[cm]?[jt]sx?$|(?:^|/)test_[^/]*\.py$"
                        r"|_test\.py$")
 DEPENDENCY_KEYS = ("dependencies", "devDependencies", "peerDependencies", "optionalDependencies")
+# The package tasks a monorepo's CI runs through turbo, and that its quarantine list may name.
+CI_TASKS = ("build", "typecheck", "lint", "test")
 MAX_PACKAGE_FILES = 20000
 # Static problems, each a code of the package it concerns (or of a workspace glob):
 #   workspace-glob-empty   a workspace glob matches no tracked package
@@ -723,8 +725,9 @@ def _manifest_of(subpath, tracked):
 
 
 def _read_package_json(root, subpath, tracked):
-    """(name, {declared dependency names}) of a tracked package.json, else a pyproject.toml's
-    [project].name with no dependencies matched; (None, set()) when neither reads."""
+    """(name, {declared dependency names}, [CI_TASKS its scripts define]) of a tracked package.json,
+    else a pyproject.toml's [project].name with no dependencies matched and no scripts; (None, set(),
+    []) when neither reads."""
     if subpath + "/package.json" in tracked:
         raw, _reason = read_checked(os.path.join(root, subpath, "package.json"), MAX_SMALL)
         try:
@@ -736,12 +739,14 @@ def _read_package_json(root, subpath, tracked):
             for key in DEPENDENCY_KEYS:
                 if isinstance(data.get(key), dict):
                     declared |= set(data[key])
-            return (data["name"] if isinstance(data.get("name"), str) else None), declared
+            scripts = data.get("scripts") if isinstance(data.get("scripts"), dict) else {}
+            return ((data["name"] if isinstance(data.get("name"), str) else None), declared,
+                    [task for task in CI_TASKS if task in scripts])
     if subpath + "/pyproject.toml" in tracked:
         doc = _read_toml(root, subpath + "/pyproject.toml", [])
         name = ((doc or {}).get("project") or {}).get("name")
-        return (name if isinstance(name, str) else None), set()
-    return None, set()
+        return (name if isinstance(name, str) else None), set(), []
+    return None, set(), []
 
 
 def _unresolved_extends(root, subpath, tracked):
@@ -763,13 +768,14 @@ def read_packages(checkout, extra_folders=(), git=None):
     """The packages of one monorepo checkout, measured from tracked files only (git ls-files) and
     read through the deny list: a package is a directory holding a tracked package.json or
     pyproject.toml, or a folder extra_folders names. For each: its manifest kind, name and whether a
-    workspace glob includes it; non-test source files, non-blank lines (by language) and test files;
+    workspace glob includes it; which of CI_TASKS its package.json scripts define (scripts);
+    non-test source files, non-blank lines (by language) and test files;
     files the reader may not or could not open (unread_files, and then loc_partial: a lower bound,
     never a zero); declared internal dependencies against the imports its non-test JavaScript and
     TypeScript actually make; who imports it; and its static problems (PACKAGE_PROBLEMS). Python
     files count toward lines, but their imports are not matched to packages. The working tree is
     read, so at_head is false when census measured modified tracked files and None when that is
-    unknown. Build state is not read here."""
+    unknown. Build state is not read here: read_build_list reads it."""
     root = checkout["path"]
     runner = git or GitRunner(root)
     dirty = checkout.get("dirty") or {}
@@ -798,10 +804,11 @@ def read_packages(checkout, extra_folders=(), git=None):
     dirs |= {d.strip("/") for d in extra_folders if d.strip("/")}
     packages = out["packages"]
     for subpath in sorted(dirs):
-        name, declared = _read_package_json(root, subpath, tracked)
+        name, declared, scripts = _read_package_json(root, subpath, tracked)
         packages[subpath] = {
             "subpath": subpath, "name": name, "manifest": _manifest_of(subpath, tracked),
             "workspace": any(glob_match(subpath, g) for g in include) and not any(glob_match(subpath, g) for g in exclude),
+            "scripts": scripts,
             "measures": {"src_files": 0, "loc": 0, "loc_by_lang": {}, "test_files": 0, "md_files": 0, "unread_files": 0,
                          "loc_partial": False},
             "deps": {"declared": declared}, "imports": {"internal": set()}, "imported_by": [], "static": []}
@@ -867,6 +874,71 @@ def read_packages(checkout, extra_folders=(), git=None):
             if loose and subpath not in packages:
                 out["problems"].append({"code": "untracked-package", "path": subpath,
                                         "detail": "%s on disk, not tracked" % ", ".join(loose)})
+    return out
+
+
+_COMMIT = re.compile(r"[0-9a-f]{7,40}")
+
+
+def _commit_lag(runner, commit):
+    """{commit_date, commits_since, ancestor} of one commit against HEAD (None when the checkout does
+    not hold it): its committer date, how many commits HEAD has that it lacks, and whether it is an
+    ancestor of HEAD."""
+    out = {"commit_date": None, "commits_since": None, "ancestor": None}
+    try:
+        date = runner.run("log", "-1", "--format=%cI", commit)
+        count = runner.run("rev-list", "--left-right", "--count", "%s...HEAD" % commit)
+    except safety.GitRefused:
+        return out
+    if date.ok and date.out.strip():
+        out["commit_date"] = date.out.strip()
+    parts = count.out.split() if count.ok else []
+    if len(parts) == 2 and all(p.isdigit() for p in parts):
+        out["ancestor"], out["commits_since"] = parts[0] == "0", int(parts[1])
+    return out
+
+
+def read_build_list(checkout, rel, git=None):
+    """The quarantine list of a monorepo's CI at rel (business-ecosystem: ci/quarantine.json, kept by
+    scripts/ci-quarantine.mjs): the package tasks its CI skips until they are fixed. Read as a tracked
+    file through the deny list. Each entry keeps only package, task, errors and measured_at (its
+    reasons and exit texts stay in the repository); an entry of another shape is named in problems and
+    left out. For each distinct measured_at: its commit date, how many commits HEAD is past it and
+    whether it is an ancestor of HEAD, all None when the checkout does not hold it. at_head is true only
+    when census measured the checkout clean, so the bytes read are HEAD's; what that means is the
+    caller's to decide. {status (ok | missing | untracked | invalid | error), reason, path, at_head,
+    entries [{package, task, errors, measured_at}], commits {measured_at: {...}}, problems [text]}."""
+    root = checkout["path"]
+    dirty = checkout.get("dirty") or {}
+    out = {"status": "ok", "reason": None, "path": rel, "at_head": _clean(checkout) if dirty.get("mode") == "normal" else None,
+           "entries": [], "commits": {}, "problems": []}
+    if not isinstance(rel, str) or not rel or os.path.isabs(rel) or ".." in rel.split("/"):
+        return dict(out, status="error", reason="the list path must be repository-relative")
+    runner = git or GitRunner(root)
+    raw, reason = read_checked(os.path.join(root, rel), MAX_SMALL)
+    if raw is None:
+        return dict(out, status="missing" if reason == "missing" else "error", reason=reason)
+    tracked = _tracked(runner, rel)
+    if tracked is not True:
+        return dict(out, status="untracked", reason="not tracked" if tracked is False else "tracked state unknown")
+    try:
+        doc = _load_json(raw)
+    except (UnicodeDecodeError, ValueError, RecursionError):
+        return dict(out, status="invalid", reason="not JSON")
+    entries = doc.get("entries") if isinstance(doc, dict) else None
+    if not isinstance(entries, list):
+        return dict(out, status="invalid", reason="no entries list")
+    for index, entry in enumerate(entries):
+        item = entry if isinstance(entry, dict) else {}
+        errors, measured = item.get("errors"), item.get("measured_at")
+        if not (isinstance(item.get("package"), str) and item.get("task") in CI_TASKS
+                and (errors is None or (type(errors) is int and errors >= 0))
+                and (measured is None or (isinstance(measured, str) and _COMMIT.fullmatch(measured)))):
+            out["problems"].append("entry %d is not {package, task (%s), errors, measured_at}" % (index, ", ".join(CI_TASKS)))
+            continue
+        out["entries"].append({"package": item["package"], "task": item["task"], "errors": errors, "measured_at": measured})
+    for commit in sorted({e["measured_at"] for e in out["entries"] if e["measured_at"]}):
+        out["commits"][commit] = _commit_lag(runner, commit)
     return out
 
 

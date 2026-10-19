@@ -25,6 +25,7 @@ import curate
 import decisions
 import hygiene
 import kingdom
+import packages
 import safety
 import sources
 import sphere
@@ -56,7 +57,7 @@ KINGDOM_FIELDS = ("layer", "kind", "state")
 NAVIGATION = ("layer", "kind", "state", "standing", "liveness", "running", "hosting", "stack",
               "exposure", "family", "role", "topic", "sphere")
 RECORD_KINDS = ("project", "checkout", "group", "family", "surface", "zone", "scheduler", "artifact",
-                "device", "account", "relation")
+                "device", "account", "relation", "package")
 VALUE_STATUS = "set"
 CURRENT = ("deployment_commit_verified", "current_tracked_config", "current_source_document")
 ATTRIBUTION_ORDER = CURRENT + ("historical_source_evidence", "candidate_only", "unresolved")
@@ -390,13 +391,14 @@ def _private_rows(layer, out):
 
 
 def load_curated(layer_dir=None):
-    """The committed curation (families, groups, estate.toml, decisions.toml, capabilities.toml)
-    plus the private curation, with the owner decisions applied to its questions and disputes
-    (decisions.apply). Any file that is absent is recorded in status as missing; nothing is invented."""
+    """The committed curation (families, groups, estate.toml, decisions.toml, capabilities.toml with its
+    [[capability]] and [[host]] rows) plus the private curation, with the owner decisions applied to its
+    questions and disputes (decisions.apply). Any file that is absent is recorded in status as missing;
+    nothing is invented."""
     layer = _layer(layer_dir)
     out = {"families": {}, "projects": {}, "groups": {}, "identity": [], "surfaces": [], "zones": [],
-           "disputes": [], "questions": [], "upstream_notes": [], "spheres": [], "capabilities": [], "owners": {},
-           "legal": {}, "decisions": [],
+           "disputes": [], "questions": [], "upstream_notes": [], "spheres": [], "capabilities": [], "hosts": [],
+           "owners": {}, "legal": {}, "decisions": [],
            "private": {"projects": {}, "estate": {}, "decisions": {}, "sphere": {}, "capability": {}, "hygiene": None},
            "status": {},
            "problems": []}
@@ -415,6 +417,7 @@ def load_curated(layer_dir=None):
     rows, reason = _read_toml(os.path.join(layer, CAPABILITIES))
     out["status"][CAPABILITIES] = reason or "ok"
     out["capabilities"] = list((rows or {}).get("capability") or [])
+    out["hosts"] = list((rows or {}).get("host") or [])
     _private_rows(layer, out)
     return decisions.apply(_plain(out))
 
@@ -458,11 +461,18 @@ def gather_sources(cfg, kos_path, curated=None, home=None):
     }
 
 
-def read_canonical(checkout, project_id):
+def read_canonical(checkout, project_id, hosts=None):
     """The per-checkout sources, read only for canonical checkouts: repo schedulers and deploy
-    manifests. Pass this as build_records(repo_reader=read_canonical)."""
-    return {"schedules": sources.read_repo_schedules(checkout, project_id),
-            "manifests": sources.read_manifests(checkout)}
+    manifests, and for a host repository (hosts: packages.host_rows) its packages and the quarantine
+    list its row names. Pass this as build_records(repo_reader=read_canonical), with the hosts bound
+    (functools.partial) when packages are wanted."""
+    out = {"schedules": sources.read_repo_schedules(checkout, project_id),
+           "manifests": sources.read_manifests(checkout)}
+    host = (hosts or {}).get(project_id)
+    if host is not None:
+        out["packages"] = sources.read_packages(checkout, host.get("extra_folders") or ())
+        out["build_list"] = sources.read_build_list(checkout, host["build_list"]) if host.get("build_list") else None
+    return out
 
 
 # ── KINGDOM resolution (spec 6.8) ──────────────────────────────────────────────────────────
@@ -625,6 +635,7 @@ class _Join:
         self.groups, self.families, self.relations, self.artifacts = {}, {}, {}, {}
         self.repo, self.roster, self.fleet = {}, {}, {}
         self.sphere, self.hygiene, self.capability = {}, {}, {}
+        self.packages, self.hosts, self.package_problems = {}, [], []
         priv = (self.curated.get("private") or {}).get("estate") or {}
         self.private_estate = priv
         self.private_projects = (self.curated.get("private") or {}).get("projects") or {}
@@ -686,7 +697,7 @@ class _Join:
                 "flags": {"resting": False, "checkout_present": False, "incidental": False,
                           "orphaned_curation": False},
                 "claims": [], "measures": {}, "curated": None, "checkouts": [], "canonical_checkout": None,
-                "canonical_basis": None, "group_ids": [], "family_id": None, "relations": [], "surfaces": [],
+                "canonical_basis": None, "group_ids": [], "family_id": None, "relations": [], "packages": [], "surfaces": [],
                 "schedulers": [], "proposals": [], "legal_entity_id": None, "risks": [], "risk_detail": [],
                 "risk_notes": [], "tag_expectations": [], "unmapped_tags": [], "freshness": {},
                 "presence": "present", "missing_since": None, "observed_at": self.now_iso}
@@ -1586,6 +1597,33 @@ class _Join:
             return sorted(found), "checkout", len(found), None
         return [], None, None, "member rule kind %r is not understood" % kind
 
+    def build_packages(self):
+        """The package records of every host repository a [[host]] row names (packages.py), from what
+        read_repos read in its canonical checkout. A host this run did not read is summarised with the
+        reason and gives no records: its packages of the previous run are carried as missing
+        (reconcile), never read as empty."""
+        rows, self.package_problems = packages.host_rows(self.curated)
+        for host in sorted(rows):
+            project = self.projects.get(host)
+            cid = (project or {}).get("canonical_checkout")
+            source = (self.repo.get(cid) or {}) if cid else {}
+            read, listing = source.get("packages"), source.get("build_list")
+            reason = ("no project of this run has this forge id" if project is None
+                      else "the project has no canonical checkout here" if cid is None
+                      else "its canonical checkout was not read for packages" if read is None else None)
+            found = packages.records(host, read, listing, self.now_iso, self.groups) if (read or {}).get("status") == "ok" else {}
+            self.packages.update(found)
+            if project is not None:
+                project["packages"] = sorted(found)
+            summary = packages.host_summary(host, read, listing, found, reason)
+            self.hosts.append(summary)
+            names = (summary.get("build_list") or {}).get("unmatched") or []
+            if names:
+                self.package_problems.append("packages: the quarantine list of %s names %s, no package of its "
+                                             "checkout" % (host, ", ".join(names)))
+            self.package_problems += ["packages: the quarantine list of %s: %s" % (host, p)
+                                      for p in (listing or {}).get("problems") or []]
+
     def build_families(self):
         for fid, row in sorted((self.curated.get("families") or {}).items()):
             private = row.get("private") or {}
@@ -1792,16 +1830,22 @@ class _Join:
                                                                          item["project_value"])})
 
     def capabilities(self):
-        """The business capability map (capability.py) on every project's display: its curated row
-        (under its id or an alias), else the values of the one project it mirrors, else unassigned
-        when it is in business scope (capability.business_scope) and none outside it. QUEUE lists the
-        unassigned, framework-domain candidates, rows past their review date and rows naming no record."""
+        """The business capability map (capability.py): every package record's capability (its curated
+        row, else the run-band value its directory names), then every project's display: its curated
+        row (under its id or an alias), else the union of its packages that have code, else the values
+        of the one project it mirrors, else unassigned when it is in business scope
+        (capability.business_scope) and none outside it. QUEUE lists the unassigned, framework-domain
+        candidates, rows past their review date and rows naming no record."""
         facets = self.vocab.get("facets")
         rows, problems = capability.curated_index(self.curated, facets)
-        problems += capability.resolve_projects(self.projects, rows, sphere.mirror_targets(self.relations.values()))
-        checks = capability.row_checks(self.projects, rows, self.now.date().isoformat())
+        problems += self.package_problems
+        derived, designed, found = capability.resolve_packages(self.packages, rows, facets)
+        problems += found
+        problems += capability.resolve_projects(self.projects, rows, sphere.mirror_targets(self.relations.values()),
+                                                derived, designed)
+        checks = capability.row_checks(self.projects, rows, self.now.date().isoformat(), self.packages)
         self.queue += capability.queue_items(self.projects, checks)
-        self.capability = capability.summary(self.projects, facets, rows, problems, checks)
+        self.capability = capability.summary(self.projects, facets, rows, problems, checks, self.packages, self.hosts)
         self.problems += problems
 
     def _curation(self, pid, project):
@@ -2721,6 +2765,7 @@ def build_records(census_data, foundation, srcs, curated, vocab, prev=None, cfg=
     j.build_zones()
     j.build_families()
     j.build_groups()
+    j.build_packages()
     j.build_artifacts()
     j.build_accounts()
     j.owner_effects()
@@ -2816,12 +2861,12 @@ def changes(prev, snapshot, srcs=None):
 
 def _assemble(j):
     for project in j.projects.values():
-        for key in ("checkouts", "surfaces", "schedulers", "group_ids", "relations"):
+        for key in ("checkouts", "surfaces", "schedulers", "group_ids", "relations", "packages"):
             project[key] = sorted(set(project[key]))
     order = {kind: i for i, kind in enumerate(RECORD_KINDS)}
     records = (list(j.projects.values()) + list(j.co.values()) + list(j.groups.values()) + list(j.families.values())
                + list(j.surfaces.values()) + list(j.zones.values()) + list(j.schedulers.values())
-               + list(j.artifacts.values()) + j.other_records() + list(j.relations.values()))
+               + list(j.artifacts.values()) + j.other_records() + list(j.relations.values()) + list(j.packages.values()))
     return sorted(records, key=lambda r: (order.get(r["kind"], 99), r["id"]))
 
 

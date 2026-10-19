@@ -22,8 +22,8 @@ schema = "estate.records/1"
 snapshot_schema = "estate.snapshot/1"
 run_schema = "estate.run/1"
 proposal_schema = "estate.proposal/1"
-kinds = ["project", "checkout", "group", "family", "surface", "zone", "scheduler", "artifact", "device", "account", "relation", "proposal", "source"]
-in_records = ["project", "checkout", "group", "family", "surface", "zone", "scheduler", "artifact", "device", "account", "relation"]
+kinds = ["project", "checkout", "group", "family", "surface", "zone", "scheduler", "artifact", "device", "account", "relation", "package", "proposal", "source"]
+in_records = ["project", "checkout", "group", "family", "surface", "zone", "scheduler", "artifact", "device", "account", "relation", "package"]
 proposals_file = "proposals.jsonl"
 sources_file = "run.json"
 
@@ -48,7 +48,7 @@ at = "ISO-8601 time"
 alt = "other facts considered"
 kingdom_extra = "layer, kind and state add ref, resolved_by, candidates[{value, source, ref, overruled_by?}], off_enum[{value, source, ref}], ref_divergent and by_ref{ref: {status, value}}; decided_by names the owner decision that settled the value, authority the decision that made ref the primary ref (set where the refs diverge)"
 sphere_extra = "sphere (projects, zones, surfaces) always holds a value; its basis is one of vocab/facets.toml [facet.sphere].bases, and it adds decision (the owner decision defining the facet), confidence, reviewed, via (the project or alias the value came from), layer (rule:layer), family (curated:family), reason (why; always set when undecided), evidence (the full private text behind a curated row), follows (the record a curated zone or surface row takes its value from) and third_party"
-capability_extra = "the business display field capability (projects; vocab/facets.toml [business.capability]) has the facet shape with its basis one of that table's bases, and adds by_value {<value>: {impl, operating, serves}} (vocab/facets.toml capability_impl, capability_operating and capability_serves; operating is a claim as of the row), designed (values only documented or designed, never values), scope (why the project is in business scope; empty when it is not), candidates (run-band values be.framework_domain names that the project holds neither as a value nor as designed), via (the alias or mirrored project the values came from), reason (why unassigned or none), and from a curated row its confidence, reviewed, review_after, source, evidence (the committed short text) and evidence_full (the private text)"
+capability_extra = "the business display field capability (projects; and the capability field of package records) has the facet shape with its basis one of vocab/facets.toml [business.capability].bases, and adds by_value {<value>: {impl, operating, serves, and for derived:packages via, the package ids holding it}} (vocab/facets.toml capability_impl, capability_operating and capability_serves; operating is a claim as of the row), designed (values only documented or designed, never values), scope (why the project is in business scope; empty when it is not), candidates (run-band values be.framework_domain names that the project holds neither as a value nor as designed), via (the alias or mirrored project the values came from), reason (why unassigned or none), and from a curated row its confidence, reviewed, review_after, source, evidence (the committed short text) and evidence_full (the private text)"
 
 [enum]
 basis = ["measured", "claimed", "curated", "derived", "imported", "kingdom"]
@@ -104,6 +104,9 @@ canonical_basis = { type = "str", nullable = true, enum = "canonical_basis" }
 group_ids = { type = "list", ref = "group" }
 family_id = { type = "str", nullable = true, ref = "family" }
 relations = { type = "list", ref = "relation" }
+# packages: the package records of a host repository (a [[host]] row); optional only because missing
+# and gone stubs carried from runs before package records lack it.
+packages = { type = "list", ref = "package", optional = true }
 surfaces = { type = "list", ref = "surface" }
 schedulers = { type = "list", ref = "scheduler" }
 proposals = { type = "list", ref = "proposal" }
@@ -522,6 +525,73 @@ at = { type = "iso" }
 presence = { type = "str", enum = "presence" }
 missing_since = { type = "iso", nullable = true }
 observed_at = { type = "iso" }
+
+# ── package ─────────────────────────────────────────────────────────────────────────────────
+
+[kind.package]
+id = "pkg:<host forge id>//<subpath>: a package of a host repository named by a [[host]] row (tool/packages.py)"
+id_pattern = '^pkg:[a-z0-9][a-z0-9.-]*\.[a-z]{2,}/[^/\s]+/[^/\s]+//[A-Za-z0-9._/@-]+$'
+privacy = "private"
+committed_part = "the [[host]] rows of curated/capabilities.toml, and its [[capability]] rows keyed by a package id"
+note = "measured from the tracked files of the host's canonical checkout, read through the deny list (sources.read_packages); build state from the tracked quarantine list the host row names, at the checkout's HEAD (packages.build_state)"
+
+[kind.package.fields]
+kind = { type = "str" }
+id = { type = "str" }
+host = { type = "str", ref = "project" }
+subpath = { type = "str" }
+name = { type = "str", nullable = true }
+manifest = { type = "str", enum = "facets:vocab/package_manifest" }
+workspace = { type = "bool" }
+# scripts: which of build, typecheck, lint and test its package.json scripts define.
+scripts = { type = "list" }
+measures = { type = "dict" }
+deps = { type = "dict" }
+imports = { type = "dict" }
+# imported_by: the names of the packages whose non-test source imports this one.
+imported_by = { type = "list" }
+static = { type = "list", enum = "facets:vocab/package_static" }
+build = { type = "dict" }
+# capability: the business capability field (capability_extra); basis curated:package, rule:package-path or none.
+capability = { type = "facet", enum = "facets:business/capability", statuses = ["none"] }
+group_ids = { type = "list", ref = "group" }
+at_commit = { type = "str", nullable = true }
+commit_date = { type = "iso", nullable = true }
+at_head = { type = "bool", nullable = true }
+presence = { type = "str", enum = "presence" }
+missing_since = { type = "iso", nullable = true }
+observed_at = { type = "iso" }
+absences = { type = "int", optional = true }
+last_seen = { type = "iso", optional = true, nullable = true }
+
+[kind.package.subfields.measures]
+src_files = { type = "int" }
+loc = { type = "int" }
+loc_by_lang = { type = "dict" }
+test_files = { type = "int" }
+md_files = { type = "int" }
+unread_files = { type = "int" }
+loc_partial = { type = "bool" }
+
+[kind.package.subfields.deps]
+declared_internal = { type = "list" }
+declared_external_n = { type = "int" }
+
+[kind.package.subfields.imports]
+internal = { type = "list" }
+undeclared = { type = "list" }
+
+# build: the package against its host's quarantine list. tasks maps build, typecheck, lint and test to
+# a vocab/facets.toml package_build value; quarantined lists the entries naming it ({task, errors,
+# measured_at}: dated evidence, measured_at being the commit its count was measured at); unbuilt is
+# true when its build or typecheck is quarantined, null when the list was not read as HEAD's.
+[kind.package.subfields.build]
+list = { type = "str", nullable = true }
+status = { type = "str", nullable = true }
+reason = { type = "str", nullable = true }
+tasks = { type = "dict" }
+quarantined = { type = "list" }
+unbuilt = { type = "bool", nullable = true }
 
 # ── proposal (proposals.jsonl, schema estate.proposal/1) ───────────────────────────────────
 
