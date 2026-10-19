@@ -117,6 +117,7 @@ def records(host, read, listing, now_iso, groups=None):
             "deps": package.get("deps") or {}, "imports": package.get("imports") or {},
             "imported_by": list(package.get("imported_by") or []), "static": list(package.get("static") or []),
             "build": build_state(package, listing), "capability": None, "group_ids": _groups_of(host, subpath, groups),
+            "relations": [],
             "at_commit": read.get("at_commit"), "commit_date": read.get("commit_date"), "at_head": read.get("at_head"),
             "presence": "present", "missing_since": None, "observed_at": now_iso}
     return out

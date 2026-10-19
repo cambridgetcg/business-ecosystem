@@ -62,6 +62,7 @@ estate/bin/estate check --tree            # compare the symlink tree with its ma
 estate/bin/estate check --vocab           # tag-map closure against facets.toml and the live enums
 estate/bin/estate check --commit-ready    # privacy lint and host checks before a commit
 estate/bin/estate check --verify-harvest  # the authority ref's harvest validate/conformance vs the mirror
+estate/bin/estate check --wires           # curated wires against the code: 1 if a wired claim has no consuming code
 estate/bin/estate show <query>            # one record, claims beside measurements
 estate/bin/estate ls --facet layer=soul   # records by facet
 estate/bin/estate ls --facet sphere=kingdom-os   # the members of KINGDOM OS (D4): projects, zones, surfaces
@@ -225,11 +226,36 @@ holds nor lists as designed), `capability-review-overdue` and `capability-orphan
 The map is the body of the atlas's Business (secondary) section: per band, each capability with the records
 holding it and their operating claims, who it serves, where it is designed only and which records name it
 as `be.framework_domain` relevance; then the gaps (sell and grow capabilities no record holds as in use,
-worded as a statement about code, not a verdict on the business) and every record in business scope; each
-value also shows what its packages measure (lines, test files, importers, unread files, and how many have no
-measured build state), and each host where and at which commit its packages were read.
-`CAPABILITIES.md` beside the atlas holds the whole map value by value, with each row's private evidence;
-Questions for Yu carries one line for the rows waiting on review.
+worded as a statement about code, not a verdict on the business), the wires and every record in business
+scope; each value also shows what its packages measure (lines, test files, importers, unread files, and how
+many have no measured build state), and each host where and at which commit its packages were read.
+`CAPABILITIES.md` beside the atlas holds the whole map value by value, with each row's private evidence and
+each wire's anchors; Questions for Yu carries one line for the rows waiting on review.
+
+Wires are relations (`[kind.relation]`), not a record kind of their own, and a package may stand at either
+end (`tool/wires.py`). Between the packages of a host, an import in non-test source is a `depends_on`
+relation of basis `measured-import`, and a manifest declaration no code imports is one of basis
+`measured-manifest`. Curated wires are the `[[wire]]` rows of `curated/wires.toml`, `reviewed = false` until
+Yu reviews them: one end `feeds` the other over an event, an HTTP route or a file (or `depends_on` it), each
+end a package or project id, with anchors: a repository-relative path (a file, or a directory and everything
+under it) and a text that every build re-finds in the tracked files of that side's canonical checkout,
+through the deny list and with comments stripped; a hit in a test or a document is not code. A row may name
+its `flow` and `hop`, and an end that is not built yet (it is measured and shown, but gives no relation
+record). Each wire has two independent fields. `code_state` is what the code shows: `wired` (both sides have
+non-test code for it and no end package is on the build or typecheck quarantine list), `wired-unbuilt` (an
+end package is), `declared` (no code consumes it yet, or nothing is tracked yet where one side's anchors
+point) or `contradicted` (one side has the code and the other side's code does not answer it). `stage` is how
+far it has been shown to work: `designed`; `demonstrated` only when the latest run on main of the workflow
+the row names (`demonstrated_by`) is read green, which this version does not read, so such a claim reads
+`unknown`; `accepted` or `active` only with the owner decision the row names. Neither says live, which in
+the estate means observed up, and CI alone never makes a wire accepted or active.
+
+Each build measures every curated row and compares it with its claim: `agrees`, `unevidenced` (it claims
+`wired` or `wired-unbuilt` and the consuming side has no code for it), `differs` or `not-measured`. QUEUE
+lists `wire-unevidenced` and `wire-differs`. `estate check --wires` reads the current run against the rows
+as they are now: exit 1 when a curated wired claim has no consuming code, 10 when another state differs,
+could not be measured, a row is invalid or a row changed since the build, and 0 otherwise. Committed rows hold
+only forge ids, package ids, repository-relative anchors and short evidence that passes the privacy lint.
 
 ## Hygiene: the plan of owner decision D8
 

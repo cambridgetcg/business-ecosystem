@@ -29,6 +29,7 @@ import packages
 import safety
 import sources
 import sphere
+import wires
 
 
 SNAPSHOT_SCHEMA = "estate.snapshot/1"
@@ -39,6 +40,7 @@ FAMILIES_DIR = "curated/families"
 CURATED_ESTATE = "curated/estate.toml"
 DECISIONS = "curated/decisions.toml"
 CAPABILITIES = capability.COMMITTED_FILE
+WIRES = wires.FILE
 PRIVATE_PROJECTS = "private/curated/projects.toml"
 PRIVATE_ESTATE = "private/curated/estate.toml"
 # The owner's own words behind the owner decisions, verbatim; private, written by `estate decisions`.
@@ -392,13 +394,13 @@ def _private_rows(layer, out):
 
 def load_curated(layer_dir=None):
     """The committed curation (families, groups, estate.toml, decisions.toml, capabilities.toml with its
-    [[capability]] and [[host]] rows) plus the private curation, with the owner decisions applied to its
+    [[capability]] and [[host]] rows, wires.toml) plus the private curation, with the owner decisions applied to its
     questions and disputes (decisions.apply). Any file that is absent is recorded in status as missing;
     nothing is invented."""
     layer = _layer(layer_dir)
     out = {"families": {}, "projects": {}, "groups": {}, "identity": [], "surfaces": [], "zones": [],
            "disputes": [], "questions": [], "upstream_notes": [], "spheres": [], "capabilities": [], "hosts": [],
-           "owners": {}, "legal": {}, "decisions": [],
+           "wires": [], "owners": {}, "legal": {}, "decisions": [],
            "private": {"projects": {}, "estate": {}, "decisions": {}, "sphere": {}, "capability": {}, "hygiene": None},
            "status": {},
            "problems": []}
@@ -418,6 +420,9 @@ def load_curated(layer_dir=None):
     out["status"][CAPABILITIES] = reason or "ok"
     out["capabilities"] = list((rows or {}).get("capability") or [])
     out["hosts"] = list((rows or {}).get("host") or [])
+    rows, reason = _read_toml(os.path.join(layer, WIRES))
+    out["status"][WIRES] = reason or "ok"
+    out["wires"] = list((rows or {}).get("wire") or [])
     _private_rows(layer, out)
     return decisions.apply(_plain(out))
 
@@ -461,17 +466,20 @@ def gather_sources(cfg, kos_path, curated=None, home=None):
     }
 
 
-def read_canonical(checkout, project_id, hosts=None):
+def read_canonical(checkout, project_id, hosts=None, anchors=None):
     """The per-checkout sources, read only for canonical checkouts: repo schedulers and deploy
-    manifests, and for a host repository (hosts: packages.host_rows) its packages and the quarantine
-    list its row names. Pass this as build_records(repo_reader=read_canonical), with the hosts bound
-    (functools.partial) when packages are wanted."""
+    manifests; for a host repository (hosts: packages.host_rows) its packages and the quarantine list
+    its row names; and the curated wire anchors that point into it (anchors: wires.anchors_by_repo).
+    Pass this as build_records(repo_reader=read_canonical), with hosts and anchors bound
+    (functools.partial) when packages and wires are wanted."""
     out = {"schedules": sources.read_repo_schedules(checkout, project_id),
            "manifests": sources.read_manifests(checkout)}
     host = (hosts or {}).get(project_id)
     if host is not None:
         out["packages"] = sources.read_packages(checkout, host.get("extra_folders") or ())
         out["build_list"] = sources.read_build_list(checkout, host["build_list"]) if host.get("build_list") else None
+    if (anchors or {}).get(project_id):
+        out["anchors"] = sources.find_anchors(checkout, anchors[project_id])
     return out
 
 
@@ -635,7 +643,7 @@ class _Join:
         self.groups, self.families, self.relations, self.artifacts = {}, {}, {}, {}
         self.repo, self.roster, self.fleet = {}, {}, {}
         self.sphere, self.hygiene, self.capability = {}, {}, {}
-        self.packages, self.hosts, self.package_problems = {}, [], []
+        self.packages, self.hosts, self.package_problems, self.wires = {}, [], [], {}
         priv = (self.curated.get("private") or {}).get("estate") or {}
         self.private_estate = priv
         self.private_projects = (self.curated.get("private") or {}).get("projects") or {}
@@ -1635,19 +1643,31 @@ class _Join:
                 "drift": private.get("drift") or [], "nongit_paths": private.get("nongit_paths") or [],
                 "projects_n": 0, "presence": "present", "missing_since": None, "observed_at": self.now_iso}
 
-    def _relation(self, frm, verb, to, basis, raw_kind=None, note=None, src=None):
-        rid = "rel:" + safety.sha12("%s|%s|%s" % (frm, verb, to))
+    def _relation(self, frm, verb, to, basis, raw_kind=None, note=None, src=None, channel=None):
+        """The id of the relation frm verb to, created or given one more basis. A wire's channel is part of
+        its id, so two wires between the same ends over different channels stay two relations."""
+        key = "%s|%s|%s" % (frm, verb, to) + ("|%s:%s" % (channel["kind"], channel["name"]) if channel else "")
+        rid = "rel:" + safety.sha12(key)
         if rid in self.relations:
             if basis not in self.relations[rid]["also"] and basis != self.relations[rid]["basis"]:
                 self.relations[rid]["also"].append(basis)
-            return
+            return rid
         self.relations[rid] = {"kind": "relation", "id": rid, "from": frm, "verb": verb, "to": to, "basis": basis,
                                "also": [], "raw_kind": raw_kind or verb, "note": note, "src": src,
                                "at": self.now_iso, "presence": "present", "missing_since": None,
                                "observed_at": self.now_iso}
+        return rid
 
     def _known_end(self, ident):
-        return ident in self.projects or ident in self.groups
+        return ident in self.projects or ident in self.groups or ident in self.packages
+
+    def _attach_relations(self):
+        """List every relation on the project and package records at its ends."""
+        for rid, rel in self.relations.items():
+            for end in (rel["from"], rel["to"]):
+                record = self.projects.get(end) or self.packages.get(end)
+                if record is not None and rid not in record["relations"]:
+                    record["relations"].append(rid)
 
     def build_relations(self):
         for pid, row in sorted((self.curated.get("projects") or {}).items()):
@@ -1676,10 +1696,7 @@ class _Join:
                 other = self.co_project.get(other_cid) if other_cid else None
                 if other and other != pid:
                     self._relation(pid, verb, other, "measured-git", verb, None, "src:census")
-        for rid, rel in self.relations.items():
-            for end in (rel["from"], rel["to"]):
-                if end in self.projects and rid not in self.projects[end]["relations"]:
-                    self.projects[end]["relations"].append(rid)
+        self._attach_relations()
 
     def _roster_or_name(self, name):
         for ref in (self.primary,) + tuple(r for r in self.roster if r != self.primary):
@@ -1846,6 +1863,54 @@ class _Join:
         checks = capability.row_checks(self.projects, rows, self.now.date().isoformat(), self.packages)
         self.queue += capability.queue_items(self.projects, checks)
         self.capability = capability.summary(self.projects, facets, rows, problems, checks, self.packages, self.hosts)
+        self.problems += problems
+
+    def build_wires(self):
+        """Wires on the relation kind (wires.py): the import and manifest edges between package records,
+        then every curated [[wire]] row, its anchors re-found in each side's canonical checkout, its
+        code_state and stage measured and compared with its claim. A row whose ends this run holds
+        becomes (or joins) a relation record; one naming an end not built yet is still measured and
+        shown. QUEUE lists curated wired claims with no consuming code and claims measurement
+        contradicts."""
+        rows, problems = wires.rows(self.curated)
+        edges = wires.measured_edges(self.packages)
+        for edge in edges:
+            rid = self._relation(edge["from"], "depends_on", edge["to"], edge["basis"],
+                                 "import" if edge["basis"] == wires.MEASURED_IMPORT else "manifest", None, "src:packages")
+            relation = self.relations[rid]
+            relation["also"] += [b for b in edge["also"] if b not in relation["also"]]
+            relation["code_state"] = edge["code_state"]
+        found_by_repo = {}
+        for pid, project in self.projects.items():
+            cid = project["canonical_checkout"]
+            read = (self.repo.get(cid) or {}).get("anchors") if cid else None
+            if (read or {}).get("status") == "ok":
+                found_by_repo[pid] = {(a["path"], a["text"]): a for a in read["anchors"]}
+        decision_ids = {d["id"] for d in decisions.owner_decisions(self.curated.get("decisions"))}
+        evaluated = []
+        for name in sorted(rows):
+            row = rows[name]
+            unbuilt = {end: (self.packages[end].get("build") or {}).get("unbuilt") for end in (row["from"], row["to"])
+                       if end in self.packages}
+            entry = wires.evaluate(row, found_by_repo, unbuilt, decision_ids)
+            entry["ends"] = {side: self._known_end(row[side]) for side in wires.SIDES}
+            entry["id"] = None
+            if all(entry["ends"].values()):
+                entry["id"] = self._relation(row["from"], row["verb"], row["to"], wires.CURATED, row["verb"],
+                                             row.get("evidence"), "src:curated", row["channel"])
+                relation = self.relations[entry["id"]]
+                relation.update({k: entry[k] for k in ("name", "channel", "anchors", "claimed", "code_state", "reason",
+                                                       "stage", "stage_reason", "verdict")})
+                relation.update({k: row[k] for k in wires.META_KEYS if k in row})
+            evaluated.append(entry)
+            if entry["verdict"] == "unevidenced":
+                self.queue.append({"reason": "wire-unevidenced", "id": name,
+                                   "detail": "curated %s, but the consuming side has no code for it" % row["code_state"]})
+            elif entry["verdict"] == "differs":
+                self.queue.append({"reason": "wire-differs", "id": name, "detail": "curated %s, %s; measured %s, %s" % (
+                    row["code_state"], row["stage"], entry["code_state"], entry["stage"])})
+        self._attach_relations()
+        self.wires = wires.summary(evaluated, edges, problems)
         self.problems += problems
 
     def _curation(self, pid, project):
@@ -2774,6 +2839,7 @@ def build_records(census_data, foundation, srcs, curated, vocab, prev=None, cfg=
     j.build_relations()
     j.spheres()
     j.capabilities()
+    j.build_wires()
     j.risks()
     j.expectations()
     j.source_entries()
@@ -2800,7 +2866,7 @@ def build_records(census_data, foundation, srcs, curated, vocab, prev=None, cfg=
                                                     "runtime": e.get("runtime"), "repo": e.get("repo"),
                                                     "status": e.get("status")} for e in j.registry]},
         "foundation": foundation_summary(foundation),
-        "authority": j.authority, "sphere": j.sphere, "capability": j.capability, "hygiene": j.hygiene,
+        "authority": j.authority, "sphere": j.sphere, "capability": j.capability, "wires": j.wires, "hygiene": j.hygiene,
         "decision_effects": j.decision_effects(),
         "problems": j.problems + list((curated or {}).get("problems") or []),
     }
@@ -2863,6 +2929,8 @@ def _assemble(j):
     for project in j.projects.values():
         for key in ("checkouts", "surfaces", "schedulers", "group_ids", "relations", "packages"):
             project[key] = sorted(set(project[key]))
+    for package in j.packages.values():
+        package["relations"] = sorted(set(package["relations"]))
     order = {kind: i for i, kind in enumerate(RECORD_KINDS)}
     records = (list(j.projects.values()) + list(j.co.values()) + list(j.groups.values()) + list(j.families.values())
                + list(j.surfaces.values()) + list(j.zones.values()) + list(j.schedulers.values())

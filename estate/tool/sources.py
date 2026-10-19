@@ -942,6 +942,101 @@ def read_build_list(checkout, rel, git=None):
     return out
 
 
+# ── wire anchors (curated/wires.toml) ───────────────────────────────────────────────────────
+
+# Files an anchor is searched in. Documents declare; tests exercise; anything else tracked and read
+# here (source, workflow and configuration files) is code a running system loads.
+DOC_SUFFIXES = (".md", ".markdown", ".rst", ".txt")
+HASH_COMMENT_SUFFIXES = (".py", ".yaml", ".yml", ".toml", ".sh", ".bash")
+ANCHOR_SUFFIXES = tuple(SOURCE_LANG) + HASH_COMMENT_SUFFIXES + DOC_SUFFIXES + (".json", ".sql", ".prisma", ".graphql")
+ANCHOR_FILES_SHOWN = 5
+ANCHOR_FOUND = ("code", "test", "doc", "none", "absent", "unread")
+
+
+def strip_hash_comments(text):
+    """Python, YAML, TOML or shell text without its # comments: a # outside a quoted string runs to the
+    end of its line. Quotes are followed within a line only, so a # inside a one-line string survives
+    and a line inside a multi-line string may lose its tail (such lines are documentation, not code)."""
+    out = []
+    for line in text.split("\n"):
+        quote, i, cut = None, 0, len(line)
+        while i < len(line):
+            ch = line[i]
+            if quote:
+                if ch == "\\":
+                    i += 1
+                elif ch == quote:
+                    quote = None
+            elif ch in "'\"":
+                quote = ch
+            elif ch == "#":
+                cut = i
+                break
+            i += 1
+        out.append(line[:cut])
+    return "\n".join(out)
+
+
+def _anchor_kind(rel):
+    if TEST_PATH.search(rel):
+        return "test"
+    return "doc" if os.path.splitext(rel)[1].lower() in DOC_SUFFIXES else "code"
+
+
+def _anchor_text(rel, raw):
+    text = raw.decode("utf-8", "replace")
+    ext = os.path.splitext(rel)[1].lower()
+    if ext in SOURCE_LANG and SOURCE_LANG[ext] != "python":
+        return strip_comments(text)
+    return strip_hash_comments(text) if ext in HASH_COMMENT_SUFFIXES else text
+
+
+def find_anchors(checkout, anchors, git=None):
+    """Curated wire anchors re-found in one checkout. Each anchor is a repository-relative path (a file,
+    or a directory and everything under it) and a text; the text is searched in the tracked files there
+    with comments stripped (JavaScript and TypeScript comments; # comments in Python, YAML, TOML and
+    shell), each file read through the deny list, build output skipped. found is code (in a file that is
+    neither a test nor a document), test (only in tests), doc (only in documents), none (the path holds
+    tracked files and none has the text), absent (no tracked file at or under the path) or unread (not
+    found, and a file there could not be read). {status, reason, anchors [{path, text, found, files}]},
+    files naming at most ANCHOR_FILES_SHOWN of the files that hold the text."""
+    root = checkout["path"]
+    runner = git or GitRunner(root)
+    out = {"status": "ok", "reason": None, "anchors": []}
+    try:
+        res = runner.run("ls-files", "-z")
+    except safety.GitRefused as exc:
+        return dict(out, status="error", reason=str(exc))
+    if not res.ok:
+        return dict(out, status="error", reason="ls-files failed: exit %s" % res.code)
+    files = [p for p in res.out.split("\0") if p]
+    if len(files) > MAX_PACKAGE_FILES:
+        return dict(out, status="error", reason="%d tracked files, more than the %d the reader reads" % (
+            len(files), MAX_PACKAGE_FILES))
+    cache = {}
+    for anchor in anchors:
+        path, text = anchor["path"].strip("/"), anchor["text"]
+        under = [f for f in files if (f == path or f.startswith(path + "/"))
+                 and not any(part in GENERATED_DIRS for part in f.split("/")[:-1])]
+        kinds, hits, unread = set(), [], False
+        for rel in under:
+            if os.path.splitext(rel)[1].lower() not in ANCHOR_SUFFIXES:
+                continue
+            if rel not in cache:
+                raw, _reason = (None, "denied") if safety.is_denied(os.path.basename(rel)) else read_checked(
+                    os.path.join(root, rel), MAX_SMALL)
+                cache[rel] = None if raw is None else _anchor_text(rel, raw)
+            if cache[rel] is None:
+                unread = True
+            elif text in cache[rel]:
+                kinds.add(_anchor_kind(rel))
+                hits.append(rel)
+        found = next((k for k in ("code", "test", "doc") if k in kinds), None) or (
+            "unread" if unread else ("none" if under else "absent"))
+        out["anchors"].append({"path": path, "text": text, "found": found, "files": hits[:ANCHOR_FILES_SHOWN]})
+    return out
+
+
 # ── files named by the owner (no symlinked path anywhere) ──────────────────────────────────
 
 class _Refused(Exception):

@@ -536,6 +536,8 @@ measured-git = "git structure (alternates, nesting, submodules, worktrees)"
 registry = "a REGISTRY.yaml claim"
 portfolio = "a portfolio-map/1 hosting edge"
 config = "an owner-edited config entry"
+measured-import = "a package's non-test source imports the other package (package records, tool/packages.py)"
+measured-manifest = "a package's manifest declares the other package, and no non-test source imports it"
 
 [vocab.attribution]
 source = "portfolio-map/1 attribution classes, verbatim"
@@ -576,6 +578,50 @@ rule = "Who the capability serves; self unless a row says otherwise."
 self = "the business itself"
 customers = "sold or offered to customers as a product (for example loyalty offered to merchants)"
 both = "used by the business and offered to customers"
+
+# ── wires (relations, tool/wires.py; curated rows in curated/wires.toml) ─────────────────────
+
+[vocab.wire_code_state]
+rule = "What the code shows about a wire at the measured commit, from its anchors re-found in tracked files on every build (and, for a measured edge, from the package imports). It says nothing about deployment or running: a wire is never called live, which in the estate means observed up. Independent of stage."
+
+[vocab.wire_code_state.values]
+wired = "both sides have non-test code for it, and no end package is on the build or typecheck quarantine list"
+wired-unbuilt = "both sides have the code, and an end package is on the build or typecheck quarantine list"
+declared = "no code consumes it yet (a manifest, a workflow or a document names it), or one side is not built yet: nothing is tracked where its anchors point"
+contradicted = "one side has the code and the other side's tracked code does not answer it (a route nobody serves, an exchange nobody binds)"
+
+[vocab.wire_stage]
+rule = "How far a curated wire has been shown to work. Independent of code_state. CI alone never makes a wire accepted or active."
+
+[vocab.wire_stage.values]
+designed = "a design or a claim; nothing has shown it working end to end"
+demonstrated = "the latest run on main of the workflow the row names is green"
+accepted = "an owner decision the row names accepts it"
+active = "an owner decision the row names says it is in use"
+unknown = "the evidence the claimed stage needs could not be read"
+
+[vocab.wire_channel.values]
+event = "an event name carried by a transport (a RabbitMQ exchange, an SNS topic, a webhook topic)"
+http = "an HTTP route one side calls and the other serves"
+file = "a file or export one side writes and the other reads"
+manual = "a person carries it between the two sides"
+
+[vocab.wire_anchor.values]
+code = "the text is in a tracked file that is neither a test nor a document"
+test = "the text is only in test files"
+doc = "the text is only in documents"
+none = "the path holds tracked files and none of them has the text"
+absent = "no tracked file is at or under the path"
+unread = "the text was not found and a file there could not be read"
+
+[vocab.wire_verdict]
+rule = "A curated wire's claim against measurement; estate check --wires exits 1 on unevidenced and 10 on differs or not-measured."
+
+[vocab.wire_verdict.values]
+agrees = "the claimed code_state and stage are what this build measured"
+unevidenced = "the row claims wired or wired-unbuilt and the consuming side has no code for it"
+differs = "measurement disagrees with the claimed code_state or stage"
+not-measured = "what decides it could not be read in this build"
 
 # ── packages (record kind package, tool/packages.py) ────────────────────────────────────────
 

@@ -51,7 +51,7 @@ LEGAL_QUESTION = "q:legal-entities"
 QUEUE_ORDER = ("uncurated", "family-unassigned", "role-unknown", "unmapped-tag", "topic-below-threshold",
                "orphaned-curation", "local-forge-migration", "local-alias", "review-overdue",
                "family-unreviewed", "what-heavy", "capability-unassigned", "capability-candidate",
-               "capability-review-overdue", "capability-orphan-row")
+               "capability-review-overdue", "capability-orphan-row", "wire-unevidenced", "wire-differs")
 # ATTENTION order of spec 7; risks not named there follow alphabetically.
 ATTENTION_ORDER = tuple(curate.RISKS[key] for key in (
     "unsaved", "unpushed", "single", "partial", "lender", "borrower", "prunable", "secret-path",
@@ -1343,6 +1343,53 @@ def _capability_gaps(doc, v, level):
     doc.ul(lines)
 
 
+def _wire_end(v, ident):
+    """A wire end in short: a package's subpath, a record's name, else the id (an end not built yet)."""
+    if ident.startswith("pkg:"):
+        return ident.split("//", 1)[1] + ("" if ident in v.by_id else " (not in this run)")
+    return v.name(ident)
+
+
+def _wires(doc, v, level, full=False):
+    """The wires (wires.py): the measured import and manifest edges between packages, counted; every
+    curated wire with its claim, what this build measured and the verdict, by flow; full adds each
+    anchor with what was found where."""
+    info = v.snapshot.get("wires")
+    doc.h(level, "Wires")
+    if info is None:
+        doc.p("Wires: not provided to the renderer.")
+        return
+    measured = info.get("measured") or {}
+    doc.p("Wires are relations. code_state says what the code shows (wired, wired-unbuilt, declared, contradicted) "
+          "and stage how far a wire has been shown to work (designed, demonstrated, accepted, active, unknown); the two "
+          "are independent, and neither says the wire runs. Between packages: imports by code_state %s; manifest "
+          "declarations no code imports: %d. Curated wires: %d, verdicts %s." % (
+              ", ".join("%s %d" % kv for kv in (measured.get("measured-import") or {}).items()) or "none",
+              sum((measured.get("measured-manifest") or {}).values()), len(info.get("rows") or []),
+              ", ".join("%s %d" % kv for kv in (info.get("verdicts") or {}).items()) or "none"))
+    rows = sorted(info.get("rows") or [], key=lambda r: (r.get("flow") or "~", r.get("hop") or 0, r["name"]))
+    doc.table(("wire", "from", "to", "channel", "claimed", "measured", "stage", "verdict", "flow"),
+              [(r["name"], _wire_end(v, r["from"]), _wire_end(v, r["to"]),
+                "%s %s" % (r["channel"]["kind"], r["channel"]["name"]) if r.get("channel") else r["verb"],
+                "%s, %s" % (r["claimed"]["code_state"], r["claimed"]["stage"]), r.get("code_state") or "not measured",
+                r.get("stage"), r["verdict"], "%s %s" % (r["flow"], r.get("hop") or "") if r.get("flow") else "—")
+               for r in rows])
+    for flow, item in sorted((info.get("flows") or {}).items()):
+        doc.p("Flow %s: %s; its worst hop reads %s, its least stage %s." % (
+            flow, " → ".join(item["hops"]), item.get("code_state") or "not measured", item.get("stage")))
+    if info.get("problems"):
+        doc.p("Wire problems:", "warn")
+        doc.ul(info["problems"])
+    if full:
+        for r in rows:
+            doc.h(level + 1, "%s (%s)" % (r["name"], r["verdict"]))
+            doc.p("%s %s %s. Measured: %s.%s" % (r["from"], r["verb"], r["to"], r.get("reason") or "not measured",
+                                                  " Stage: %s." % r["stage_reason"] if r.get("stage_reason") else ""))
+            doc.table(("side", "path", "text", "found", "files"),
+                      [(a["side"], a["path"], a["text"], a.get("found") or "not searched", ", ".join(a.get("files") or []) or "—")
+                       for a in r.get("anchors") or []])
+
+
 def _capability_scope(doc, v, level):
     """Every present project in business scope, with its capabilities, why it is in scope, and the
     other business fields, so the one population is visible as a whole."""
@@ -1394,6 +1441,7 @@ def _business(doc, v):
     doc.link("CAPABILITIES.md: every value with its records, readings and evidence", v.capabilities_href)
     _capability_bands(doc, v, 3)
     _capability_gaps(doc, v, 3)
+    _wires(doc, v, 3)
     _capability_scope(doc, v, 3)
     _capability_waiting(doc, v)
 
@@ -1416,6 +1464,7 @@ def capability_doc(v):
         doc.ul("%s — %s" % kv for kv in (table.get("values") or {}).items())
     _capability_bands(doc, v, 2, full=True)
     _capability_gaps(doc, v, 2)
+    _wires(doc, v, 2, full=True)
     _capability_scope(doc, v, 2)
     doc.h(2, "Waiting on curation or review")
     info = v.snapshot.get("capability") or {}
