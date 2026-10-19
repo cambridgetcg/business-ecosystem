@@ -72,6 +72,17 @@ describe('fixture adapter', () => {
     expect(syntheticSalesSchema.safeParse(changed).success).toBe(false);
   });
 
+  it('refuses to map a typed file that names an owner decision', () => {
+    // SyntheticSales types decisionRef as any string, so only the parse inside
+    // the exported mapper keeps a library caller to synthetic books.
+    const file = fixture();
+    file.booksOf.decisionRef = 'dec-2026-10-18-1';
+    expect(() => mapSyntheticSales(file, GOLDEN_TIMESTAMP)).toThrow(IntakeError);
+    expect(() => mapSyntheticSales(file, GOLDEN_TIMESTAMP)).toThrow(
+      /^input is not synthetic-sales\/1: booksOf\.decisionRef: /
+    );
+  });
+
   it('refuses a record whose event breaks the contract, naming the record and rule', () => {
     const file = fixture();
     const [first] = file.records;

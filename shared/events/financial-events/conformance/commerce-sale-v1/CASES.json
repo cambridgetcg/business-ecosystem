@@ -3,7 +3,7 @@
     "Conformance cases for commerce sale events, contract version 1. TypeScript runs them with zod and with ajv against the JSON Schema (shared/events/financial-events/tests/commerce-sale-v1.test.ts); Python runs them against the accounting consumer's contract mirror (foundational/accounting/tests/test_commerce_posting_contract.py). All data is synthetic.",
     "valid: events every implementation accepts unchanged, with the S10 replayDigest each must compute. Their ids and aggregate ids are the S1 and S2 vectors.",
     "invalid: a valid event and a patch (RFC 6902 add, replace or remove; the path '' replaces the whole document). rule 'schema' means the JSON Schema rejects it; a rule id S1-S8 means the JSON Schema accepts it and the contract implementations reject it with an error naming that rule first. Each case breaks exactly one rule.",
-    "refundAgainstSale: S7, which needs the stored sale. A patch applies to the refund; rule null means the refund matches its sale.",
+    "refundAgainstSale: S7, which needs the stored sale: the sale given must be the one the refund names, and match it. A patch applies to the refund; rule null means the refund matches its sale.",
     "uuidV5: UUIDv5(namespace, name) vectors for provider key shapes the events above do not cover.",
     "Values only: these cases are JSON values, so they hold no number written with a fraction or exponent and no duplicate key. Event JSON text must not contain either (a reader rejects 2000.0, which JavaScript's JSON.parse cannot tell from 2000); the TypeScript producer writes canonical JSON lines, and the Python reader refuses both."
   ],
@@ -784,6 +784,7 @@
     {"name": "account-differs", "refund": "golden-t3-refund-partial", "sale": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/provider/accountRef", "value": "synthetic-seller-other"}], "rule": "S7"},
     {"name": "unknown-line-ref", "refund": "golden-t3-refund-partial", "sale": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines/0/lineRef", "value": "L9"}], "rule": "S7"},
     {"name": "unknown-fee-ref", "refund": "golden-t3-refund-partial", "sale": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/feeCredits/0/feeRef", "value": "F9"}], "rule": "S7"},
+    {"name": "sale-is-another-sale", "refund": "golden-t3-refund-partial", "sale": "golden-t2-sale-zero-rated-export", "patch": [], "rule": "S7"},
     {"name": "sale-is-a-refund", "refund": "golden-t3-refund-partial", "sale": "golden-t6-refund-rest", "patch": [], "rule": "S7"}
   ],
   "uuidV5": [

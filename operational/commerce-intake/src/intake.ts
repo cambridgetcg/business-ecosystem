@@ -17,8 +17,8 @@ import {
   replayDigest,
   type CommerceSaleEvent,
 } from '@ecosystem/events-financial';
-import { IntakeError, describeIssues } from './errors.js';
-import { mapSyntheticSales, syntheticSalesSchema, type SyntheticSales } from './fixture-adapter.js';
+import { IntakeError } from './errors.js';
+import { mapSyntheticSales } from './fixture-adapter.js';
 import { appendToSpool, readSpool, type SpooledEvent } from './spool.js';
 
 export const IMPORT_RESULT_SCHEMA = 'commerce-intake-import/1';
@@ -47,21 +47,14 @@ export function intakeTimestamp(
   return new Date(Math.floor(time / 1000) * 1000).toISOString().replace('.000Z', 'Z');
 }
 
-function readFixture(path: string): SyntheticSales {
-  let value: unknown;
+/** The fixture's JSON value; mapSyntheticSales checks that it is synthetic-sales/1. */
+function readFixture(path: string): unknown {
   try {
-    value = JSON.parse(readFileSync(path, 'utf8'));
+    return JSON.parse(readFileSync(path, 'utf8'));
   } catch (error) {
     if (error instanceof SyntaxError) throw new IntakeError(`fixture ${path} is not JSON`);
     throw error;
   }
-  const result = syntheticSalesSchema.safeParse(value);
-  if (!result.success) {
-    throw new IntakeError(
-      `fixture ${path} is not synthetic-sales/1: ${describeIssues(result.error)}`
-    );
-  }
-  return result.data;
 }
 
 export function importFixture(
@@ -69,7 +62,7 @@ export function importFixture(
   spoolPath: string,
   timestamp: string
 ): ImportResult {
-  const events = mapSyntheticSales(readFixture(fixturePath), timestamp);
+  const events = mapSyntheticSales(readFixture(fixturePath), timestamp, `fixture ${fixturePath}`);
   const known: Map<string, SpooledEvent> = readSpool(spoolPath);
   const byKey = new Map<string, CommerceSaleEvent>();
   for (const { event } of known.values()) byKey.set(event.payload.idempotencyKey, event);

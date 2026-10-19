@@ -64,7 +64,7 @@ Two event types, `commerce.sale.recorded` and `commerce.sale.refunded`, `aggrega
 | S3 `idempotencyKey` = `v1|provider|accountRef|transactionType|transactionId` | contract |
 | S4/S5 totals equal the sums of lines, fees and fee credits | contract |
 | S6 `lineRef`/`feeRef` unique within an event | contract |
-| S7 a refund matches its stored sale (books, currency, channel, account, line and fee refs); caps | flow (identity, error) and policy (caps, refusal) |
+| S7 a refund matches its stored sale (the sale it names; books, currency, channel, account, line and fee refs); caps | flow (identity, error) and policy (caps, refusal) |
 | S8 tax-free treatments state no tax; `taxBasis` is `not_applicable` exactly when tax is 0; an exempt or outside-scope fee states no tax | contract |
 | S9 `taxPointDate` is stated by the adapter in the books' VAT time zone | adapter |
 | S10 replay digest | contract |
