@@ -1,0 +1,15 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "test": {
+      "inputs": [
+        "src/**",
+        "tests/**",
+        "package.json",
+        "vitest.config.ts",
+        "$TURBO_ROOT$/operational/.orchestration/workflows/**"
+      ]
+    }
+  }
+}
