@@ -285,7 +285,9 @@ is none and a curated anchor is found as code, `unused` when neither, `no-librar
 library and `not-measured` when what would decide it could not be read; positive evidence decides first. A
 library that is no package of its host's checkout, or an anchor code no longer holds, is listed in QUEUE
 (`motif-stale`). The map shows a Motifs table after the wires, `CAPABILITIES.md` each library and anchor,
-and `estate capability` one line per motif.
+and `estate capability` one line per motif. The first rows, all `reviewed = false`, are the plan's: domain
+events (messaging and the events packages), the transactional outbox, saga compensation, the append-only
+audit trail and the compensating entry, which no library embodies.
 
 ## Hygiene: the plan of owner decision D8
 

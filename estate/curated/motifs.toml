@@ -1,0 +1,89 @@
+# Curated motifs (tool/motifs.py): the design patterns the business's code repeats. One [[motif]] row per
+# pattern: its name, the pattern in a sentence, the shared libraries that embody it (package ids; none for a
+# pattern no library carries) and also_in anchors, each a package or project id, a repository-relative path
+# (a file, or a directory and everything under it) and a text that every build re-finds in the tracked
+# files of that checkout, comments stripped: where code does the same by hand. Nothing here is a claim of
+# state: every build measures the packages importing each library and the anchors, and the views show the
+# state (adopted, reimplemented, unused, no-library, not-measured). A library or anchor that code no longer
+# holds is listed in QUEUE (motif-stale). Hand-edited; rows written by an agent read reviewed = false until
+# Yu reviews them. Only forge ids, package ids, repository-relative anchors and short evidence belong here.
+
+[[motif]]
+name = "domain-events"
+pattern = "A domain announces what happened as a named event on a shared transport, and other domains subscribe to it."
+libraries = [
+  "pkg:github.com/cambridgetcg/business-ecosystem//shared/libs/messaging",
+  "pkg:github.com/cambridgetcg/business-ecosystem//shared/events/compliance-events",
+  "pkg:github.com/cambridgetcg/business-ecosystem//shared/events/entity-events",
+  "pkg:github.com/cambridgetcg/business-ecosystem//shared/events/financial-events",
+  "pkg:github.com/cambridgetcg/business-ecosystem//shared/events/legal-events",
+  "pkg:github.com/cambridgetcg/business-ecosystem//shared/events/operational-events",
+]
+also_in = [
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//operational/data-privacy", path = "operational/data-privacy/src/lib/events.ts", text = "import amqplib from 'amqplib'" },
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//foundational/banking-treasury", path = "foundational/banking-treasury/src/infrastructure/aws/event-publisher.ts", text = "new PublishCommand(" },
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//foundational/banking-treasury", path = "foundational/banking-treasury/src/core/events/event-bus.ts", text = "export class EventBus" },
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//foundational/accounting", path = "foundational/accounting/src/infrastructure/messaging/publisher.py", text = "class InMemoryEventPublisher" },
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//foundational/shared", path = "foundational/shared/src/integration/event-router.ts", text = "export class EventRouter" },
+]
+evidence = "messaging carries events over RabbitMQ and the events packages hold their schemas. Elsewhere data-privacy opens its own RabbitMQ channel, banking-treasury publishes to SNS and keeps its own bus, accounting keeps an in-memory publisher and foundational/shared routes events itself."
+source = "capability-2026-10-19"
+reviewed = false
+as_of = 2026-10-19
+review_after = 2027-01-17
+
+[[motif]]
+name = "transactional-outbox"
+pattern = "An event is stored in the same database transaction as the change it reports, and a relay publishes it from there."
+libraries = ["pkg:github.com/cambridgetcg/business-ecosystem//shared/libs/outbox"]
+evidence = "Producers publish after their write. The plan adopts the outbox once a producer has a database of its own (O1), after its five known defects are fixed."
+source = "capability-2026-10-19"
+reviewed = false
+as_of = 2026-10-19
+review_after = 2027-01-17
+
+[[motif]]
+name = "saga-compensation"
+pattern = "A process of several steps undoes the steps it completed, in reverse order, when a later step fails."
+libraries = ["pkg:github.com/cambridgetcg/business-ecosystem//shared/libs/saga"]
+also_in = [
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//operational/.orchestration/engine", path = "operational/.orchestration/engine/src/executor.ts", text = "private async runCompensation(" },
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//shared/libs/workflows", path = "shared/libs/workflows/src/entity-onboarding.ts", text = "async compensate(payload, context)" },
+]
+evidence = "The workflow engine runs compensation steps in memory, and the workflows library gives each onboarding step its own compensate function."
+source = "capability-2026-10-19"
+reviewed = false
+as_of = 2026-10-19
+review_after = 2027-01-17
+
+[[motif]]
+name = "append-only-audit"
+pattern = "Who changed what, and when, is written to an audit trail that is kept and never edited."
+libraries = ["pkg:github.com/cambridgetcg/business-ecosystem//shared/libs/audit-logging"]
+also_in = [
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//foundational/entity-governance", path = "foundational/entity-governance/src/infrastructure/persistence/schema.ts", text = "pgTable('entity_governance_audit_log'" },
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//foundational/kyc-identity", path = "foundational/kyc-identity/src/infrastructure/persistence/schema.ts", text = "pgTable('kyc_audit_log'" },
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//operational/intellectual-property", path = "operational/intellectual-property/src/infrastructure/persistence/schema.ts", text = "pgTable('ip_audit_log'" },
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//foundational/banking-treasury", path = "foundational/banking-treasury/scripts/migrate.ts", text = "CREATE TABLE IF NOT EXISTS banking.audit_log" },
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//operational/contracts-legal", path = "operational/contracts-legal/prisma/schema.prisma", text = "model AuditLog {" },
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//operational/data-privacy", path = "operational/data-privacy/prisma/schema.prisma", text = "model PrivacyAuditLog {" },
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//foundational/accounting", path = "foundational/accounting/src/payment_evidence/storage.py", text = "RAISE(ABORT, 'append-only record')" },
+]
+evidence = "Six domains each define an audit table of their own, and accounting's payment evidence store refuses updates and deletes with SQLite triggers."
+source = "capability-2026-10-19"
+reviewed = false
+as_of = 2026-10-19
+review_after = 2027-01-17
+
+[[motif]]
+name = "compensating-entry"
+pattern = "A money movement is corrected or refunded by a new offsetting entry linked to the original, never by editing it."
+also_in = [
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//foundational/accounting", path = "foundational/accounting/src/domain/general_ledger/services/posting_service.py", text = "async def create_reversal(" },
+  { in = "pkg:github.com/cambridgetcg/business-ecosystem//foundational/accounting", path = "foundational/accounting/src/commerce_posting/storage.py", text = "compensates_entry_id TEXT REFERENCES ledger_entries(id)" },
+]
+evidence = "The general ledger posts a linked reversal for corrections, and commerce posting records a refund as a new offsetting entry that names the sale entry it compensates."
+source = "capability-2026-10-19"
+reviewed = false
+as_of = 2026-10-19
+review_after = 2027-01-17

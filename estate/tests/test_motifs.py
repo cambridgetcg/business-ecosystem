@@ -8,6 +8,7 @@ reads no-library; what cannot be read reads not-measured, and positive evidence 
 that is no package of its host's checkout, or an anchor code no longer holds, is queued as stale. The
 synthetic monorepo is built in a temporary directory, and the command line runs on a synthetic estate."""
 import os
+import tomllib
 
 from . import fixture
 from . import test_e2e
@@ -61,6 +62,22 @@ class VocabularyTests(fixture.EstateTestCase):
     def test_the_states_match_the_vocabulary(self):
         self.assertEqual(tuple(FACETS["vocab"]["motif_state"]["values"]), motifs.STATES)
         self.assertNotIn("live", motifs.STATES)
+
+    def test_the_seed_rows_are_clean_unreviewed_and_name_host_packages(self):
+        path = os.path.join(fixture.LAYER_DIR, motifs.FILE)
+        with open(path, encoding="utf-8") as stream:
+            text = stream.read()
+        self.assertEqual(curate.lint_text(text, motifs.FILE, curate.scope_of(motifs.FILE)), [])
+        raw = tomllib.loads(text)["motif"]
+        rows, problems = motifs.rows({"motifs": raw})
+        self.assertEqual((problems, len(rows)), ([], len(raw)))
+        self.assertEqual({r["reviewed"] for r in raw}, {False})
+        for name in ("domain-events", "transactional-outbox", "saga-compensation", "append-only-audit"):
+            self.assertTrue(rows[name]["libraries"], name)
+        self.assertEqual(rows["compensating-entry"]["libraries"], [])
+        ends = [lib for r in rows.values() for lib in r["libraries"]] + [a["in"] for r in rows.values() for a in r["also_in"]]
+        for end in ends:
+            self.assertTrue(end.startswith("pkg:github.com/cambridgetcg/business-ecosystem//"), end)
 
     def test_the_module_and_its_tests_pass_the_privacy_lint(self):
         for rel in ("tool/motifs.py", "tests/test_motifs.py"):
