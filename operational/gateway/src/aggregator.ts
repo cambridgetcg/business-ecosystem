@@ -216,7 +216,7 @@ export class OperationalAggregator {
       const data = await response.json() as {
         overallStatus: ComplianceOverview['overallStatus'];
         domains: Record<string, {
-          status: ComplianceOverview['domainStatuses'][OperationalDomain];
+          status: ComplianceOverview['overallStatus'];
           openFindings: number;
         }>;
         totalFindings: number;
@@ -226,7 +226,7 @@ export class OperationalAggregator {
       const domainStatuses: ComplianceOverview['domainStatuses'] = {};
       for (const [domain, status] of Object.entries(data.domains || {})) {
         domainStatuses[domain as OperationalDomain] = {
-          status: status.status?.status || 'pending',
+          status: status.status || 'pending',
           openFindings: status.openFindings || 0,
           criticalFindings: 0,
         };
