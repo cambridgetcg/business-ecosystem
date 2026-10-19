@@ -41,6 +41,9 @@ def parse_event(data, where):
                           parse_constant=no_constants, parse_float=no_fractions)
     except ValueError as exc:
         raise ValueError(f"{where}: {exc}") from exc
+    except RecursionError as exc:
+        # Deep nesting under the size cap is malformed input, not a crash.
+        raise ValueError(f"{where}: JSON nesting too deep") from exc
 
 
 def load_event(path):

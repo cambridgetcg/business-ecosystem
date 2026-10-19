@@ -93,6 +93,20 @@ def test_golden_events_post_through_the_real_domain_with_the_planned_balances(tm
     assert report["validation"]["balanced"] is True
 
 
+def test_hydrated_accounts_carry_the_books_currency(tmp_path):
+    from src.commerce_posting.storage import AccountRepository, connect
+
+    db = tmp_path / "currency.sqlite3"
+    deliver_all(db, golden_events()[:1])
+    connection = connect(db, readonly=True)
+    try:
+        account = asyncio.run(AccountRepository(connection, BOOKS_OF["entityId"]).get_by_id(CLEARING))
+    finally:
+        connection.close()
+    # The domain model defaults to USD; these books are GBP.
+    assert account is not None and account.currency_code == "GBP"
+
+
 def test_sale_and_refund_lines_follow_the_posting_rules(tmp_path):
     db = tmp_path / "rules.sqlite3"
     t1, t3 = golden_events()[:2]

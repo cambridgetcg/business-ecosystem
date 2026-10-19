@@ -107,7 +107,8 @@ def test_cli_refund_before_its_sale_is_retryable_and_writes_nothing(tmp_path):
 
 
 @pytest.mark.parametrize("payload", [b'{"id":"a","id":"b"}', b'{"net":NaN}', b'{"net":2000.0}', b'{"net":1e3}',
-                                     b"{", b"[]", b'"event"', b"\xff\xfe", b""])
+                                     b"{", b"[]", b'"event"', b"\xff\xfe", b"",
+                                     pytest.param(b"[" * 100000 + b"]" * 100000, id="deep-nesting")])
 def test_cli_rejects_malformed_json_without_creating_a_database(tmp_path, payload):
     event = tmp_path / "event.json"
     event.write_bytes(payload)

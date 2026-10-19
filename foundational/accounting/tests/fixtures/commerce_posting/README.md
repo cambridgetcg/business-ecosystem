@@ -5,7 +5,7 @@ All data here is synthetic. No file holds a real order, buyer, account or amount
 | File | What it is |
 |---|---|
 | `commerce-sale-events.v1.schema.provisional-copy.json` | A **provisional copy** of the commerce sale event JSON Schema from the first-wire design pass (2026-10-18). It is not the contract of record. PR W1 commits the authoritative schema and conformance files under `shared/events/financial-events/`; when that lands, the parity test reads W1's file and this copy is deleted. |
-| `golden-synthetic-2026-09-10.ndjson` | The seven synthetic September–October 2026 transactions of the wire spike (T1, T3, T2, T5, T4, T6, T7, in delivery order), one canonical JSON event per line. `tests/test_commerce_posting.py::golden_events` regenerates it byte for byte. |
+| `golden-synthetic-2026-09-10.ndjson` | The seven synthetic September–October 2026 transactions of the wire spike (T1, T3, T2, T5, T4, T6, T7, in delivery order), one canonical JSON event per line. `tests/test_commerce_posting_contract.py::golden_events` regenerates it byte for byte. |
 | `typescript-spike-sale.json`, `typescript-spike-refund.json` | Two events written by the TypeScript spike (Node 20, `uuid` v5, validated by ajv against the schema above). They are cross-language vectors for the ids and the replay digest. |
 | `id-and-digest-vectors.json` | Expected `id`, `aggregateId` and S10 replay digest for every event above. Node 20.20.2 and CPython agreed on every value when it was written; W1 can move them into its `CASES.json`. |
 
