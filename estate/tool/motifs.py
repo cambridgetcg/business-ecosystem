@@ -7,17 +7,23 @@ anchors, each a package or project id, a repository-relative path and a text tha
 that side's canonical checkout as it re-finds wire anchors (sources.find_anchors): where code does the same
 by hand. Its users are measured: the packages whose non-test source imports one of its libraries (the
 measured-import edges of wires.measured_edges), the motif's own libraries left out. A package whose
-manifest only declares a library is listed apart and is not a user.
+manifest only declares a library is listed apart and is not a user. Imports are matched in every package
+of the host's checkout, declared or not, so a non-test source file the reader may not or could not open
+(measures.unread_files) in any package of that checkout that is not already a user could hide one: the
+count is then a lower bound, never a zero. Only the imports of JavaScript and TypeScript are matched to
+package.json names, so a library with no package.json name is not measured.
 
 state is what this build measured:
   adopted        a package imports one of its libraries
   reimplemented  no package imports them, and a curated anchor is found as code elsewhere
   unused         no package imports them, and no curated anchor is found as code
   no-library     no shared library embodies it; its anchors show where code does it
-  not-measured   no package imports the libraries that were read, and what would decide the state could not
-                 be read (a library's host was not read, an anchor was not searched or a file was unreadable)
+  not-measured   no file read imports the libraries, and what would decide the state could not be read (a
+                 library's host or its importers were not read, a package that could import it has unread
+                 source, or an anchor was not searched or was unreadable)
 Positive evidence decides first: one importer is adoption even when another library of the motif was not
-read, and one anchor found as code is a reimplementation even when another could not be read. A library
+read or source went unread, and one anchor found as code is a reimplementation when every library was read
+and no source that could import one went unread, even when another anchor could not be read. A library
 that is no package of its host's checkout, or an anchor not found as code any more, is stale: QUEUE lists it
 (motif-stale), so the row is corrected rather than believed. Rows are hand-edited and read reviewed = false
 until Yu reviews them; they hold only forge ids, package ids, repository-relative anchors and short evidence.
@@ -32,6 +38,8 @@ STATES = ("adopted", "reimplemented", "unused", "no-library", "not-measured")
 ADOPTED, REIMPLEMENTED, UNUSED, NO_LIBRARY, NOT_MEASURED = STATES
 # The keys a row may carry beyond what is measured; they are shown, never measured.
 META_KEYS = ("evidence", "source", "reviewed", "as_of", "review_after")
+# The manifests whose name the package reader matches imports to (sources.read_packages).
+IMPORTABLE = ("package-json", "both")
 
 
 def _row_problems(row):
@@ -90,10 +98,11 @@ def anchors_by_repo(motif_rows, wanted=None):
 
 
 def _library(lib, own, package_records, edges, hosts):
-    """One library of a motif: its importers (users) and its declared-only dependants, or why it was not
-    measured (stale: the library is no package of a host that was read)."""
+    """One library of a motif: its importers (users), its declared-only dependants and the packages of its
+    host, not users, whose unread non-test source could hide another (unread_in: [{id, files}]), or why it
+    was not measured (stale: the library is no package of a host that was read)."""
     entry = {"id": lib, "name": None, "measured": False, "reason": None, "stale": False, "users": [], "declared": [],
-             "unbuilt_users": 0}
+             "unbuilt_users": 0, "unread_in": []}
     record = package_records.get(lib)
     if record is None:
         host = wires.repo_of(lib)
@@ -104,16 +113,29 @@ def _library(lib, own, package_records, edges, hosts):
         else:
             entry["reason"] = "its host %s was not read for packages in this run" % host
         return entry
+    if not record.get("name") or record.get("manifest") not in IMPORTABLE:
+        entry.update(name=record.get("name"), reason="its importers are not measured: only imports of a package.json "
+                                                     "name are matched")
+        return entry
     to_lib = [e for e in edges if e["to"] == lib and e["from"] not in own]
     users = sorted({e["from"] for e in to_lib if e["basis"] == wires.MEASURED_IMPORT})
+    unread_in = [{"id": pid, "files": other["measures"]["unread_files"]} for pid, other in sorted(package_records.items())
+                 if other.get("host") == record.get("host") and pid not in own and pid not in users
+                 and (other.get("measures") or {}).get("unread_files")]
     entry.update(name=record.get("name"), measured=True, users=users,
                  declared=sorted({e["from"] for e in to_lib if e["basis"] == wires.MEASURED_MANIFEST}),
-                 unbuilt_users=sum(1 for u in users if ((package_records.get(u) or {}).get("build") or {}).get("unbuilt")))
+                 unbuilt_users=sum(1 for u in users if ((package_records.get(u) or {}).get("build") or {}).get("unbuilt")),
+                 unread_in=unread_in)
     return entry
 
 
 def _plural(n, one, many=None):
     return "%d %s" % (n, one if n == 1 else (many or one + "s"))
+
+
+def _short(ident):
+    """A package id as the views say it: its subpath."""
+    return ident.split("//", 1)[-1]
 
 
 def evaluate(row, package_records, edges, found_by_repo, hosts=None):
@@ -135,17 +157,26 @@ def evaluate(row, package_records, edges, found_by_repo, hosts=None):
     by_hand = [a for a in anchors if a["found"] == "code"]
     unsure = [a for a in anchors if a["found"] in (None, "unread")]
     unread = [lib for lib in libraries if not lib["measured"]]
-    names = ", ".join(lib["id"].split("//", 1)[-1] for lib in libraries)
+    hidden = dict(sorted({(p["id"], p["files"]) for lib in libraries for p in lib["unread_in"]}))
+    names = ", ".join(_short(lib["id"]) for lib in libraries)
     if not libraries:
         state, reason = NO_LIBRARY, "no shared library embodies it; %d of %s found as code" % (
             len(by_hand), _plural(len(anchors), "curated anchor"))
     elif users:
         state, reason = ADOPTED, "%s import%s %s in non-test source" % (
             _plural(len(users), "package"), "s" if len(users) == 1 else "", ", ".join(
-                "%s (%d)" % (lib["id"].split("//", 1)[-1], len(lib["users"])) for lib in libraries if lib["users"]))
-    elif unread:
-        state, reason = NOT_MEASURED, "no package imports the libraries read; %s" % "; ".join(
-            "%s: %s" % (lib["id"].split("//", 1)[-1], lib["reason"]) for lib in unread)
+                "%s (%d)" % (_short(lib["id"]), len(lib["users"])) for lib in libraries if lib["users"]))
+    elif unread or hidden:
+        why = ["%s: %s" % (_short(lib["id"]), lib["reason"]) for lib in unread]
+        if hidden:
+            declaring = sum(1 for pid in hidden if any(pid in lib["declared"] for lib in libraries))
+            why.append("%s unread in %s that could import %s, %s of them declaring one: %s" % (
+                _plural(sum(hidden.values()), "non-test source file"), _plural(len(hidden), "package"),
+                "it" if len(libraries) == 1 else "them", declaring or "none", ", ".join(
+                    "%s (%d)" % (_short(pid), files) for pid, files in hidden.items())))
+        read = [_short(lib["id"]) for lib in libraries if lib["measured"]]
+        state, reason = NOT_MEASURED, "%s; %s" % (
+            "no file read imports %s" % ", ".join(read) if read else "no library was read", "; ".join(why))
     elif by_hand:
         state, reason = REIMPLEMENTED, "no package imports %s; %d of %s found as code elsewhere" % (
             names, len(by_hand), _plural(len(anchors), "curated anchor"))
@@ -178,11 +209,14 @@ def states_text(states):
     return ", ".join("%s %d" % (state, states[state]) for state in STATES if (states or {}).get(state)) or "none"
 
 
-def library_text(lib, short=lambda ident: ident.split("//", 1)[-1]):
-    """One library of a motif in a few words: its users and declared-only dependants, or why not measured."""
+def library_text(lib, short=_short):
+    """One library of a motif in a few words: its users (a lower bound, marked ≥, when source that could
+    import it went unread) and declared-only dependants, or why not measured."""
     if not lib.get("measured"):
         return "%s: not measured (%s)" % (short(lib["id"]), lib.get("reason") or "unknown")
-    return "%s: imported by %d%s, declared only by %d" % (
-        short(lib["id"]), len(lib.get("users") or []),
+    hidden = lib.get("unread_in") or []
+    return "%s: imported by %s%d%s, declared only by %d%s" % (
+        short(lib["id"]), "≥" if hidden else "", len(lib.get("users") or []),
         " (%d build- or typecheck-quarantined)" % lib["unbuilt_users"] if lib.get("unbuilt_users") else "",
-        len(lib.get("declared") or []))
+        len(lib.get("declared") or []), ", %s unread in %s" % (
+            _plural(sum(p["files"] for p in hidden), "file"), _plural(len(hidden), "package")) if hidden else "")

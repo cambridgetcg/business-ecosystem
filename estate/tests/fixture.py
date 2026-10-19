@@ -508,11 +508,13 @@ def make_domain_monorepo(path, home=None, remote=None):
     return path, measured
 
 
-def make_motif_monorepo(path, home=None, remote=None):
+def make_motif_monorepo(path, home=None, remote=None, unread_importer=False):
     """A small pnpm monorepo for the motifs view: a messaging library the engine imports and an events
     library that imports it too (a sibling in one motif, not a user), an outbox library two packages only
     declare and one test imports, a saga library nobody imports whose pattern the engine does by hand, and a
-    Python ledger whose compensating entry no library embodies, with one text only in its docstring."""
+    Python ledger whose compensating entry no library embodies, with one text only in its docstring.
+    unread_importer adds a deny-listed source file to the intake package that imports the outbox library:
+    the reader never opens it, so the import is never seen."""
     files = {
         "package.json": _package_json("fixture-motifs"),
         "pnpm-workspace.yaml": "packages:\n  - 'shared/libs/*'\n  - 'operational/*'\n",
@@ -535,6 +537,8 @@ def make_motif_monorepo(path, home=None, remote=None):
         "operational/ledger/src/ledger.py": ('def create_reversal(entry):\n'
                                              '    """An offsetting entry: compensate by hand."""\n    return entry\n'),
     }
+    if unread_importer:
+        files["operational/intake/src/tokens.ts"] = "import { relay } from '@fixture/outbox'\nexport const ID = relay\n"
     return make_repo(path, files=files, home=home, remote=remote)
 
 
