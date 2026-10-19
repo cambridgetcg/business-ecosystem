@@ -188,6 +188,44 @@ describe('OperationalAggregator', () => {
     expect(renewals.map((i) => i.id)).toEqual(['policy', 'lease']);
   });
 
+  it("reads each domain's status from the compliance aggregator's overview", async () => {
+    // The body of the aggregator's GET /entities/:entityId/compliance
+    // (operational/.orchestration/compliance/src/index.ts): each domain is its
+    // DomainComplianceStatus, whose status is a plain string.
+    stubFetch({
+      [`${COMPLIANCE}/entities/e-1/compliance`]: {
+        entityId: 'e-1',
+        overallStatus: 'non-compliant',
+        domains: {
+          'data-privacy': {
+            domain: 'data-privacy',
+            status: 'non-compliant',
+            regulations: {},
+            openFindings: 2,
+          },
+          insurance: { domain: 'insurance', status: 'compliant', regulations: {}, openFindings: 0 },
+        },
+        totalFindings: 2,
+        criticalFindings: 1,
+        lastUpdated: '2026-10-19T00:00:00.000Z',
+      },
+    });
+    const overview = await gateway().getEntityOverview({
+      entityId: 'e-1',
+      includePendingActions: false,
+      includeExpiringItems: false,
+    });
+    expect(overview.complianceStatus).toEqual({
+      overallStatus: 'non-compliant',
+      domainStatuses: {
+        'data-privacy': { status: 'non-compliant', openFindings: 2, criticalFindings: 0 },
+        insurance: { status: 'compliant', openFindings: 0, criticalFindings: 0 },
+      },
+      totalFindings: 2,
+      criticalFindings: 1,
+    });
+  });
+
   it('falls back to a pending compliance overview when the aggregator is down', async () => {
     stubFetch({ [`${COMPLIANCE}/entities/e-1/compliance`]: new Error('connect ECONNREFUSED') });
     const overview = await gateway().getEntityOverview({
