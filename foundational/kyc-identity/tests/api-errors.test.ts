@@ -62,4 +62,39 @@ describe('kyc-identity REST errors', () => {
     });
     expect(response.statusCode).toBe(400);
   });
+
+  it('returns 400 when the x-tenant-id header is missing', async () => {
+    const response = await app.inject({ method: 'GET', url: `/api/v1/identities/${IDENTITY}` });
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({ error: 'Missing required x-tenant-id header' });
+  });
+
+  it('returns 400 with the validation details for an invalid body', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/v1/identities',
+      headers: TENANT,
+      payload: { type: 'ROBOT', email: 'not-an-email' },
+    });
+    expect(response.statusCode).toBe(400);
+    const body = response.json<{ error: string; details: { issues: { path: string[] }[] } }>();
+    expect(body.error).toBe('Validation error');
+    expect(body.details.issues.map((issue) => issue.path.join('.')).sort()).toEqual([
+      'email',
+      'type',
+    ]);
+  });
+
+  it('returns 500 without the internal message when the database fails', async () => {
+    vi.spyOn(queries.IdentityQueryHandler.prototype, 'getIdentity').mockRejectedValue(
+      new Error('connection terminated unexpectedly')
+    );
+    const response = await app.inject({
+      method: 'GET',
+      url: `/api/v1/identities/${IDENTITY}`,
+      headers: TENANT,
+    });
+    expect(response.statusCode).toBe(500);
+    expect(response.json()).toEqual({ error: 'Internal server error' });
+  });
 });
