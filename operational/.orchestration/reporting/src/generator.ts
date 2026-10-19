@@ -7,6 +7,7 @@ import { pino } from 'pino';
 import type {
   ReportDefinition,
   ReportData,
+  ReportSection,
   ReportSectionData,
   ReportItem,
   ReportSummary,
@@ -145,10 +146,7 @@ export class ReportGenerator {
     }
   }
 
-  private buildSection(
-    config: { title: string; filter?: string; sortBy?: string; sortOrder?: 'asc' | 'desc'; fields?: string[] },
-    allItems: ReportItem[]
-  ): ReportSectionData {
+  private buildSection(config: ReportSection, allItems: ReportItem[]): ReportSectionData {
     let items = [...allItems];
 
     // Apply filter
@@ -161,7 +159,7 @@ export class ReportGenerator {
       items.sort((a, b) => {
         const aVal = this.getNestedValue(a, config.sortBy!);
         const bVal = this.getNestedValue(b, config.sortBy!);
-        const cmp = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+        const cmp = this.compareValues(aVal, bVal) ?? 0;
         return config.sortOrder === 'desc' ? -cmp : cmp;
       });
     }
@@ -194,19 +192,20 @@ export class ReportGenerator {
 
     for (const op of operators) {
       if (filter.includes(op)) {
-        const [field, valueStr] = filter.split(op).map((s) => s.trim());
+        const [field = '', valueStr = ''] = filter.split(op).map((s) => s.trim());
         const fieldValue = this.getNestedValue(item, field);
         const compareValue = this.parseValue(valueStr);
+        const order = this.compareValues(fieldValue, compareValue);
 
         switch (op) {
           case '<=':
-            return fieldValue <= compareValue;
+            return order !== undefined && order <= 0;
           case '>=':
-            return fieldValue >= compareValue;
+            return order !== undefined && order >= 0;
           case '<':
-            return fieldValue < compareValue;
+            return order !== undefined && order < 0;
           case '>':
-            return fieldValue > compareValue;
+            return order !== undefined && order > 0;
           case '==':
             return fieldValue === compareValue;
           case '!=':
@@ -216,6 +215,17 @@ export class ReportGenerator {
     }
 
     return true;
+  }
+
+  // How two field values order. A number, string or boolean orders against one
+  // of its own kind, as in JavaScript; any other pair (null, a missing field, a
+  // number against a string) has no order, so an ordering filter on it does not
+  // match and a sort leaves it in place. == and != compare strictly too.
+  private compareValues(a: unknown, b: unknown): number | undefined {
+    if (typeof a === 'number' && typeof b === 'number') return a < b ? -1 : a > b ? 1 : 0;
+    if (typeof a === 'string' && typeof b === 'string') return a < b ? -1 : a > b ? 1 : 0;
+    if (typeof a === 'boolean' && typeof b === 'boolean') return Number(a) - Number(b);
+    return undefined;
   }
 
   private getNestedValue(obj: Record<string, unknown>, path: string): unknown {

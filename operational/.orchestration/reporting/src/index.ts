@@ -15,11 +15,11 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger as honoLogger } from 'hono/logger';
 import { pino } from 'pino';
+import { randomUUID } from 'crypto';
 import { readdir, readFile, mkdir, writeFile } from 'fs/promises';
 import { join, extname } from 'path';
 import { parse as parseYaml } from 'yaml';
-import { v4 as uuidv4 } from 'uuid';
-import cron from 'node-cron';
+import { CronJob, sendAt } from 'cron';
 import { ReportGenerator } from './generator.js';
 import type {
   ReportDefinition,
@@ -28,7 +28,6 @@ import type {
   ReportStatus,
   ScheduleConfig,
   ScheduledReport,
-  OperationalDomain,
 } from './types.js';
 
 const logger = pino({ name: 'reporting-service' });
@@ -37,7 +36,7 @@ const logger = pino({ name: 'reporting-service' });
 const reportDefinitions = new Map<string, ReportDefinition>();
 const reportExecutions = new Map<string, ReportExecution>();
 const scheduledReports = new Map<string, ScheduledReport>();
-const cronJobs = new Map<string, cron.ScheduledTask>();
+const cronJobs = new Map<string, CronJob>();
 
 async function loadReportDefinitions(definitionsDir: string): Promise<void> {
   try {
@@ -64,7 +63,7 @@ async function loadSchedules(schedulesDir: string, generator: ReportGenerator): 
         const data = parseYaml(content) as { schedules: ScheduleConfig[] };
         
         for (const config of data.schedules || []) {
-          const id = uuidv4();
+          const id = randomUUID();
           const scheduled: ScheduledReport = {
             id,
             config,
@@ -73,8 +72,10 @@ async function loadSchedules(schedulesDir: string, generator: ReportGenerator): 
           scheduledReports.set(id, scheduled);
 
           if (config.enabled !== false) {
-            const job = cron.schedule(config.cron, async () => {
-              await runScheduledReport(scheduled, generator);
+            const job = CronJob.from({
+              cronTime: config.cron,
+              onTick: () => runScheduledReport(scheduled, generator),
+              start: true,
             });
             cronJobs.set(id, job);
             logger.info({ scheduleId: id, report: config.report, cron: config.cron }, 'Scheduled report');
@@ -88,8 +89,7 @@ async function loadSchedules(schedulesDir: string, generator: ReportGenerator): 
 }
 
 function getNextCronRun(cronExpr: string): Date {
-  // Simple approximation - in production use a proper cron parser
-  return new Date(Date.now() + 24 * 60 * 60 * 1000);
+  return sendAt(cronExpr).toJSDate();
 }
 
 async function runScheduledReport(scheduled: ScheduledReport, generator: ReportGenerator): Promise<void> {
@@ -101,7 +101,7 @@ async function runScheduledReport(scheduled: ScheduledReport, generator: ReportG
     return;
   }
 
-  const executionId = uuidv4();
+  const executionId = randomUUID();
   const execution: ReportExecution = {
     id: executionId,
     reportId: definition.id,
@@ -197,11 +197,11 @@ async function main() {
 
   // Generate report
   app.post('/reports/generate', async (c) => {
-    const body = await c.req.json() as {
+    const body = await c.req.json<{
       reportId: string;
       parameters: Record<string, unknown>;
       format: ReportFormat;
-    };
+    }>();
 
     const definition = reportDefinitions.get(body.reportId);
     if (!definition) {
@@ -212,7 +212,7 @@ async function main() {
       return c.json({ error: 'Unsupported format: ' + body.format }, 400);
     }
 
-    const executionId = uuidv4();
+    const executionId = randomUUID();
     const execution: ReportExecution = {
       id: executionId,
       reportId: definition.id,
@@ -225,7 +225,7 @@ async function main() {
     reportExecutions.set(executionId, execution);
 
     // Generate asynchronously
-    setImmediate(async () => {
+    const generate = async (): Promise<void> => {
       execution.status = 'generating';
       execution.startedAt = new Date();
 
@@ -245,7 +245,8 @@ async function main() {
         execution.error = (error as Error).message;
         logger.error({ executionId, error }, 'Report generation failed');
       }
-    });
+    };
+    setImmediate(() => void generate());
 
     return c.json({
       executionId,
@@ -351,7 +352,7 @@ async function main() {
 }
 
 if (import.meta.url === 'file://' + process.argv[1]) {
-  main().catch((error) => {
+  main().catch((error: unknown) => {
     logger.error({ error }, 'Failed to start reporting service');
     process.exit(1);
   });
