@@ -88,7 +88,11 @@ export class ComplianceAggregator {
         const status = await client.getComplianceStatus(entityId);
         const findings = await client.getFindings(entityId);
 
-        status.openFindings = findings.filter(f => f.status === 'open' || f.status === 'in-progress').length;
+        // Open structured findings, plus the issues a domain reports only as
+        // text (data-privacy's GDPR issues), which have no finding to count.
+        const textIssues = Array.from(status.regulations.values())
+          .reduce((count, regulation) => count + (regulation.issues?.length ?? 0), 0);
+        status.openFindings = findings.filter(f => f.status === 'open' || f.status === 'in-progress').length + textIssues;
         domains.set(domain, status);
 
         totalFindings += status.openFindings;
