@@ -10,8 +10,8 @@ import type { SpanContext } from './types.js';
 export interface RequestContext {
   correlationId: string;
   requestId: string;
-  userId?: string;
-  tenantId?: string;
+  userId?: string | undefined;
+  tenantId?: string | undefined;
   serviceName: string;
   startTime: number;
   metadata: Record<string, unknown>;

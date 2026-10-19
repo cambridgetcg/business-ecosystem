@@ -1,0 +1,471 @@
+{
+  "about": [
+    "Package tasks that fail today and that ci.yml skips until they are fixed. scripts/ci-quarantine.mjs turns this list into turbo --filter=!<package> arguments, validates it, and re-measures it: a report on main and a ratchet on pull requests.",
+    "The list may only shrink. Remove an entry when its task passes, and lower errors when the count falls. A build or typecheck entry is refused for a package that another package depends on, because turbo would run that task anyway.",
+    "errors counts TypeScript diagnostics (build, typecheck), ESLint errors (lint) or failing test files (test, where 0 means there are no test files). Counts come from pnpm --filter <package> run <task> after the install and build that the quarantine jobs in ci.yml run (pnpm install --frozen-lockfile --config.side-effects-cache=false, then the non-quarantined build); first_error paths are relative to the package. measured_at is the commit whose package sources were measured.",
+    "Follow-up ids (F2-F9, O1) refer to the step-0 plan in the pull request that added this file."
+  ],
+  "measured_with": {
+    "node": "20.20.2",
+    "pnpm": "9.15.9",
+    "turbo": "2.7.6",
+    "platform": "darwin-arm64; the ubuntu ratchet run on the pull request that added this file measured the same 48 counts"
+  },
+  "status_drift": {
+    "about": "STATUS.md claims that these measurements contradict. They are recorded here rather than edited: a push to main that touches a STATUS.md starts Progress Sync, which configures AWS credentials, and owner decision D6 (dec-2026-10-17-7) rules out AWS action.",
+    "items": [
+      {
+        "file": "gateway/STATUS.md",
+        "lines": "17-34",
+        "claim": "None of the five tasks in the gateway build chain succeeds; the gateway source does not compile.",
+        "measured": "The gateway and its workspace dependencies build and typecheck, and its 4 tests run in ci.yml."
+      },
+      {
+        "file": "operational/contracts-legal/STATUS.md",
+        "lines": "14",
+        "claim": "Blockers: None",
+        "measured": "Its build, typecheck, lint and test are all quarantined below."
+      },
+      {
+        "file": "foundational/banking-treasury/STATUS.md",
+        "lines": "14",
+        "claim": "Blockers: None",
+        "measured": "Its lint is quarantined below with 416 errors."
+      }
+    ]
+  },
+  "entries": [
+    {
+      "package": "@ecosystem/audit-logging",
+      "task": "lint",
+      "reason": "require-await: two async methods with no await (src/audit-trail.ts:43, :87).",
+      "first_error": "src/audit-trail.ts:43:3 Async method 'log' has no 'await' expression @typescript-eslint/require-await",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 2,
+      "exit": "F2: drop async or await in both methods; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/banking-treasury",
+      "task": "lint",
+      "reason": "no-unsafe-* on untyped pg query rows and provider adapter JSON (308), unused variables (45), require-await (43).",
+      "first_error": "src/api/rest/app.ts:21:31 Async arrow function has no 'await' expression @typescript-eslint/require-await",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 416,
+      "exit": "F8: type pool.query<Row> results and adapter responses; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/cache",
+      "task": "lint",
+      "reason": "no-unsafe-* around the Redis client and serializer, left after the tsconfig and ioredis fixes.",
+      "first_error": "src/index.ts:45:3 Unsafe return of an `any` typed value @typescript-eslint/no-unsafe-return",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 13,
+      "exit": "F4, with its type errors; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/compliance-aggregator",
+      "task": "lint",
+      "reason": "Linted for the first time now that ESLint reaches .orchestration: require-await (9), no-unsafe-* (8), unused variables (5).",
+      "first_error": "src/aggregator.ts:14:3 'RegulationStatus' is defined but never used @typescript-eslint/no-unused-vars",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 22,
+      "exit": "F4; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/contracts-legal",
+      "task": "lint",
+      "reason": "Its Prisma client is never generated (no CI step, and both Prisma schemas write one shared @prisma/client copy). Only the default stub client exists, so model types are missing and almost every use is no-unsafe-*.",
+      "first_error": "src/app.ts:20:11 Unsafe array destructuring of a tuple element with an `any` value @typescript-eslint/no-unsafe-assignment",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 1900,
+      "exit": "F7 (one generated client per schema) first, then F8 for what remains; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/data-privacy",
+      "task": "lint",
+      "reason": "Same Prisma cause as contracts-legal: almost all errors are no-unsafe-* on missing Prisma model types.",
+      "first_error": "src/app.ts:18:11 Unsafe array destructuring of a tuple element with an `any` value @typescript-eslint/no-unsafe-assignment",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 272,
+      "exit": "F7 first, then F8 for what remains; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/database",
+      "task": "lint",
+      "reason": "Three errors: an unused import, a declaration in a case block, restrict-plus-operands.",
+      "first_error": "src/drizzle/repository.ts:6:19 'or' is defined but never used @typescript-eslint/no-unused-vars",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 3,
+      "exit": "F2; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/encryption",
+      "task": "lint",
+      "reason": "require-await: two async methods with no await (src/crypto.ts:25, :45).",
+      "first_error": "src/crypto.ts:25:3 Async method 'encrypt' has no 'await' expression @typescript-eslint/require-await",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 2,
+      "exit": "F2; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/entity-governance",
+      "task": "lint",
+      "reason": "no-explicit-any (22) and no-unsafe-* in the REST routes.",
+      "first_error": "src/api/rest/app.ts:90:44 Async arrow function has no 'await' expression @typescript-eslint/require-await",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 71,
+      "exit": "F8; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/intellectual-property",
+      "task": "lint",
+      "reason": "require-await (21, mostly the in-memory cache) and no-unsafe-* in the routes.",
+      "first_error": "src/api/rest/routes/copyrights.routes.ts:47:65 Async arrow function 'copyrightsRoutes' has no 'await' expression @typescript-eslint/require-await",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 63,
+      "exit": "F8; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/kyc-identity",
+      "task": "lint",
+      "reason": "no-floating-promises (29) in route registration, unused variables (13).",
+      "first_error": "src/api/rest/app.ts:13:31 Async arrow function has no 'await' expression @typescript-eslint/require-await",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 46,
+      "exit": "F3; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/messaging",
+      "task": "lint",
+      "reason": "Three errors: require-await, an unused import, no-misused-promises.",
+      "first_error": "src/rabbitmq-publisher.ts:96:3 Async method 'publishToTopic' has no 'await' expression @typescript-eslint/require-await",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 3,
+      "exit": "F2; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/operational-gateway",
+      "task": "lint",
+      "reason": "Linted for the first time now that its tsconfig extends the real base: unnecessary type assertions (3), no-unsafe-assignment (2), require-await.",
+      "first_error": "src/aggregator.ts:52:8 This assertion is unnecessary since it does not change the type of the expression @typescript-eslint/no-unnecessary-type-assertion",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 6,
+      "exit": "F4; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/operational-reporting",
+      "task": "lint",
+      "reason": "Linted for the first time now that ESLint reaches .orchestration: mostly no-unsafe-* that follow from its undeclared uuid and node-cron imports.",
+      "first_error": "src/index.ts:31:3 'OperationalDomain' is defined but never used @typescript-eslint/no-unused-vars",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 27,
+      "exit": "F6; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/repository",
+      "task": "lint",
+      "reason": "Three errors: an unused import, a floating promise, restrict-template-expressions.",
+      "first_error": "src/drizzle/drizzle-repository.ts:7:12 'or' is defined but never used @typescript-eslint/no-unused-vars",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 3,
+      "exit": "F2; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/validation",
+      "task": "lint",
+      "reason": "Two errors: an unused import and no-unsafe-return.",
+      "first_error": "src/decorators.ts:6:27 'ValidationException' is defined but never used @typescript-eslint/no-unused-vars",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 2,
+      "exit": "F2; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/workflow-engine",
+      "task": "lint",
+      "reason": "Linted for the first time now that ESLint reaches .orchestration: unused variables (8), require-await (3), no-unsafe-assignment (3), floating promises (2).",
+      "first_error": "src/engine.ts:7:10 'randomUUID' is defined but never used @typescript-eslint/no-unused-vars",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 19,
+      "exit": "F4; lint exits 0."
+    },
+    {
+      "package": "@ecosystem/cache",
+      "task": "typecheck",
+      "reason": "The strict base applies now that the extends path is fixed: exactOptionalPropertyTypes (4), a stats field that duplicates its getter (TS2300 x2), incompatible overrides (TS2416 x2), overload mismatches.",
+      "first_error": "src/cache-aside.ts(102,54): error TS2379: Argument of type '{ ttl: number | undefined; tags: string[] | undefined; }' is not assignable to parameter of type 'CacheAsideOptions<TResult>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 10,
+      "exit": "F4; typecheck exits 0. Remove with the build entry."
+    },
+    {
+      "package": "@ecosystem/compliance-aggregator",
+      "task": "typecheck",
+      "reason": "An overload mismatch (src/index.ts:170) and exactOptionalPropertyTypes (src/index.ts:259).",
+      "first_error": "src/index.ts(170,29): error TS2769: No overload matches this call.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 2,
+      "exit": "F4; typecheck exits 0. Remove with the build entry."
+    },
+    {
+      "package": "@ecosystem/contracts-legal",
+      "task": "typecheck",
+      "reason": "Its Prisma client is never generated, so only the default stub exists: 82 TS2694 and 65 TS2305 missing Prisma types, and 30 implicit any that follow from them.",
+      "first_error": "src/domain/contract-templates/repository.ts(5,24): error TS2305: Module '\"@prisma/client\"' has no exported member 'ContractTemplate'.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 177,
+      "exit": "F7: generate a client per schema before typecheck and build; typecheck exits 0. Remove with the build entry."
+    },
+    {
+      "package": "@ecosystem/data-privacy",
+      "task": "typecheck",
+      "reason": "Same Prisma cause: the stub client leaves query results unknown (TS2339 x7) and 2 implicit any (TS7006), plus one exactOptionalPropertyTypes error in src/lib/events.ts.",
+      "first_error": "src/infrastructure/persistence/prisma-breach.repository.ts(87,69): error TS2339: Property 'data' does not exist on type 'unknown'.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 10,
+      "exit": "F7; typecheck exits 0. Remove with the build entry."
+    },
+    {
+      "package": "@ecosystem/entity-governance",
+      "task": "typecheck",
+      "reason": "helmet contentSecurityPolicy: undefined under exactOptionalPropertyTypes (src/api/rest/app.ts:46), and request-context keys typed never (:91-92). Its tsup build never reaches these files, so build passes.",
+      "first_error": "src/api/rest/app.ts(46,30): error TS2769: No overload matches this call.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 3,
+      "exit": "F3; typecheck exits 0."
+    },
+    {
+      "package": "@ecosystem/operational-gateway",
+      "task": "typecheck",
+      "reason": "Five exactOptionalPropertyTypes errors once its tsconfig extends the real base.",
+      "first_error": "src/index.ts(27,9): error TS2375: Type '{ 'contracts-legal': string | undefined; insurance: string | undefined; 'intellectual-property': string | undefined; 'data-privacy': string | undefined; }' is not assignable to type 'Partial<Record<\"contracts-legal\" | \"insurance\" | \"intellectual-property\" | \"data-privacy\", string>>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 5,
+      "exit": "F4; typecheck exits 0. Remove with the build entry."
+    },
+    {
+      "package": "@ecosystem/operational-reporting",
+      "task": "typecheck",
+      "reason": "The code imports uuid and node-cron, but package.json declares cron and @paralleldrive/cuid2 (TS2307 x2); 12 values of type unknown (TS18046); ReportItem passed as Record<string, unknown>.",
+      "first_error": "src/generator.ts(72,5): error TS2375: Type '{ reportId: string; reportName: string; generatedAt: Date; parameters: Record<string, unknown>; sections: ReportSectionData[]; summary: ReportSummary | undefined; }' is not assignable to type 'ReportData' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 20,
+      "exit": "F6: align dependencies with the code and type ReportItem; typecheck exits 0. Remove with the build entry."
+    },
+    {
+      "package": "@ecosystem/outbox",
+      "task": "typecheck",
+      "reason": "drizzle insert overloads (TS2769 x2) and noUncheckedIndexedAccess (TS18048 x2) in src/index.ts. Nothing imports outbox.",
+      "first_error": "src/index.ts(69,56): error TS2769: No overload matches this call.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 4,
+      "exit": "O1 (outbox defects); typecheck exits 0. Remove with the build entry."
+    },
+    {
+      "package": "@ecosystem/workflow-engine",
+      "task": "typecheck",
+      "reason": "noUncheckedIndexedAccess (TS18048 x4) and an argument mismatch (TS2345) in src/parser.ts:165-212, exactOptionalPropertyTypes in src/domain-client.ts:95.",
+      "first_error": "src/domain-client.ts(95,70): error TS2379: Argument of type '{ method: string; headers: Record<string, string> | undefined; }' is not assignable to parameter of type 'RequestInit' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 6,
+      "exit": "F4; typecheck exits 0. Remove with the build entry."
+    },
+    {
+      "package": "@ecosystem/cache",
+      "task": "build",
+      "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
+      "first_error": "src/cache-aside.ts(102,54): error TS2379: Argument of type '{ ttl: number | undefined; tags: string[] | undefined; }' is not assignable to parameter of type 'CacheAsideOptions<TResult>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 10,
+      "exit": "F4; build exits 0. Remove with the typecheck entry."
+    },
+    {
+      "package": "@ecosystem/compliance-aggregator",
+      "task": "build",
+      "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
+      "first_error": "src/index.ts(170,29): error TS2769: No overload matches this call.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 2,
+      "exit": "F4; build exits 0. Remove with the typecheck entry."
+    },
+    {
+      "package": "@ecosystem/contracts-legal",
+      "task": "build",
+      "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
+      "first_error": "src/domain/contract-templates/repository.ts(5,24): error TS2305: Module '\"@prisma/client\"' has no exported member 'ContractTemplate'.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 177,
+      "exit": "F7; build exits 0. Remove with the typecheck entry."
+    },
+    {
+      "package": "@ecosystem/data-privacy",
+      "task": "build",
+      "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
+      "first_error": "src/infrastructure/persistence/prisma-breach.repository.ts(87,69): error TS2339: Property 'data' does not exist on type 'unknown'.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 10,
+      "exit": "F7; build exits 0. Remove with the typecheck entry."
+    },
+    {
+      "package": "@ecosystem/operational-gateway",
+      "task": "build",
+      "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
+      "first_error": "src/index.ts(27,9): error TS2375: Type '{ 'contracts-legal': string | undefined; insurance: string | undefined; 'intellectual-property': string | undefined; 'data-privacy': string | undefined; }' is not assignable to type 'Partial<Record<\"contracts-legal\" | \"insurance\" | \"intellectual-property\" | \"data-privacy\", string>>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 5,
+      "exit": "F4; build exits 0. Remove with the typecheck entry."
+    },
+    {
+      "package": "@ecosystem/operational-reporting",
+      "task": "build",
+      "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
+      "first_error": "src/generator.ts(72,5): error TS2375: Type '{ reportId: string; reportName: string; generatedAt: Date; parameters: Record<string, unknown>; sections: ReportSectionData[]; summary: ReportSummary | undefined; }' is not assignable to type 'ReportData' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 20,
+      "exit": "F6; build exits 0. Remove with the typecheck entry."
+    },
+    {
+      "package": "@ecosystem/outbox",
+      "task": "build",
+      "reason": "tsup --dts build with the same diagnostics as its typecheck entry. Nothing imports outbox.",
+      "first_error": "src/index.ts(69,56): error TS2769: No overload matches this call.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 4,
+      "exit": "O1; build exits 0. Remove with the typecheck entry."
+    },
+    {
+      "package": "@ecosystem/workflow-engine",
+      "task": "build",
+      "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
+      "first_error": "src/domain-client.ts(95,70): error TS2379: Argument of type '{ method: string; headers: Record<string, string> | undefined; }' is not assignable to parameter of type 'RequestInit' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 6,
+      "exit": "F4; build exits 0. Remove with the typecheck entry."
+    },
+    {
+      "package": "@ecosystem/compliance-aggregator",
+      "task": "test",
+      "reason": "vitest run finds no test files and exits 1.",
+      "first_error": "No test files found, exiting with code 1",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 0,
+      "exit": "F9: a first real test in this package passes."
+    },
+    {
+      "package": "@ecosystem/contracts-legal",
+      "task": "test",
+      "reason": "vitest run finds no test files and exits 1.",
+      "first_error": "No test files found, exiting with code 1",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 0,
+      "exit": "F9: a first real test in this package passes."
+    },
+    {
+      "package": "@ecosystem/data-privacy",
+      "task": "test",
+      "reason": "vitest run finds no test files and exits 1.",
+      "first_error": "No test files found, exiting with code 1",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 0,
+      "exit": "F9: a first real test in this package passes."
+    },
+    {
+      "package": "@ecosystem/entity-governance",
+      "task": "test",
+      "reason": "vitest run finds no test files and exits 1.",
+      "first_error": "No test files found, exiting with code 1",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 0,
+      "exit": "F9: a first real test in this package passes."
+    },
+    {
+      "package": "@ecosystem/insurance",
+      "task": "test",
+      "reason": "vitest run finds no test files and exits 1.",
+      "first_error": "No test files found, exiting with code 1",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 0,
+      "exit": "F9: a first real test in this package passes."
+    },
+    {
+      "package": "@ecosystem/intellectual-property",
+      "task": "test",
+      "reason": "vitest run finds no test files and exits 1.",
+      "first_error": "No test files found, exiting with code 1",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 0,
+      "exit": "F9: a first real test in this package passes."
+    },
+    {
+      "package": "@ecosystem/kyc-identity",
+      "task": "test",
+      "reason": "vitest run finds no test files and exits 1.",
+      "first_error": "No test files found, exiting with code 1",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 0,
+      "exit": "F9: a first real test in this package passes."
+    },
+    {
+      "package": "@ecosystem/operational-gateway",
+      "task": "test",
+      "reason": "vitest run finds no test files and exits 1.",
+      "first_error": "No test files found, exiting with code 1",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 0,
+      "exit": "F9: a first real test in this package passes."
+    },
+    {
+      "package": "@ecosystem/operational-reporting",
+      "task": "test",
+      "reason": "vitest run finds no test files and exits 1.",
+      "first_error": "No test files found, exiting with code 1",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 0,
+      "exit": "F9: a first real test in this package passes."
+    },
+    {
+      "package": "@ecosystem/repository",
+      "task": "test",
+      "reason": "vitest run finds no test files and exits 1.",
+      "first_error": "No test files found, exiting with code 1",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 0,
+      "exit": "F9: a first real test in this package passes."
+    },
+    {
+      "package": "@ecosystem/workflow-engine",
+      "task": "test",
+      "reason": "vitest run finds no test files and exits 1.",
+      "first_error": "No test files found, exiting with code 1",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 0,
+      "exit": "F9: a first real test in this package passes."
+    },
+    {
+      "package": "@foundational/accounting",
+      "task": "test",
+      "reason": "vitest run finds no TypeScript tests. The package's real tests are Python and run in offline-evidence.yml.",
+      "first_error": "No test files found, exiting with code 1",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 0,
+      "exit": "F9: the test script runs real tests (TypeScript, or the Python suite offline-evidence.yml runs)."
+    },
+    {
+      "package": "@foundational/compliance",
+      "task": "test",
+      "reason": "vitest run finds no test files and exits 1.",
+      "first_error": "No test files found, exiting with code 1",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 0,
+      "exit": "F9: a first real test in this package passes."
+    },
+    {
+      "package": "@foundational/tax",
+      "task": "test",
+      "reason": "vitest run finds no test files and exits 1.",
+      "first_error": "No test files found, exiting with code 1",
+      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
+      "errors": 0,
+      "exit": "F9: a first real test in this package passes."
+    }
+  ]
+}

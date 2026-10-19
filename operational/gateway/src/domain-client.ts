@@ -3,7 +3,7 @@
  * HTTP clients for operational domain services
  */
 
-import pino from 'pino';
+import { pino } from 'pino';
 import type {
   OperationalDomain,
   DomainHealthResponse,

@@ -16,7 +16,16 @@ export interface JWTPayload {
 
 declare module 'fastify' {
   interface FastifyRequest {
-    user?: JWTPayload;
+    correlationId?: string;
+    requestId?: string;
+  }
+}
+
+// @fastify/jwt owns request.user; this types it as the gateway's claims.
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    payload: JWTPayload;
+    user: JWTPayload;
   }
 }
 

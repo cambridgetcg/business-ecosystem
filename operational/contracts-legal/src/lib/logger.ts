@@ -5,7 +5,7 @@
  * Configured for production use with AWS CloudWatch integration.
  */
 
-import pino, { Logger, LoggerOptions } from 'pino';
+import { pino, type Logger, type LoggerOptions } from 'pino';
 
 /**
  * Environment configuration
