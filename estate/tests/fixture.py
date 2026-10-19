@@ -471,7 +471,8 @@ def make_domain_monorepo(path, home=None, remote=None):
     are, for package records and the capability join: accounting (TypeScript and Python, a test),
     data-privacy (build and typecheck quarantined), insurance (one health-only file), an
     intellectual-property package whose only source file is deny-listed, a documents-only
-    corporate-security folder with no manifest, and a messaging library the accounting package imports.
+    corporate-security folder with no manifest, a messaging library the accounting package imports, and a
+    package outside the workspace globs whose scripts define build and test (CI runs neither for it).
     The quarantine list lands one commit after the commit it measured, and one more commit follows,
     so HEAD is two commits past its measured_at. Returns (path, measured commit)."""
     secret_name = "trade-" + "secret.entity.ts"  # deny-listed by name; never opened
@@ -493,6 +494,7 @@ def make_domain_monorepo(path, home=None, remote=None):
         "operational/intellectual-property/src/" + secret_name: "export const fixtureNeverRead = 1\n",
         "shared/libs/messaging/package.json": _package_json("@fixture/messaging", scripts=("build", "lint")),
         "shared/libs/messaging/src/index.ts": "export const publish = (x: string) => x\n",
+        "infrastructure/lambda/package.json": _package_json("fixture-lambda", scripts=("build", "test")),
     }
     now = time.time()
     make_repo(path, files=files, home=home, remote=remote, age_days=3)

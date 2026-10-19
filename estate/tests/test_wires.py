@@ -1,17 +1,18 @@
 """Wire tests (tool/wires.py, sources.find_anchors): wires on the relation record kind.
 
-Anchors are re-found in tracked files with comments stripped, and a hit counts as code only outside
-tests and documents. A curated row's code_state is measured from its anchors and its end packages'
-build state (wired, wired-unbuilt, declared, contradicted, or None when what decides it was not read);
-its stage reads designed; demonstrated only when the latest run on main of the workflow it names is read
-green, through one allowlisted, read-only gh call per workflow (a fake transport in the unit tests and a
-stub gh on the command line, so no test touches the network), designed when that run is red or absent,
-and unknown when it was not read; accepted or active only with an owner decision. Nothing gh prints
-beyond the run's checked fields is kept. The verdict compares claim and measurement, and check --wires exits
-1 when a curated wired claim has no consuming code and 10 when another state differs, could not be
-measured or the row changed after the build. Measured depends_on edges come from package imports and
-manifests. A designed wire may name an end not built yet: it is measured and shown, but gives no
-relation record."""
+Anchors are re-found in tracked files with comments and Python docstrings stripped, and a hit counts as
+code only outside tests, documents and declarations (manifests, workflow and configuration files): a
+declaration counts beside code on its side, never alone. A curated row's code_state is measured from its
+anchors and its end packages' build state (wired, wired-unbuilt, declared, contradicted, or None when what
+decides it was not read); its stage reads designed; demonstrated only when the latest run on main of the
+workflow it names is read green, through one allowlisted, read-only gh call per workflow (a fake transport
+in the unit tests and a stub gh on the command line, so no test touches the network), designed when that
+run is red or absent, and unknown when it was not read; accepted or active only with an owner decision.
+Nothing gh prints beyond the run's checked fields is kept. The verdict compares claim and measurement,
+and check --wires exits 1 when a curated wired claim has no consuming code and 10 when another state
+differs, could not be measured or the row changed after the build. Measured depends_on edges come from
+package imports and manifests. A designed wire may name an end not built yet: it is measured and shown,
+but gives no relation record."""
 import json
 import os
 import tomllib
@@ -104,7 +105,11 @@ class AnchorTests(fixture.EstateTestCase):
         cls.root = fixture.make_repo(os.path.join(cls.tmp, "anchors"), files={
             "src/a.ts": "// 'comment.only'\nconst e = 'event.name'\n/* 'block.only' */ const u = 'https://x//y'\n",
             "src/b.py": "NAME = 'py.event'  # 'py.comment'\nURL = 'a # kept'\n",
-            "flows/w.yaml": "source: yaml.event # 'yaml.comment'\n",
+            "flows/w.yaml": "source: yaml.event # 'yaml.comment'\ntrigger: both.event\n",
+            "flows/handler.ts": "export const on = 'both.event'\n",
+            "src/c.py": ('"""Module doc: py.docstring."""\nNAME = """py.assigned"""\n\n\ndef f():\n'
+                         '    """The function doc: py.fn-doc."""\n    return call("""py.argument""")\n'),
+            "pkg/package.json": '{"name": "@x/pkg", "dependencies": {"@x/events": "workspace:*"}}\n',
             "src/dist/out.js": "const built = 'built.only'\n",
             "tests/test_a.ts": "const t = 'test.only'\n",
             "docs/README.md": "doc.only\n",
@@ -113,7 +118,9 @@ class AnchorTests(fixture.EstateTestCase):
             "locked/open.ts": "export const open = 1\n"})
         texts = [("src", "event.name"), ("src", "comment.only"), ("src", "block.only"), ("src", "https://x//y"),
                  ("src/b.py", "py.event"), ("src/b.py", "py.comment"), ("src/b.py", "a # kept"),
-                 ("flows/w.yaml", "yaml.event"), ("flows", "yaml.comment"), ("src", "built.only"), ("tests", "test.only"),
+                 ("flows/w.yaml", "yaml.event"), ("flows", "yaml.comment"), ("flows", "both.event"),
+                 ("src/c.py", "py.docstring"), ("src/c.py", "py.fn-doc"), ("src/c.py", "py.assigned"),
+                 ("src/c.py", "py.argument"), ("pkg", "@x/events"), ("src", "built.only"), ("tests", "test.only"),
                  ("docs", "doc.only"), ("missing/dir", "x"), ("locked", "sealed.text"), ("locked", "open = 1")]
         with fixture.tracking_opens() as opened:
             cls.out = sources.find_anchors({"path": cls.root}, [{"path": p, "text": t} for p, t in texts])
@@ -126,15 +133,19 @@ class AnchorTests(fixture.EstateTestCase):
     def test_found_says_where_the_text_is_never_more(self):
         self.assertEqual(self.out["status"], "ok")
         cases = {("src", "event.name"): "code", ("src", "https://x//y"): "code", ("src/b.py", "py.event"): "code",
-                 ("src/b.py", "a # kept"): "code", ("flows/w.yaml", "yaml.event"): "code",
+                 ("src/b.py", "a # kept"): "code", ("flows/w.yaml", "yaml.event"): "declaration",
+                 ("pkg", "@x/events"): "declaration", ("flows", "both.event"): "code",
+                 ("src/c.py", "py.docstring"): "none", ("src/c.py", "py.fn-doc"): "none",
+                 ("src/c.py", "py.assigned"): "code", ("src/c.py", "py.argument"): "code",
                  ("tests", "test.only"): "test", ("docs", "doc.only"): "doc", ("src", "comment.only"): "none",
                  ("src", "block.only"): "none", ("src/b.py", "py.comment"): "none", ("flows", "yaml.comment"): "none",
                  ("src", "built.only"): "none", ("missing/dir", "x"): "absent", ("locked", "sealed.text"): "unread",
                  ("locked", "open = 1"): "code"}
         for (path, text), want in cases.items():
             self.assertEqual(self.found(path, text), want, (path, text))
-        # Code wins over the document that also names it; files lists both.
+        # Code wins over the document or the declaration that also names it; files lists both.
         self.assertEqual(self.by[("src", "event.name")]["files"], ["src/NOTES.md", "src/a.ts"])
+        self.assertEqual(self.by[("flows", "both.event")]["files"], ["flows/handler.ts", "flows/w.yaml"])
         self.assertFalse([p for p in self.opened if os.path.basename(p).startswith("token")])
 
     def test_a_checkout_that_cannot_be_listed_is_an_error_not_a_miss(self):
@@ -145,6 +156,19 @@ class AnchorTests(fixture.EstateTestCase):
     def test_hash_comments_respect_quotes(self):
         self.assertEqual(sources.strip_hash_comments("a = 'x # y'  # z\n# whole\nb = \"q\\\"#\" # c"),
                          "a = 'x # y'  \n\nb = \"q\\\"#\" ")
+
+    def test_python_strings_that_stand_alone_are_documentation(self):
+        text = ('"""doc.module"""\nX = ("kept.paren"\n     "kept.joined")\ny = 1; "doc.after-semicolon"\n'
+                'def f():\n    r"""doc.raw\n    over two lines"""\n    "doc.implicit" "doc.concat"\n'
+                '    return f"{y};kept.f"\n')
+        out = sources.strip_python_strings(text)
+        for gone in ("doc.module", "doc.after-semicolon", "doc.raw", "over two lines", "doc.implicit", "doc.concat"):
+            self.assertNotIn(gone, out)
+        for kept in ("kept.paren", "kept.joined", "kept.f"):
+            self.assertIn(kept, out)
+        self.assertEqual((len(out), out.count("\n")), (len(text), text.count("\n")))  # every line keeps its place
+        broken = 'def f(:\n    """never closed'
+        self.assertEqual(sources.strip_python_strings(broken), broken)  # tokenize cannot read it: kept as it is
 
 
 class RowTests(fixture.EstateTestCase):
@@ -192,6 +216,12 @@ class MeasureTests(fixture.EstateTestCase):
             (found(from_=["absent"], to=["code"]), {}, "declared"),  # the producer is not built yet
             (found(from_=["code"], to=["absent"]), {}, "declared"),  # nothing consumes it yet
             (found(from_=["doc"], to=["test"]), {}, "declared"),
+            (found(from_=["code"], to=["code", "declaration"]), {}, "wired"),  # a trigger beside subscribing code
+            (found(from_=["code"], to=["declaration"]), {}, "declared"),  # a workflow names it; no code consumes it
+            (found(from_=["code"], to=["declaration", "none"]), {}, "declared"),
+            (found(from_=["declaration"], to=["code"]), {}, "declared"),  # a manifest only names the producer
+            (found(from_=["declaration"], to=["declaration"]), {}, "declared"),
+            (found(from_=["code"], to=["declaration", "unread"]), {}, None),
             (found(from_=["none"], to=["unread"]), {}, None),
             (found(from_=[None], to=["code"]), {}, None)]  # a side's checkout not searched
         for sides_, unbuilt, want in cases:
@@ -232,6 +262,10 @@ class MeasureTests(fixture.EstateTestCase):
         self.assertEqual(wires.verdict_of(row(code_state="wired", verb="depends_on"), "contradicted", broken, "designed"),
                          "differs")  # depends_on: the from side consumes, and it has the code
         self.assertEqual(wires.verdict_of(wired, "wired-unbuilt", both, "designed"), "differs")
+        declared_too = found(from_=["code"], to=["code", "declaration"])
+        self.assertEqual(wires.verdict_of(wired, "wired", declared_too, "designed"), "agrees")
+        self.assertEqual(wires.verdict_of(wired, "declared", found(from_=["code"], to=["declaration"]), "designed"),
+                         "unevidenced")  # a declaration alone is not consuming code
         self.assertEqual(wires.verdict_of(contradicted, "contradicted", broken, "designed"), "agrees")
         self.assertEqual(wires.verdict_of(contradicted, None, found(from_=["code"], to=["unread"]), "designed"),
                          "not-measured")

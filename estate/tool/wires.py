@@ -16,6 +16,9 @@ Two fields, independent of each other. code_state is what the code shows:
   declared       no code consumes it yet (a manifest, a workflow or a document names it), or one side is
                  not built yet (nothing is tracked where its anchors point)
   contradicted   one side has the code and the other side's tracked code does not answer it
+A side has the code when each of its anchors is found and at least one is found in code: an anchor in a
+manifest, workflow or configuration file (found declaration) counts beside code, never alone, so a workflow
+trigger with no subscribing code declares a wire and does not wire it.
 stage is how far it has been shown to work: designed; demonstrated only when the latest run on main of
 the workflow the row names (demonstrated_by, in the repository of its consuming side) is read green by
 `build --forge` (read_runs: one allowlisted, read-only gh call per workflow, for host repositories only);
@@ -29,7 +32,6 @@ differs from measurement or could not be measured.
 import re
 from collections import Counter
 
-import packages
 import sources
 
 FILE = "curated/wires.toml"
@@ -77,7 +79,7 @@ def _row_problems(row):
         problems.append("channel needs a kind (%s) and a name" % ", ".join(CHANNELS))
     anchors = row.get("anchors")
     if not isinstance(anchors, list) or not all(
-            isinstance(a, dict) and a.get("side") in SIDES and packages._relative(a.get("path"))
+            isinstance(a, dict) and a.get("side") in SIDES and sources.repo_relative(a.get("path"))
             and isinstance(a.get("text"), str) and a["text"].strip() for a in anchors):
         problems.append("anchors must be a list of {side (from or to), path (repository-relative), text}")
     elif any(not any(a["side"] == side for a in anchors) for side in SIDES):
@@ -144,15 +146,24 @@ def sides(row, found_by_repo):
     return out
 
 
+def has_code(anchors):
+    """Whether one side has the code for a wire: every anchor found, at least one in code and the others in
+    code or in a declaration (a manifest, workflow or configuration file, which the code loads)."""
+    return (any(a["found"] == "code" for a in anchors)
+            and all(a["found"] in ("code", "declaration") for a in anchors))
+
+
 def measure(row, found, unbuilt):
     """(code_state, reason) of one curated row from its re-found anchors (found: sides()) and the build
     state of its end packages (unbuilt: {package id: True, False or None} for the ends this run holds as
-    packages). None when what decides it could not be read."""
+    packages). None when what decides it could not be read. A side whose anchors are found only in
+    declarations declares the wire; it neither has the code nor contradicts the other side."""
     if any(a["found"] is None for side in SIDES for a in found[side]):
         return None, "a side's checkout was not searched in this run"
-    code = {side: all(a["found"] == "code" for a in found[side]) for side in SIDES}
+    code = {side: has_code(found[side]) for side in SIDES}
     present = {side: any(a["found"] != "absent" for a in found[side]) for side in SIDES}
     unread = {side: any(a["found"] == "unread" for a in found[side]) for side in SIDES}
+    declares = {side: not code[side] and any(a["found"] == "declaration" for a in found[side]) for side in SIDES}
     if code["from"] and code["to"]:
         states = [unbuilt[row[side]] for side in SIDES if row[side] in unbuilt]
         if True in states:
@@ -164,6 +175,9 @@ def measure(row, found, unbuilt):
         if code[one] and present[other]:
             if unread[other]:
                 return None, "the %s side has the code; a file of the %s side could not be read" % (one, other)
+            if declares[other]:
+                return "declared", ("the %s side has the code; the %s side only declares it (a manifest, workflow "
+                                    "or configuration file names it, and no code)" % (one, other))
             return "contradicted", "the %s side has the code and the %s side's tracked code does not answer it" % (
                 one, other)
     consumer = consumer_side(row["verb"])
@@ -246,7 +260,7 @@ def verdict_of(row, code_state, found, stage):
     state measurement disagrees with) or not-measured (what decides it could not be read)."""
     consumer = found[consumer_side(row["verb"])]
     searched = all(a["found"] not in (None, "unread") for a in consumer)
-    if row["code_state"] in WIRED and searched and not all(a["found"] == "code" for a in consumer):
+    if row["code_state"] in WIRED and searched and not has_code(consumer):
         return "unevidenced"
     if code_state is not None and code_state != row["code_state"]:
         return "differs"

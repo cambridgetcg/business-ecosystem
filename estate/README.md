@@ -239,7 +239,9 @@ relation of basis `measured-import`, and a manifest declaration no code imports 
 Yu reviews them: one end `feeds` the other over an event, an HTTP route or a file (or `depends_on` it), each
 end a package or project id, with anchors: a repository-relative path (a file, or a directory and everything
 under it) and a text that every build re-finds in the tracked files of that side's canonical checkout,
-through the deny list and with comments stripped; a hit in a test or a document is not code. A row may name
+through the deny list and with comments and Python docstrings stripped; a hit in a test or a document is not
+code, and a hit in a manifest, workflow or configuration file (JSON, YAML, TOML) is a declaration: it counts
+beside code on its side, never alone, so a workflow trigger with no subscribing code declares a wire. A row may name
 its `flow` and `hop`, and an end that is not built yet (it is measured and shown, but gives no relation
 record). Each wire has two independent fields. `code_state` is what the code shows: `wired` (both sides have
 non-test code for it and no end package is on the build or typecheck quarantine list), `wired-unbuilt` (an

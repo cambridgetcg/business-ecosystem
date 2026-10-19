@@ -607,7 +607,8 @@ file = "a file or export one side writes and the other reads"
 manual = "a person carries it between the two sides"
 
 [vocab.wire_anchor.values]
-code = "the text is in a tracked file that is neither a test nor a document"
+code = "the text is in a tracked file that is neither a test, a document nor a declaration (comments and Python docstrings stripped)"
+declaration = "the text is in a manifest, workflow or configuration file (JSON, YAML, TOML) and in no code: it declares a wire, and counts beside code on its side, never alone"
 test = "the text is only in test files"
 doc = "the text is only in documents"
 none = "the path holds tracked files and none of them has the text"
