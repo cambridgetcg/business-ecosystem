@@ -1,0 +1,166 @@
+# Curated wires (tool/wires.py): what connects the business's packages and repositories, kept as
+# relations. One [[wire]] row per wire: from feeds to (or from depends_on to) over a channel, with
+# anchors, each a repository-relative path (a file, or a directory and everything under it) and a text
+# that every build re-finds in the tracked files of that side's checkout, comments stripped.
+# code_state and stage are this row's claim; the build measures both and `estate check --wires`
+# compares them (exit 1 when a wired claim has no consuming code, 10 when another state differs).
+# A designed wire may name an end that is not built yet. Hand-edited; rows written by an agent read
+# reviewed = false until Yu reviews them. Only forge ids, package ids, repository-relative anchors and
+# short evidence belong here.
+
+[[wire]]
+name = "compliance-status"
+from = "pkg:github.com/cambridgetcg/business-ecosystem//operational/data-privacy"
+verb = "feeds"
+to = "pkg:github.com/cambridgetcg/business-ecosystem//operational/.orchestration/compliance"
+channel = { kind = "http", name = "GET /api/v1/compliance-status/:entityId" }
+anchors = [
+  { side = "from", path = "operational/data-privacy/src/routes/index.ts", text = "'/compliance-status/:entityId'" },
+  { side = "to", path = "operational/.orchestration/compliance/src/index.ts", text = "/api/v1/compliance-status/" },
+]
+code_state = "wired-unbuilt"
+stage = "designed"
+evidence = "The only HTTP route both sides match: data-privacy serves it and the compliance aggregator calls it. Both packages are build-quarantined."
+source = "capability-2026-10-19"
+reviewed = false
+as_of = 2026-10-19
+review_after = 2027-01-17
+
+[[wire]]
+name = "breach-identified"
+from = "pkg:github.com/cambridgetcg/business-ecosystem//operational/data-privacy"
+verb = "feeds"
+to = "pkg:github.com/cambridgetcg/business-ecosystem//operational/.orchestration/engine"
+channel = { kind = "event", name = "data-privacy.breach.identified" }
+anchors = [
+  { side = "from", path = "operational/data-privacy/src/lib/events.ts", text = "'data-privacy.breach.identified'" },
+  { side = "from", path = "operational/data-privacy/src/routes/breach.routes.ts", text = "EventTypes.BREACH_IDENTIFIED" },
+  { side = "to", path = "operational/.orchestration/engine/src/index.ts", text = "subscribeToMany(subscribedEvents" },
+  { side = "to", path = "operational/.orchestration/workflows/breach-response.yaml", text = "source: data-privacy.breach.identified" },
+]
+code_state = "wired-unbuilt"
+stage = "designed"
+flow = "breach-response"
+hop = 1
+evidence = "data-privacy publishes the event on ecosystem.events; the engine subscribes to the event types its workflow files trigger on. Both packages are build-quarantined."
+source = "capability-2026-10-19"
+reviewed = false
+as_of = 2026-10-19
+review_after = 2027-01-17
+
+[[wire]]
+name = "engine-actions"
+from = "pkg:github.com/cambridgetcg/business-ecosystem//operational/.orchestration/engine"
+verb = "feeds"
+to = "pkg:github.com/cambridgetcg/business-ecosystem//operational/contracts-legal"
+channel = { kind = "http", name = "POST /actions/{action}" }
+anchors = [
+  { side = "from", path = "operational/.orchestration/engine/src/domain-client.ts", text = "/actions/" },
+  { side = "to", path = "operational/contracts-legal/src", text = "/actions/" },
+]
+code_state = "contradicted"
+stage = "designed"
+flow = "breach-response"
+hop = 2
+evidence = "The engine posts workflow steps to an actions route; contracts-legal, the first domain the breach workflow calls, serves no such route."
+source = "capability-2026-10-19"
+reviewed = false
+as_of = 2026-10-19
+review_after = 2027-01-17
+
+[[wire]]
+name = "entity-created"
+from = "pkg:github.com/cambridgetcg/business-ecosystem//foundational/entity-governance"
+verb = "feeds"
+to = "pkg:github.com/cambridgetcg/business-ecosystem//operational/.orchestration/engine"
+channel = { kind = "event", name = "entity-governance.entity.created" }
+anchors = [
+  { side = "from", path = "foundational/entity-governance/src/domain/events/entity-events.ts", text = "'entity-governance.entity.created'" },
+  { side = "from", path = "foundational/entity-governance/src/application/handlers/legal-entity-command-handler.ts", text = "EntityEventTypes.ENTITY_CREATED" },
+  { side = "to", path = "operational/.orchestration/engine/src/index.ts", text = "subscribeToMany(subscribedEvents" },
+  { side = "to", path = "operational/.orchestration/workflows/entity-onboarding.yaml", text = "source: entity-governance.entity.created" },
+]
+code_state = "wired-unbuilt"
+stage = "designed"
+flow = "entity-onboarding"
+hop = 1
+evidence = "entity-governance publishes the event on ecosystem.events and the onboarding workflow triggers on it. The engine is build-quarantined and entity-governance typecheck-quarantined."
+source = "capability-2026-10-19"
+reviewed = false
+as_of = 2026-10-19
+review_after = 2027-01-17
+
+[[wire]]
+name = "gateway-entity-summary"
+from = "pkg:github.com/cambridgetcg/business-ecosystem//operational/contracts-legal"
+verb = "feeds"
+to = "pkg:github.com/cambridgetcg/business-ecosystem//operational/gateway"
+channel = { kind = "http", name = "GET /entities/:entityId/summary" }
+anchors = [
+  { side = "from", path = "operational/contracts-legal/src", text = "/entities/:entityId/summary" },
+  { side = "to", path = "operational/gateway/src/domain-client.ts", text = "/entities/${entityId}/summary" },
+]
+code_state = "contradicted"
+stage = "designed"
+evidence = "The operational gateway asks each domain for an entity summary under /entities/:id; contracts-legal serves no such route."
+source = "capability-2026-10-19"
+reviewed = false
+as_of = 2026-10-19
+review_after = 2027-01-17
+
+[[wire]]
+name = "ip-events"
+from = "pkg:github.com/cambridgetcg/business-ecosystem//operational/intellectual-property"
+verb = "feeds"
+to = "pkg:github.com/cambridgetcg/business-ecosystem//operational/.orchestration/engine"
+channel = { kind = "event", name = "intellectual-property events on exchange ecosystem.ip" }
+anchors = [
+  { side = "from", path = "operational/intellectual-property/src/index.ts", text = "'ecosystem.ip'" },
+  { side = "to", path = "operational/.orchestration/engine/src", text = "ecosystem.ip" },
+]
+code_state = "contradicted"
+stage = "designed"
+evidence = "intellectual-property publishes on its own exchange, ecosystem.ip; the engine binds only ecosystem.events, so nothing consumes these events."
+source = "capability-2026-10-19"
+reviewed = false
+as_of = 2026-10-19
+review_after = 2027-01-17
+
+[[wire]]
+name = "report-expiring-contracts"
+from = "pkg:github.com/cambridgetcg/business-ecosystem//operational/contracts-legal"
+verb = "feeds"
+to = "pkg:github.com/cambridgetcg/business-ecosystem//operational/.orchestration/reporting"
+channel = { kind = "http", name = "GET /reports/getExpiringContracts" }
+anchors = [
+  { side = "from", path = "operational/contracts-legal/src", text = "/reports/getExpiringContracts" },
+  { side = "to", path = "operational/.orchestration/reporting/src/generator.ts", text = "'/reports/' + query" },
+  { side = "to", path = "operational/.orchestration/reporting/definitions/expiration-forecast.yaml", text = "query: getExpiringContracts" },
+]
+code_state = "contradicted"
+stage = "designed"
+evidence = "Reporting builds {domain}/reports/{query} from its report definitions; contracts-legal serves its reports under its own routers, not under that name."
+source = "capability-2026-10-19"
+reviewed = false
+as_of = 2026-10-19
+review_after = 2027-01-17
+
+[[wire]]
+name = "sale-to-ledger"
+from = "pkg:github.com/cambridgetcg/business-ecosystem//operational/commerce-intake"
+verb = "feeds"
+to = "pkg:github.com/cambridgetcg/business-ecosystem//foundational/accounting"
+channel = { kind = "file", name = "events.ndjson of commerce.sale.recorded and commerce.sale.refunded, version 1" }
+anchors = [
+  { side = "from", path = "operational/commerce-intake/src", text = "COMMERCE_SALE_RECORDED" },
+  { side = "to", path = "foundational/accounting/src/commerce_posting/contract.py", text = "commerce.sale.recorded" },
+]
+code_state = "declared"
+stage = "designed"
+flow = "sale-to-ledger"
+hop = 1
+evidence = "The first wire of the plan: a synthetic sale through commerce-intake into the accounting ledger. The consumer exists; the producer package is not on main yet. Synthetic data only until Yu answers the prerequisites."
+source = "capability-2026-10-19"
+reviewed = false
+as_of = 2026-10-19
+review_after = 2027-01-17

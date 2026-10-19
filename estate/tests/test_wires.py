@@ -11,6 +11,7 @@ manifests. A designed wire may name an end not built yet: it is measured and sho
 relation record."""
 import json
 import os
+import tomllib
 
 from . import fixture
 from . import test_e2e
@@ -57,6 +58,23 @@ class VocabularyTests(fixture.EstateTestCase):
             self.assertIn(verb, voc["relation"]["values"])
         relation = test_model.VOCAB["records"]["kind"]["relation"]["fields"]
         self.assertEqual((relation["from"]["ref"], relation["to"]["ref"]), ("project|group|package",) * 2)
+
+    def test_the_seed_rows_are_clean_unreviewed_and_the_first_wire_only_designed(self):
+        path = os.path.join(fixture.LAYER_DIR, wires.FILE)
+        with open(path, encoding="utf-8") as stream:
+            text = stream.read()
+        self.assertEqual(curate.lint_text(text, wires.FILE, curate.scope_of(wires.FILE)), [])
+        raw = tomllib.loads(text)["wire"]
+        rows, problems = wires.rows({"wires": raw})
+        self.assertEqual((problems, len(rows)), ([], len(raw)))
+        self.assertEqual({r["reviewed"] for r in raw}, {False})
+        sale = rows["sale-to-ledger"]
+        self.assertEqual((sale["stage"], sale["code_state"], sale["flow"]), ("designed", "declared", "sale-to-ledger"))
+        self.assertNotIn("demonstrated_by", sale)
+        self.assertEqual({r["stage"] for r in rows.values()}, {"designed"})
+        for item in rows.values():
+            for end in (item["from"], item["to"]):
+                self.assertTrue(end.startswith("pkg:github.com/cambridgetcg/business-ecosystem//"), end)
 
     def test_the_module_and_its_tests_pass_the_privacy_lint(self):
         for rel in ("tool/wires.py", "tests/test_wires.py"):
