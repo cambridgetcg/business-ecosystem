@@ -5,7 +5,8 @@
  *
  * Activation lives in code: every event this adapter makes is `synthetic`, from
  * the `synthetic` provider, for books whose decisionRef names a synthetic
- * fixture. A file cannot claim anything else.
+ * fixture. A file cannot claim anything else, whether it comes through the CLI
+ * or a library caller: mapSyntheticSales parses whatever it is given.
  */
 
 import { z } from 'zod';
@@ -194,8 +195,22 @@ function refundEvent(file: SyntheticSales, record: RefundRecord, timestamp: stri
   };
 }
 
-/** Map every record in file order; each event must satisfy the contract (S1-S6, S8). */
-export function mapSyntheticSales(file: SyntheticSales, timestamp: string): CommerceSaleEvent[] {
+/**
+ * Map every record in file order; each event must satisfy the contract (S1-S6, S8).
+ * The input is parsed with syntheticSalesSchema here, whatever its static type:
+ * SyntheticSales cannot carry the schema's refinements, so a typed value could
+ * still name an owner decision. `label` names the input in errors.
+ */
+export function mapSyntheticSales(
+  input: unknown,
+  timestamp: string,
+  label = 'input'
+): CommerceSaleEvent[] {
+  const parsed = syntheticSalesSchema.safeParse(input);
+  if (!parsed.success) {
+    throw new IntakeError(`${label} is not ${FIXTURE_FORMAT}: ${describeIssues(parsed.error)}`);
+  }
+  const file = parsed.data;
   return file.records.map((record, index) => {
     const event =
       record.type === 'SALE'
