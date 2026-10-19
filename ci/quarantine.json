@@ -90,15 +90,6 @@
       "exit": "F6; lint exits 0."
     },
     {
-      "package": "@ecosystem/data-privacy",
-      "task": "typecheck",
-      "reason": "Same Prisma cause: the stub client leaves query results unknown (TS2339 x7) and 2 implicit any (TS7006), plus one exactOptionalPropertyTypes error in src/lib/events.ts.",
-      "first_error": "src/infrastructure/persistence/prisma-breach.repository.ts(87,69): error TS2339: Property 'data' does not exist on type 'unknown'.",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 10,
-      "exit": "F7; typecheck exits 0. Remove with the build entry."
-    },
-    {
       "package": "@ecosystem/operational-reporting",
       "task": "typecheck",
       "reason": "The code imports uuid and node-cron, but package.json declares cron and @paralleldrive/cuid2 (TS2307 x2); 12 values of type unknown (TS18046); ReportItem passed as Record<string, unknown>.",
@@ -115,15 +106,6 @@
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
       "errors": 4,
       "exit": "O1 (outbox defects); typecheck exits 0. Remove with the build entry."
-    },
-    {
-      "package": "@ecosystem/data-privacy",
-      "task": "build",
-      "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
-      "first_error": "src/infrastructure/persistence/prisma-breach.repository.ts(87,69): error TS2339: Property 'data' does not exist on type 'unknown'.",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 10,
-      "exit": "F7; build exits 0. Remove with the typecheck entry."
     },
     {
       "package": "@ecosystem/operational-reporting",

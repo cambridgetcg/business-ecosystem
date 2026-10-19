@@ -9,17 +9,14 @@ const logLevel = process.env.LOG_LEVEL || (isDev ? 'debug' : 'info');
 const serviceName = process.env.SERVICE_NAME || 'data-privacy';
 const serviceVersion = process.env.SERVICE_VERSION || '0.1.0';
 
-// Use pino.default for ESM compatibility
-const pinoFn = typeof pino === 'function' ? pino : (pino as any).default;
-
-export const logger = pinoFn({
+export const logger = pino({
   level: logLevel,
   base: {
     service: serviceName,
     version: serviceVersion,
     pid: process.pid,
   },
-  timestamp: pino.stdTimeFunctions?.isoTime ?? (() => `,"time":"${new Date().toISOString()}"`),
+  timestamp: pino.stdTimeFunctions.isoTime,
   redact: {
     paths: [
       'req.headers.authorization',
