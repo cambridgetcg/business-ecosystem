@@ -153,6 +153,27 @@ describe('ComplianceAggregator roll-up', () => {
     expect(overview.criticalFindings).toBe(1);
   });
 
+  it('counts the issues a domain reports only as text', async () => {
+    // data-privacy's compliance-status endpoint reports issues as strings; the
+    // HTTP client puts them on the GDPR regulation and sends no findings.
+    const gdpr: RegulationStatus = {
+      regulation: 'GDPR',
+      status: 'non-compliant',
+      findings: [],
+      issues: ['1 breach(es) pending authority notification', '2 unresolved breach(es)'],
+    };
+    const { aggregator: agg } = aggregator([
+      [
+        'data-privacy',
+        client('data-privacy', 'non-compliant', { regulations: [gdpr], openFindings: 2 }),
+      ],
+    ]);
+    const overview = await agg.refreshEntityCompliance(ENTITY);
+    expect(overview.domains.get('data-privacy')?.openFindings).toBe(2);
+    expect(overview.totalFindings).toBe(2);
+    expect(overview.criticalFindings).toBe(0);
+  });
+
   it('serves the stored overview until it is refreshed', async () => {
     let status: ComplianceStatus = 'compliant';
     const changing: DomainComplianceClient = {
