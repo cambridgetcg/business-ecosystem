@@ -1,0 +1,795 @@
+{
+  "about": [
+    "Conformance cases for commerce sale events, contract version 1. TypeScript runs them with zod and with ajv against the JSON Schema (shared/events/financial-events/tests/commerce-sale-v1.test.ts); Python runs them against the accounting consumer's contract mirror (foundational/accounting/tests/test_commerce_posting_contract.py). All data is synthetic.",
+    "valid: events every implementation accepts unchanged, with the S10 replayDigest each must compute. Their ids and aggregate ids are the S1 and S2 vectors.",
+    "invalid: a valid event and a patch (RFC 6902 add, replace or remove; the path '' replaces the whole document). rule 'schema' means the JSON Schema rejects it; a rule id S1-S8 means the JSON Schema accepts it and the contract implementations reject it with an error naming that rule first. Each case breaks exactly one rule.",
+    "refundAgainstSale: S7, which needs the stored sale. A patch applies to the refund; rule null means the refund matches its sale.",
+    "uuidV5: UUIDv5(namespace, name) vectors for provider key shapes the events above do not cover.",
+    "Values only: these cases are JSON values, so they hold no number written with a fraction or exponent and no duplicate key. Event JSON text must not contain either (a reader rejects 2000.0, which JavaScript's JSON.parse cannot tell from 2000); the TypeScript producer writes canonical JSON lines, and the Python reader refuses both."
+  ],
+  "schema": "../../schema/commerce-sale-events.v1.schema.json",
+  "namespace": "6f1d3c52-8a4e-4d7b-9c1e-2b5a7e9f0c31",
+  "valid": [
+    {
+      "name": "golden-t1-sale-standard-rated",
+      "replayDigest": "d4875040b950826838d29a01db99fff7e1d4d7402e3a989e50131c556888a7c9",
+      "event": {
+        "id": "862e33fe-05d3-5e1d-be92-b15dffb5ddbd",
+        "type": "commerce.sale.recorded",
+        "aggregateId": "0fff6da3-1d2d-5487-a421-49321718bb0e",
+        "aggregateType": "Sale",
+        "version": 1,
+        "occurredAt": "2026-09-14T10:15:00Z",
+        "metadata": {
+          "correlationId": "862e33fe-05d3-5e1d-be92-b15dffb5ddbd",
+          "source": "commerce-intake/fixture@0.1.0",
+          "timestamp": "2026-10-18T12:00:00Z"
+        },
+        "payload": {
+          "idempotencyKey": "v1|synthetic|synthetic-seller-lab|SALE|syn-sale-t1",
+          "evidenceClass": "synthetic",
+          "booksOf": {
+            "entityId": "00000000-0000-4000-8000-00000000b00c",
+            "decisionRef": "synthetic-books-lab"
+          },
+          "channel": {
+            "kind": "marketplace",
+            "name": "synthetic-market"
+          },
+          "provider": {
+            "name": "synthetic",
+            "accountRef": "synthetic-seller-lab",
+            "transactionType": "SALE",
+            "transactionId": "syn-sale-t1",
+            "orderRef": "syn-order-t1"
+          },
+          "taxPointDate": "2026-09-14",
+          "currency": "GBP",
+          "counterparty": {
+            "kind": "consumer",
+            "country": "GB"
+          },
+          "lines": [
+            {
+              "lineRef": "L1",
+              "revenueClass": "goods",
+              "quantity": 2,
+              "net": 2000,
+              "tax": 400,
+              "taxTreatment": "standard_rated",
+              "taxRateBp": 2000,
+              "taxBasis": "derived_from_inclusive"
+            },
+            {
+              "lineRef": "S1",
+              "revenueClass": "shipping",
+              "quantity": 1,
+              "net": 300,
+              "tax": 60,
+              "taxTreatment": "standard_rated",
+              "taxRateBp": 2000,
+              "taxBasis": "derived_from_inclusive"
+            }
+          ],
+          "fees": [
+            {
+              "feeRef": "F1",
+              "feeType": "FINAL_VALUE_FEE",
+              "net": 275,
+              "tax": 55,
+              "taxTreatment": "standard_rated"
+            }
+          ],
+          "providerCollectedTax": 0,
+          "totals": {
+            "gross": 2760,
+            "fees": 330,
+            "net": 2430
+          }
+        }
+      }
+    },
+    {
+      "name": "golden-t3-refund-partial",
+      "replayDigest": "0b7804d46f924ddf6d5c195599d533c05fb63a2bfe46ea909eb1011f71d82fa7",
+      "event": {
+        "id": "6c845764-be73-50c1-94b8-6204ebda4d97",
+        "type": "commerce.sale.refunded",
+        "aggregateId": "0fff6da3-1d2d-5487-a421-49321718bb0e",
+        "aggregateType": "Sale",
+        "version": 1,
+        "occurredAt": "2026-09-20T09:00:00Z",
+        "metadata": {
+          "correlationId": "862e33fe-05d3-5e1d-be92-b15dffb5ddbd",
+          "source": "commerce-intake/fixture@0.1.0",
+          "timestamp": "2026-10-18T12:00:00Z",
+          "causationId": "862e33fe-05d3-5e1d-be92-b15dffb5ddbd"
+        },
+        "payload": {
+          "idempotencyKey": "v1|synthetic|synthetic-seller-lab|REFUND|syn-refund-t3",
+          "evidenceClass": "synthetic",
+          "booksOf": {
+            "entityId": "00000000-0000-4000-8000-00000000b00c",
+            "decisionRef": "synthetic-books-lab"
+          },
+          "channel": {
+            "kind": "marketplace",
+            "name": "synthetic-market"
+          },
+          "provider": {
+            "name": "synthetic",
+            "accountRef": "synthetic-seller-lab",
+            "transactionType": "REFUND",
+            "transactionId": "syn-refund-t3",
+            "orderRef": "syn-order-t1"
+          },
+          "saleIdempotencyKey": "v1|synthetic|synthetic-seller-lab|SALE|syn-sale-t1",
+          "taxPointDate": "2026-09-20",
+          "currency": "GBP",
+          "reason": "partial_refund",
+          "lines": [
+            {
+              "lineRef": "L1",
+              "net": 1000,
+              "tax": 200
+            }
+          ],
+          "feeCredits": [
+            {
+              "feeRef": "F1",
+              "net": 100,
+              "tax": 20
+            }
+          ],
+          "providerCollectedTaxRefunded": 0,
+          "totals": {
+            "gross": 1200,
+            "feeCredits": 120,
+            "net": 1080
+          }
+        }
+      }
+    },
+    {
+      "name": "golden-t2-sale-zero-rated-export",
+      "replayDigest": "8480fb9288ed367d1bcd554a7acc8b52f8246e9b6e65834c73d3735765ad537e",
+      "event": {
+        "id": "51b1de79-47ea-5a0b-b760-b078920970d3",
+        "type": "commerce.sale.recorded",
+        "aggregateId": "9200ee65-2932-5b1c-a0a2-d3374c24d2da",
+        "aggregateType": "Sale",
+        "version": 1,
+        "occurredAt": "2026-09-21T10:00:00Z",
+        "metadata": {
+          "correlationId": "51b1de79-47ea-5a0b-b760-b078920970d3",
+          "source": "commerce-intake/fixture@0.1.0",
+          "timestamp": "2026-10-18T12:00:00Z"
+        },
+        "payload": {
+          "idempotencyKey": "v1|synthetic|synthetic-seller-lab|SALE|syn-sale-t2",
+          "evidenceClass": "synthetic",
+          "booksOf": {
+            "entityId": "00000000-0000-4000-8000-00000000b00c",
+            "decisionRef": "synthetic-books-lab"
+          },
+          "channel": {
+            "kind": "marketplace",
+            "name": "synthetic-market"
+          },
+          "provider": {
+            "name": "synthetic",
+            "accountRef": "synthetic-seller-lab",
+            "transactionType": "SALE",
+            "transactionId": "syn-sale-t2",
+            "orderRef": "syn-order-t2"
+          },
+          "taxPointDate": "2026-09-21",
+          "currency": "GBP",
+          "counterparty": {
+            "kind": "consumer",
+            "country": "US"
+          },
+          "lines": [
+            {
+              "lineRef": "L1",
+              "revenueClass": "goods",
+              "quantity": 1,
+              "net": 5000,
+              "tax": 0,
+              "taxTreatment": "zero_rated",
+              "taxRateBp": 0,
+              "taxBasis": "not_applicable"
+            },
+            {
+              "lineRef": "S1",
+              "revenueClass": "shipping",
+              "quantity": 1,
+              "net": 800,
+              "tax": 0,
+              "taxTreatment": "zero_rated",
+              "taxRateBp": 0,
+              "taxBasis": "not_applicable"
+            }
+          ],
+          "fees": [
+            {
+              "feeRef": "F1",
+              "feeType": "FINAL_VALUE_FEE",
+              "net": 500,
+              "tax": 100,
+              "taxTreatment": "standard_rated"
+            }
+          ],
+          "providerCollectedTax": 0,
+          "totals": {
+            "gross": 5800,
+            "fees": 600,
+            "net": 5200
+          }
+        }
+      }
+    },
+    {
+      "name": "golden-t5-sale-margin-scheme",
+      "replayDigest": "c7a1a5f6d5cdd44c4a932cd9e4e950c25a1ef1be3f45b6a39f4771fd0396d951",
+      "event": {
+        "id": "08230d11-b60a-5550-9dbb-30b7a7820057",
+        "type": "commerce.sale.recorded",
+        "aggregateId": "9bda3717-ff45-58d0-a4f7-218b4cfffd35",
+        "aggregateType": "Sale",
+        "version": 1,
+        "occurredAt": "2026-09-25T10:00:00Z",
+        "metadata": {
+          "correlationId": "08230d11-b60a-5550-9dbb-30b7a7820057",
+          "source": "commerce-intake/fixture@0.1.0",
+          "timestamp": "2026-10-18T12:00:00Z"
+        },
+        "payload": {
+          "idempotencyKey": "v1|synthetic|synthetic-seller-lab|SALE|syn-sale-t5",
+          "evidenceClass": "synthetic",
+          "booksOf": {
+            "entityId": "00000000-0000-4000-8000-00000000b00c",
+            "decisionRef": "synthetic-books-lab"
+          },
+          "channel": {
+            "kind": "marketplace",
+            "name": "synthetic-market"
+          },
+          "provider": {
+            "name": "synthetic",
+            "accountRef": "synthetic-seller-lab",
+            "transactionType": "SALE",
+            "transactionId": "syn-sale-t5",
+            "orderRef": "syn-order-t5"
+          },
+          "taxPointDate": "2026-09-25",
+          "currency": "GBP",
+          "counterparty": {
+            "kind": "consumer",
+            "country": "GB"
+          },
+          "lines": [
+            {
+              "lineRef": "L1",
+              "revenueClass": "goods",
+              "quantity": 1,
+              "net": 900,
+              "tax": 0,
+              "taxTreatment": "margin_scheme",
+              "taxRateBp": 0,
+              "taxBasis": "not_applicable"
+            }
+          ],
+          "fees": [],
+          "providerCollectedTax": 0,
+          "totals": {
+            "gross": 900,
+            "fees": 0,
+            "net": 900
+          }
+        }
+      }
+    },
+    {
+      "name": "golden-t4-sale-bst-tax-point",
+      "replayDigest": "92cf9bd7d04a7c5a3d110d38ec8051decaab079e14390edd33a378e5db4801d9",
+      "event": {
+        "id": "6b9e3b14-344c-5a6b-839c-8fde66d2c8a2",
+        "type": "commerce.sale.recorded",
+        "aggregateId": "600ea1d6-4aff-57aa-bd5f-b7d609a7d2e1",
+        "aggregateType": "Sale",
+        "version": 1,
+        "occurredAt": "2026-09-30T23:30:00Z",
+        "metadata": {
+          "correlationId": "6b9e3b14-344c-5a6b-839c-8fde66d2c8a2",
+          "source": "commerce-intake/fixture@0.1.0",
+          "timestamp": "2026-10-18T12:00:00Z"
+        },
+        "payload": {
+          "idempotencyKey": "v1|synthetic|synthetic-seller-lab|SALE|syn-sale-t4",
+          "evidenceClass": "synthetic",
+          "booksOf": {
+            "entityId": "00000000-0000-4000-8000-00000000b00c",
+            "decisionRef": "synthetic-books-lab"
+          },
+          "channel": {
+            "kind": "marketplace",
+            "name": "synthetic-market"
+          },
+          "provider": {
+            "name": "synthetic",
+            "accountRef": "synthetic-seller-lab",
+            "transactionType": "SALE",
+            "transactionId": "syn-sale-t4",
+            "orderRef": "syn-order-t4"
+          },
+          "taxPointDate": "2026-10-01",
+          "currency": "GBP",
+          "counterparty": {
+            "kind": "consumer",
+            "country": "GB"
+          },
+          "lines": [
+            {
+              "lineRef": "L1",
+              "revenueClass": "goods",
+              "quantity": 1,
+              "net": 500,
+              "tax": 100,
+              "taxTreatment": "standard_rated",
+              "taxRateBp": 2000,
+              "taxBasis": "derived_from_inclusive"
+            }
+          ],
+          "fees": [],
+          "providerCollectedTax": 0,
+          "totals": {
+            "gross": 600,
+            "fees": 0,
+            "net": 600
+          }
+        }
+      }
+    },
+    {
+      "name": "golden-t6-refund-rest",
+      "replayDigest": "ebc44cbf9c69140f97c4fc609b518f4cea985a8187857a28e2b5fa99fd8e4bfe",
+      "event": {
+        "id": "27c9d392-440b-5fa6-989b-31e553453ba3",
+        "type": "commerce.sale.refunded",
+        "aggregateId": "0fff6da3-1d2d-5487-a421-49321718bb0e",
+        "aggregateType": "Sale",
+        "version": 1,
+        "occurredAt": "2026-10-03T09:00:00Z",
+        "metadata": {
+          "correlationId": "862e33fe-05d3-5e1d-be92-b15dffb5ddbd",
+          "source": "commerce-intake/fixture@0.1.0",
+          "timestamp": "2026-10-18T12:00:00Z",
+          "causationId": "862e33fe-05d3-5e1d-be92-b15dffb5ddbd"
+        },
+        "payload": {
+          "idempotencyKey": "v1|synthetic|synthetic-seller-lab|REFUND|syn-refund-t6",
+          "evidenceClass": "synthetic",
+          "booksOf": {
+            "entityId": "00000000-0000-4000-8000-00000000b00c",
+            "decisionRef": "synthetic-books-lab"
+          },
+          "channel": {
+            "kind": "marketplace",
+            "name": "synthetic-market"
+          },
+          "provider": {
+            "name": "synthetic",
+            "accountRef": "synthetic-seller-lab",
+            "transactionType": "REFUND",
+            "transactionId": "syn-refund-t6",
+            "orderRef": "syn-order-t1"
+          },
+          "saleIdempotencyKey": "v1|synthetic|synthetic-seller-lab|SALE|syn-sale-t1",
+          "taxPointDate": "2026-10-03",
+          "currency": "GBP",
+          "reason": "return",
+          "lines": [
+            {
+              "lineRef": "L1",
+              "net": 1000,
+              "tax": 200
+            },
+            {
+              "lineRef": "S1",
+              "net": 300,
+              "tax": 60
+            }
+          ],
+          "feeCredits": [],
+          "providerCollectedTaxRefunded": 0,
+          "totals": {
+            "gross": 1560,
+            "feeCredits": 0,
+            "net": 1560
+          }
+        }
+      }
+    },
+    {
+      "name": "golden-t7-refund-over-cap",
+      "replayDigest": "d86fe3fc9129fe0d1a223db6ed28d7ed9a8ceb276aba6a23f624b42a7e9d19bf",
+      "event": {
+        "id": "5c52f626-3211-5ea5-bec6-a8ab1c8a4fb6",
+        "type": "commerce.sale.refunded",
+        "aggregateId": "9200ee65-2932-5b1c-a0a2-d3374c24d2da",
+        "aggregateType": "Sale",
+        "version": 1,
+        "occurredAt": "2026-10-04T09:00:00Z",
+        "metadata": {
+          "correlationId": "51b1de79-47ea-5a0b-b760-b078920970d3",
+          "source": "commerce-intake/fixture@0.1.0",
+          "timestamp": "2026-10-18T12:00:00Z",
+          "causationId": "51b1de79-47ea-5a0b-b760-b078920970d3"
+        },
+        "payload": {
+          "idempotencyKey": "v1|synthetic|synthetic-seller-lab|REFUND|syn-refund-t7",
+          "evidenceClass": "synthetic",
+          "booksOf": {
+            "entityId": "00000000-0000-4000-8000-00000000b00c",
+            "decisionRef": "synthetic-books-lab"
+          },
+          "channel": {
+            "kind": "marketplace",
+            "name": "synthetic-market"
+          },
+          "provider": {
+            "name": "synthetic",
+            "accountRef": "synthetic-seller-lab",
+            "transactionType": "REFUND",
+            "transactionId": "syn-refund-t7",
+            "orderRef": "syn-order-t2"
+          },
+          "saleIdempotencyKey": "v1|synthetic|synthetic-seller-lab|SALE|syn-sale-t2",
+          "taxPointDate": "2026-10-04",
+          "currency": "GBP",
+          "reason": "return",
+          "lines": [
+            {
+              "lineRef": "L1",
+              "net": 6000,
+              "tax": 0
+            }
+          ],
+          "feeCredits": [],
+          "providerCollectedTaxRefunded": 0,
+          "totals": {
+            "gross": 6000,
+            "feeCredits": 0,
+            "net": 6000
+          }
+        }
+      }
+    },
+    {
+      "name": "typescript-spike-sale",
+      "replayDigest": "38ad6a68fab1a2918d476085e10c68f946989670dcd49158892662058801fee5",
+      "event": {
+        "id": "53ea15c2-2d1f-59f8-ada4-bb0e0e28a9d7",
+        "type": "commerce.sale.recorded",
+        "aggregateId": "4420b5db-1455-581a-8d1b-a8852b44d343",
+        "aggregateType": "Sale",
+        "version": 1,
+        "occurredAt": "2026-09-14T10:15:00Z",
+        "metadata": {
+          "correlationId": "53ea15c2-2d1f-59f8-ada4-bb0e0e28a9d7",
+          "source": "commerce-intake/fixture@0.1.0",
+          "timestamp": "2026-10-18T12:00:00Z"
+        },
+        "payload": {
+          "evidenceClass": "synthetic",
+          "booksOf": {
+            "entityId": "00000000-0000-4000-8000-00000000b00c",
+            "decisionRef": "synthetic-books-lab"
+          },
+          "channel": {
+            "kind": "marketplace",
+            "name": "synthetic-market"
+          },
+          "provider": {
+            "name": "synthetic",
+            "accountRef": "synthetic-seller-lab",
+            "transactionType": "SALE",
+            "transactionId": "syn-sale-0001",
+            "orderRef": "syn-order-0001"
+          },
+          "idempotencyKey": "v1|synthetic|synthetic-seller-lab|SALE|syn-sale-0001",
+          "taxPointDate": "2026-09-14",
+          "currency": "GBP",
+          "counterparty": {
+            "kind": "consumer",
+            "country": "GB"
+          },
+          "lines": [
+            {
+              "lineRef": "L1",
+              "revenueClass": "goods",
+              "quantity": 2,
+              "net": 2000,
+              "tax": 400,
+              "taxTreatment": "standard_rated",
+              "taxRateBp": 2000,
+              "taxBasis": "derived_from_inclusive"
+            },
+            {
+              "lineRef": "S1",
+              "revenueClass": "shipping",
+              "quantity": 1,
+              "net": 300,
+              "tax": 60,
+              "taxTreatment": "standard_rated",
+              "taxRateBp": 2000,
+              "taxBasis": "derived_from_inclusive"
+            }
+          ],
+          "fees": [
+            {
+              "feeRef": "F1",
+              "feeType": "FINAL_VALUE_FEE",
+              "net": 275,
+              "tax": 55,
+              "taxTreatment": "standard_rated"
+            }
+          ],
+          "providerCollectedTax": 0,
+          "totals": {
+            "gross": 2760,
+            "fees": 330,
+            "net": 2430
+          }
+        }
+      }
+    },
+    {
+      "name": "typescript-spike-refund",
+      "replayDigest": "302c3abf438e759467f4a703e3b1ef73d62842804115f45a06e65a8b364bc07b",
+      "event": {
+        "id": "892c5149-7d8b-5ce5-91af-0db19cdec485",
+        "type": "commerce.sale.refunded",
+        "aggregateId": "4420b5db-1455-581a-8d1b-a8852b44d343",
+        "aggregateType": "Sale",
+        "version": 1,
+        "occurredAt": "2026-09-20T09:00:00Z",
+        "metadata": {
+          "correlationId": "53ea15c2-2d1f-59f8-ada4-bb0e0e28a9d7",
+          "causationId": "53ea15c2-2d1f-59f8-ada4-bb0e0e28a9d7",
+          "source": "commerce-intake/fixture@0.1.0",
+          "timestamp": "2026-10-18T12:00:00Z"
+        },
+        "payload": {
+          "evidenceClass": "synthetic",
+          "booksOf": {
+            "entityId": "00000000-0000-4000-8000-00000000b00c",
+            "decisionRef": "synthetic-books-lab"
+          },
+          "channel": {
+            "kind": "marketplace",
+            "name": "synthetic-market"
+          },
+          "provider": {
+            "name": "synthetic",
+            "accountRef": "synthetic-seller-lab",
+            "transactionType": "REFUND",
+            "transactionId": "syn-refund-0001",
+            "orderRef": "syn-order-0001"
+          },
+          "idempotencyKey": "v1|synthetic|synthetic-seller-lab|REFUND|syn-refund-0001",
+          "saleIdempotencyKey": "v1|synthetic|synthetic-seller-lab|SALE|syn-sale-0001",
+          "taxPointDate": "2026-09-20",
+          "currency": "GBP",
+          "reason": "partial_refund",
+          "lines": [
+            {
+              "lineRef": "L1",
+              "net": 1000,
+              "tax": 200
+            }
+          ],
+          "feeCredits": [
+            {
+              "feeRef": "F1",
+              "net": 100,
+              "tax": 20
+            }
+          ],
+          "providerCollectedTaxRefunded": 0,
+          "totals": {
+            "gross": 1200,
+            "feeCredits": 120,
+            "net": 1080
+          }
+        }
+      }
+    },
+    {
+      "name": "sale-edge-values",
+      "replayDigest": "8fef1442f671b84a581cbda7969a7ff413d1dbbbdffe7c7ce68f1467cfaf0e98",
+      "event": {
+        "id": "e9a27cd5-71d5-52e1-9008-e00847c90519",
+        "type": "commerce.sale.recorded",
+        "aggregateId": "0956c31f-c41d-539e-acc5-1038e45936c2",
+        "aggregateType": "Sale",
+        "version": 1,
+        "occurredAt": "2028-02-29T23:59:59.250Z",
+        "metadata": {
+          "correlationId": "e9a27cd5-71d5-52e1-9008-e00847c90519",
+          "source": "commerce-intake/fixture@0.1.0",
+          "timestamp": "2026-10-18T12:00:00Z",
+          "userId": "00000000-0000-4000-8000-0000000000e1",
+          "tenantId": "00000000-0000-4000-8000-0000000000e2"
+        },
+        "payload": {
+          "idempotencyKey": "v1|ebay|synthetic-ebay-account|SALE|12-34567-89012:line/1",
+          "evidenceClass": "recorded",
+          "booksOf": {
+            "entityId": "00000000-0000-4000-8000-00000000b00c",
+            "decisionRef": "synthetic-books-lab"
+          },
+          "channel": {
+            "kind": "direct_b2b",
+            "name": "synthetic-b2b"
+          },
+          "provider": {
+            "name": "ebay",
+            "accountRef": "synthetic-ebay-account",
+            "transactionType": "SALE",
+            "transactionId": "12-34567-89012:line/1"
+          },
+          "taxPointDate": "2028-02-29",
+          "currency": "GBP",
+          "counterparty": {
+            "kind": "business",
+            "country": "ZZ"
+          },
+          "lines": [
+            {
+              "lineRef": "L1",
+              "revenueClass": "goods",
+              "quantity": 100000,
+              "net": 100,
+              "tax": 20,
+              "taxTreatment": "standard_rated",
+              "taxRateBp": 2000,
+              "taxBasis": "source_stated"
+            },
+            {
+              "lineRef": "S1",
+              "revenueClass": "shipping",
+              "quantity": 1,
+              "net": 0,
+              "tax": 0,
+              "taxTreatment": "zero_rated",
+              "taxRateBp": 0,
+              "taxBasis": "not_applicable"
+            }
+          ],
+          "fees": [
+            {
+              "feeRef": "F1",
+              "feeType": "FINAL_VALUE_FEE",
+              "net": 50,
+              "tax": 0,
+              "taxTreatment": "exempt"
+            },
+            {
+              "feeRef": "F2",
+              "feeType": "PAYMENT_PROCESSING_FEE",
+              "net": 70,
+              "tax": 0,
+              "taxTreatment": "outside_scope"
+            },
+            {
+              "feeRef": "F3",
+              "feeType": "FINAL_VALUE_FEE",
+              "net": 100,
+              "tax": 20,
+              "taxTreatment": "standard_rated"
+            }
+          ],
+          "providerCollectedTax": 350,
+          "totals": {
+            "gross": 120,
+            "fees": 240,
+            "net": -120
+          }
+        }
+      }
+    }
+  ],
+  "invalid": [
+    {"name": "not-an-object", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "", "value": null}], "rule": "schema"},
+    {"name": "array-not-object", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "", "value": []}], "rule": "schema"},
+    {"name": "amount-fraction", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines/0/net", "value": 20.5}], "rule": "schema"},
+    {"name": "amount-boolean", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines/0/net", "value": true}], "rule": "schema"},
+    {"name": "amount-string", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines/0/net", "value": "2000"}], "rule": "schema"},
+    {"name": "amount-negative", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines/0/tax", "value": -1}], "rule": "schema"},
+    {"name": "amount-above-maximum", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/providerCollectedTax", "value": 100000000001}], "rule": "schema"},
+    {"name": "quantity-zero", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines/0/quantity", "value": 0}], "rule": "schema"},
+    {"name": "tax-rate-above-100-percent", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines/0/taxRateBp", "value": 10001}], "rule": "schema"},
+    {"name": "payload-buyer-email", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "add", "path": "/payload/buyerEmail", "value": "buyer@example.com"}], "rule": "schema"},
+    {"name": "counterparty-name", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "add", "path": "/payload/counterparty/name", "value": "A Buyer"}], "rule": "schema"},
+    {"name": "envelope-extra-field", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "add", "path": "/extra", "value": 1}], "rule": "schema"},
+    {"name": "metadata-free-text", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "add", "path": "/metadata/note", "value": "free text"}], "rule": "schema"},
+    {"name": "metadata-uppercase-uuid", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/metadata/correlationId", "value": "862E33FE-05D3-5E1D-BE92-B15DFFB5DDBD"}], "rule": "schema"},
+    {"name": "metadata-source-not-intake", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/metadata/source", "value": "intake/fixture@0.1.0"}], "rule": "schema"},
+    {"name": "metadata-timestamp-offset", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/metadata/timestamp", "value": "2026-10-18T13:00:00+01:00"}], "rule": "schema"},
+    {"name": "missing-books-of", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "remove", "path": "/payload/booksOf"}], "rule": "schema"},
+    {"name": "books-of-decision-not-a-ref", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/booksOf/decisionRef", "value": "owner-said-so"}], "rule": "schema"},
+    {"name": "idempotency-key-free-form", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/idempotencyKey", "value": "ebay-123"}], "rule": "schema"},
+    {"name": "id-not-uuid-v5", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/id", "value": "3713bbb9-cc52-4770-b89a-1f0a788245b8"}], "rule": "schema"},
+    {"name": "occurred-at-offset", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/occurredAt", "value": "2026-09-14T10:15:00+01:00"}], "rule": "schema"},
+    {"name": "occurred-at-lowercase-z", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/occurredAt", "value": "2026-09-14T10:15:00z"}], "rule": "schema"},
+    {"name": "occurred-at-lowercase-t", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/occurredAt", "value": "2026-09-14t10:15:00Z"}], "rule": "schema"},
+    {"name": "occurred-at-space-separator", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/occurredAt", "value": "2026-09-14 10:15:00Z"}], "rule": "schema"},
+    {"name": "occurred-at-trailing-newline", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/occurredAt", "value": "2026-09-14T10:15:00Z\n"}], "rule": "schema"},
+    {"name": "occurred-at-no-seconds", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/occurredAt", "value": "2026-09-14T10:15Z"}], "rule": "schema"},
+    {"name": "occurred-at-hour-25", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/occurredAt", "value": "2026-09-14T25:15:00Z"}], "rule": "schema"},
+    {"name": "occurred-at-leap-second", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/occurredAt", "value": "2026-12-31T23:59:60Z"}], "rule": "schema"},
+    {"name": "occurred-at-february-30", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/occurredAt", "value": "2026-02-30T10:15:00Z"}], "rule": "schema"},
+    {"name": "occurred-at-year-zero", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/occurredAt", "value": "0000-09-14T10:15:00Z"}], "rule": "schema"},
+    {"name": "tax-point-february-30", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/taxPointDate", "value": "2026-02-30"}], "rule": "schema"},
+    {"name": "tax-point-february-29-not-leap", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/taxPointDate", "value": "2027-02-29"}], "rule": "schema"},
+    {"name": "tax-point-year-zero", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/taxPointDate", "value": "0000-01-01"}], "rule": "schema"},
+    {"name": "tax-point-unpadded", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/taxPointDate", "value": "2026-9-14"}], "rule": "schema"},
+    {"name": "tax-point-instant", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/taxPointDate", "value": "2026-09-14T00:00:00Z"}], "rule": "schema"},
+    {"name": "currency-lowercase", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/currency", "value": "gbp"}], "rule": "schema"},
+    {"name": "country-lowercase", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/counterparty/country", "value": "gb"}], "rule": "schema"},
+    {"name": "channel-name-uppercase", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/channel/name", "value": "Synthetic-Market"}], "rule": "schema"},
+    {"name": "provider-unknown", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/provider/name", "value": "paypal"}], "rule": "schema"},
+    {"name": "sale-line-fee-treatment", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines/0/taxTreatment", "value": "reverse_charge"}], "rule": "schema"},
+    {"name": "fee-sale-treatment", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/fees/0/taxTreatment", "value": "margin_scheme"}], "rule": "schema"},
+    {"name": "no-lines", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines", "value": []}], "rule": "schema"},
+    {"name": "aggregate-type", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/aggregateType", "value": "Order"}], "rule": "schema"},
+    {"name": "version-2", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/version", "value": 2}], "rule": "schema"},
+    {"name": "version-boolean", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/version", "value": true}], "rule": "schema"},
+    {"name": "version-string", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/version", "value": "1"}], "rule": "schema"},
+    {"name": "type-unknown", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/type", "value": "commerce.sale.disputed"}], "rule": "schema"},
+    {"name": "type-store-credit", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/type", "value": "commerce.store_credit.issued"}], "rule": "schema"},
+    {"name": "refund-body-under-sale-type", "base": "golden-t3-refund-partial", "patch": [{"op": "replace", "path": "/type", "value": "commerce.sale.recorded"}], "rule": "schema"},
+    {"name": "refund-reason-unknown", "base": "golden-t3-refund-partial", "patch": [{"op": "replace", "path": "/payload/reason", "value": "chargeback"}], "rule": "schema"},
+    {"name": "refund-missing-sale-key", "base": "golden-t3-refund-partial", "patch": [{"op": "remove", "path": "/payload/saleIdempotencyKey"}], "rule": "schema"},
+    {"name": "refund-negative-gross", "base": "golden-t3-refund-partial", "patch": [{"op": "replace", "path": "/payload/totals/gross", "value": -1}], "rule": "schema"},
+    {"name": "s1-id-of-another-event", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/id", "value": "51b1de79-47ea-5a0b-b760-b078920970d3"}], "rule": "S1"},
+    {"name": "s2-sale-aggregate-of-another-sale", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/aggregateId", "value": "9200ee65-2932-5b1c-a0a2-d3374c24d2da"}], "rule": "S2"},
+    {"name": "s2-refund-aggregate-of-another-sale", "base": "golden-t3-refund-partial", "patch": [{"op": "replace", "path": "/aggregateId", "value": "9200ee65-2932-5b1c-a0a2-d3374c24d2da"}], "rule": "S2"},
+    {"name": "s3-key-differs-from-provider", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/provider/transactionId", "value": "syn-sale-other"}], "rule": "S3"},
+    {"name": "s4-gross", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/totals/gross", "value": 2761}], "rule": "S4"},
+    {"name": "s4-fees", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/totals/fees", "value": 331}], "rule": "S4"},
+    {"name": "s4-net", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/totals/net", "value": 2431}], "rule": "S4"},
+    {"name": "s5-fee-credits", "base": "golden-t3-refund-partial", "patch": [{"op": "replace", "path": "/payload/totals/feeCredits", "value": 0}], "rule": "S5"},
+    {"name": "s5-net", "base": "golden-t3-refund-partial", "patch": [{"op": "replace", "path": "/payload/totals/net", "value": 1200}], "rule": "S5"},
+    {"name": "s6-sale-line-ref-repeats", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines/1/lineRef", "value": "L1"}], "rule": "S6"},
+    {"name": "s6-sale-fee-ref-repeats", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "add", "path": "/payload/fees/1", "value": {"feeRef": "F1", "feeType": "FINAL_VALUE_FEE", "net": 0, "tax": 0, "taxTreatment": "standard_rated"}}], "rule": "S6"},
+    {"name": "s6-refund-line-ref-repeats", "base": "golden-t3-refund-partial", "patch": [{"op": "add", "path": "/payload/lines/1", "value": {"lineRef": "L1", "net": 0, "tax": 0}}], "rule": "S6"},
+    {"name": "s6-refund-fee-ref-repeats", "base": "golden-t3-refund-partial", "patch": [{"op": "add", "path": "/payload/feeCredits/1", "value": {"feeRef": "F1", "net": 0, "tax": 0}}], "rule": "S6"},
+    {"name": "s8-zero-rated-line-states-tax", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines/0/taxTreatment", "value": "zero_rated"}], "rule": "S8"},
+    {"name": "s8-exempt-line-states-tax", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines/0/taxTreatment", "value": "exempt"}], "rule": "S8"},
+    {"name": "s8-outside-scope-line-states-tax", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines/0/taxTreatment", "value": "outside_scope"}], "rule": "S8"},
+    {"name": "s8-margin-scheme-line-states-tax", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines/0/taxTreatment", "value": "margin_scheme"}], "rule": "S8"},
+    {"name": "s8-not-applicable-basis-with-tax", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines/0/taxBasis", "value": "not_applicable"}], "rule": "S8"},
+    {"name": "s8-stated-basis-without-tax", "base": "golden-t2-sale-zero-rated-export", "patch": [{"op": "replace", "path": "/payload/lines/0/taxBasis", "value": "source_stated"}], "rule": "S8"},
+    {"name": "s8-exempt-fee-states-tax", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/fees/0/taxTreatment", "value": "exempt"}], "rule": "S8"},
+    {"name": "s8-outside-scope-fee-states-tax", "base": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/fees/0/taxTreatment", "value": "outside_scope"}], "rule": "S8"}
+  ],
+  "refundAgainstSale": [
+    {"name": "matches-its-sale", "refund": "golden-t3-refund-partial", "sale": "golden-t1-sale-standard-rated", "patch": [], "rule": null},
+    {"name": "books-differ", "refund": "golden-t3-refund-partial", "sale": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/booksOf/entityId", "value": "00000000-0000-4000-8000-0000000000aa"}], "rule": "S7"},
+    {"name": "currency-differs", "refund": "golden-t3-refund-partial", "sale": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/currency", "value": "EUR"}], "rule": "S7"},
+    {"name": "channel-differs", "refund": "golden-t3-refund-partial", "sale": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/channel/name", "value": "synthetic-other"}], "rule": "S7"},
+    {"name": "account-differs", "refund": "golden-t3-refund-partial", "sale": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/provider/accountRef", "value": "synthetic-seller-other"}], "rule": "S7"},
+    {"name": "unknown-line-ref", "refund": "golden-t3-refund-partial", "sale": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/lines/0/lineRef", "value": "L9"}], "rule": "S7"},
+    {"name": "unknown-fee-ref", "refund": "golden-t3-refund-partial", "sale": "golden-t1-sale-standard-rated", "patch": [{"op": "replace", "path": "/payload/feeCredits/0/feeRef", "value": "F9"}], "rule": "S7"},
+    {"name": "sale-is-a-refund", "refund": "golden-t3-refund-partial", "sale": "golden-t6-refund-rest", "patch": [], "rule": "S7"}
+  ],
+  "uuidV5": [
+    {"name": "v1|ebay|synthetic-ebay-account|SALE|12-34567-89012", "uuid": "261f9b39-84e7-514f-9c94-1c2029853b50"},
+    {"name": "sale|v1|ebay|synthetic-ebay-account|SALE|12-34567-89012", "uuid": "a5cb397f-77f4-5e7b-899f-c5ac2b9c0f62"},
+    {"name": "v1|stripe|acct_synthetic|charge|txn_1SyntheticExample", "uuid": "7fef6517-affb-5f8b-abaf-05dfa42f738a"},
+    {"name": "v1|shopify_partner|synthetic-partner|AppSubscriptionSale|gid://partners/AppSubscriptionSale/123", "uuid": "9efb1ba4-7692-584a-96bf-2c93ff39f2ef"}
+  ]
+}

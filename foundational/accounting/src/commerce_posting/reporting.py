@@ -152,7 +152,7 @@ def build_report(connection):
     report = {
         "schema": "commerce-posting-report/1",
         "contract": {"types": [SALE_RECORDED, SALE_REFUNDED], "version": CONTRACT_VERSION,
-                     "namespace": str(COMMERCE_EVENT_NAMESPACE), "authority": "provisional mirror until the shared contract lands"},
+                     "namespace": str(COMMERCE_EVENT_NAMESPACE), "authority": "shared/events/financial-events/schema/commerce-sale-events.v1.schema.json"},
         "policy": {"books": [document for _, document in books], "evidence_classes": list(ACTIVATED_EVIDENCE_CLASSES),
                    "currency": CURRENCY, "tax_policy": TAX_POLICY,
                    "postable_sale_treatments": list(POSTABLE_SALE_TREATMENTS), "postable_fee_treatments": list(POSTABLE_FEE_TREATMENTS)},

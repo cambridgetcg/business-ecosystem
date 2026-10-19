@@ -53,7 +53,7 @@ Errors are exit **2** with `{"error": "..."}` on stderr and nothing on stdout. A
 
 ## Event contract, version 1
 
-Two event types, `commerce.sale.recorded` and `commerce.sale.refunded`, `aggregateType: "Sale"`, `version: 1`. `src/commerce_posting/contract.py` is a strict mirror of the wire design's JSON Schema plus its cross-field rules:
+Two event types, `commerce.sale.recorded` and `commerce.sale.refunded`, `aggregateType: "Sale"`, `version: 1`. The contract of record is the JSON Schema `shared/events/financial-events/schema/commerce-sale-events.v1.schema.json`; the producer's zod schemas live beside it in `@ecosystem/events-financial`. `src/commerce_posting/contract.py` is a strict mirror of that schema plus its cross-field rules:
 
 | Rule | Checked where |
 |---|---|
@@ -63,13 +63,13 @@ Two event types, `commerce.sale.recorded` and `commerce.sale.refunded`, `aggrega
 | S4/S5 totals equal the sums of lines, fees and fee credits | contract |
 | S6 `lineRef`/`feeRef` unique within an event | contract |
 | S7 a refund matches its stored sale (books, currency, channel, account, line and fee refs); caps | flow (identity, error) and policy (caps, refusal) |
-| S8 tax-free treatments state no tax; `taxBasis` is `not_applicable` exactly when tax is 0 | contract |
+| S8 tax-free treatments state no tax; `taxBasis` is `not_applicable` exactly when tax is 0; an exempt or outside-scope fee states no tax | contract |
 | S9 `taxPointDate` is stated by the adapter in the books' VAT time zone | adapter |
 | S10 replay digest | contract |
 
-Values are validated exactly as delivered and never normalized. Timestamps stay strings ending in `Z`: a parser that re-serializes `…00Z` as `…00.000Z` would change the bytes. The **replay digest** is the SHA-256 of canonical JSON (sorted keys, no whitespace, UTF-8) over the raw `{type, version, aggregateId, occurredAt, payload}`; `metadata` is trace data and is excluded. Every contract string is ASCII by pattern or enum, so this equals RFC 8785 output and a sorted-key `JSON.stringify`; Node 20 and CPython agree on the vectors in `tests/fixtures/commerce_posting/id-and-digest-vectors.json`.
+Values are validated exactly as delivered and never normalized. Timestamps stay strings ending in `Z`: a parser that re-serializes `…00Z` as `…00.000Z` would change the bytes. The **replay digest** is the SHA-256 of canonical JSON (sorted keys, no whitespace, UTF-8) over the raw `{type, version, aggregateId, occurredAt, payload}`; `metadata` is trace data and is excluded. Every contract string is ASCII by pattern or enum, so this equals RFC 8785 output and a sorted-key `JSON.stringify`.
 
-**Authority.** The schema copy the tests use, `tests/fixtures/commerce_posting/commerce-sale-events.v1.schema.provisional-copy.json`, is provisional. PR W1 makes the shared contract authoritative (schema, conformance files and the namespace constant in `contracts-financial`); the parity test then reads that file and the copy is deleted. The namespace here, `6f1d3c52-8a4e-4d7b-9c1e-2b5a7e9f0c31`, is the wire spike's and must match W1's.
+**Conformance.** `tests/test_commerce_posting_contract.py` compares the mirror with the shared schema field by field and runs every case in `shared/events/financial-events/conformance/commerce-sale-v1/CASES.json`: valid events with their ids and replay digests, invalid events with the rule each breaks, S7 refund-against-sale cases and UUIDv5 vectors. The TypeScript tests run the same file with zod and ajv. The namespace, `6f1d3c52-8a4e-4d7b-9c1e-2b5a7e9f0c31`, is `COMMERCE_EVENT_NAMESPACE` in `@ecosystem/contracts-financial`. The shared cases are JSON values, so the one reader rule they cannot carry, refusing `2000.0`, is tested here.
 
 ## Activation policy (v1)
 
@@ -78,7 +78,7 @@ Activation lives in code (`src/commerce_posting/policy.py`), so changing it is a
 - **Books.** Only `booksOf = {entityId: 00000000-0000-4000-8000-00000000b00c, decisionRef: synthetic-books-lab}`. No real entity is assigned until the owner records that decision.
 - **Evidence class.** Only `synthetic`. `recorded` and `live` are refused.
 - **Currency.** GBP only. Journal entries and accounts default to USD in the domain model (`journal_entry.py:184`, `account.py:136`), so every entry and account here sets GBP explicitly.
-- **Tax.** One v1 policy, `source-stated/1`: tax is posted exactly as the event states it, for standard-rated and zero-rated sale lines, and for standard-rated, exempt or outside-scope fees (fee tax only on standard-rated fees). Reduced rate, margin scheme, reverse charge and anything that needs a VAT scheme decision (flat rate, cash accounting) are refused rather than guessed.
+- **Tax.** One v1 policy, `source-stated/1`: tax is posted exactly as the event states it, for standard-rated and zero-rated sale lines, and for standard-rated, exempt or outside-scope fees (fee tax only on standard-rated fees; an exempt or outside-scope fee that states tax breaks contract rule S8, so it is an error, not a refusal). Reduced rate, margin scheme, reverse charge and anything that needs a VAT scheme decision (flat rate, cash accounting) are refused rather than guessed.
 - **Store credit.** There is no event type for merchant store credit, so it can never reach this ledger.
 
 Refusal reasons, checked in this order: `not_our_books`, `evidence_class_not_activated`, `unsupported_currency_v1`, then `unsupported_treatment_v1` (sales) or the sale's own refusal and `refund_exceeds_sale` (refunds), then `zero_value`. A refund of a refused sale inherits that sale's reason.

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:ecosystem:events:commerce.sale:v1",
   "title": "Commerce sale events, contract version 1",
-  "description": "Envelope = @ecosystem/events-financial baseDomainEventSchema (shared/events/financial-events/src/index.ts:12-29), made strict. Money is integer minor units of payload.currency, as in @ecosystem/contracts-financial moneySchema (shared/contracts/financial/src/index.ts:16-19). Cross-field rules JSON Schema cannot express (id/aggregateId derivation, key = provider fields, totals = sums, refund caps) are listed in x-semantic-rules and enforced by the zod superRefine and the Python consumer.",
+  "description": "Contract version 1 of the commerce sale events, and its contract of record. The zod schemas in @ecosystem/events-financial (src/commerce-sale.ts) and the Python mirror in foundational/accounting (src/commerce_posting/contract.py) accept exactly what this schema accepts, and add the cross-field rules in x-semantic-rules, which JSON Schema cannot express. conformance/commerce-sale-v1/CASES.json holds the cases both languages run. The envelope follows @ecosystem/events-financial's base event, made strict and without date coercion: instants are UTC strings ending in Z and are validated and digested exactly as written. Money is integer minor units of payload.currency, as in @ecosystem/contracts-financial moneySchema. In event JSON text every number is an integer written without a fraction or exponent: a reader rejects 2000.0, which JSON Schema's integer type and JavaScript's JSON.parse cannot tell from 2000.",
   "oneOf": [
     {
       "$ref": "#/$defs/saleRecordedEvent"
@@ -19,9 +19,9 @@
     "S5 refunded: totals.gross = sum(lines.net + lines.tax); totals.feeCredits = sum(feeCredits.net + feeCredits.tax); totals.net = totals.gross - totals.feeCredits",
     "S6 lineRef values are unique within an event; feeRef values are unique within an event",
     "S7 refunded: the referenced sale exists, has the same booksOf.entityId, currency, channel and provider.accountRef; every lineRef and feeRef names a line or fee of that sale; cumulative refunds per line (net and tax separately) and per fee never exceed the sale's amounts",
-    "S8 taxTreatment 'zero_rated', 'exempt', 'outside_scope' or 'margin_scheme' implies tax = 0 on that line; taxBasis 'not_applicable' iff tax = 0",
+    "S8 taxTreatment 'zero_rated', 'exempt', 'outside_scope' or 'margin_scheme' implies tax = 0 on that line; taxBasis 'not_applicable' iff tax = 0; a fee with taxTreatment 'exempt' or 'outside_scope' states tax = 0",
     "S9 payload.taxPointDate is the supply (or credit) date in the books' VAT calendar time zone (Europe/London for a UK entity), stated by the adapter so every consumer buckets periods identically",
-    "S10 replay equality = SHA-256 of canonical JSON of {type, version, aggregateId, occurredAt, payload}; metadata is trace data and is excluded"
+    "S10 replay equality = SHA-256 (lowercase hex) of canonical JSON (object keys sorted, no whitespace, UTF-8) of the raw values {type, version, aggregateId, occurredAt, payload} as delivered; metadata is trace data and is excluded"
   ],
   "$defs": {
     "uuid": {
@@ -35,12 +35,13 @@
     "instant": {
       "type": "string",
       "format": "date-time",
-      "pattern": "Z$"
+      "pattern": "^[1-9][0-9]{3}-[0-9]{2}-[0-9]{2}T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\.[0-9]+)?Z$",
+      "description": "UTC, seconds required, separator T. The pattern settles what date-time formats leave open (a space or lowercase t as separator, a leap second, year 0000); format adds the calendar check."
     },
     "calendarDate": {
       "type": "string",
       "format": "date",
-      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+      "pattern": "^[1-9][0-9]{3}-[0-9]{2}-[0-9]{2}$"
     },
     "currencyCode": {
       "type": "string",

@@ -18,8 +18,9 @@ def consume(db, events):
 
 
 # Pinned so any change to the golden report's content is a reviewed change
-# (CPython 3.12 and 3.14 produced the same bytes when it was recorded).
-GOLDEN_RECORD_DIGEST = "bb8e7cffd3aa2fc925570031e1d059e002077d0d2cea6e4101eb32c98cba6da8"
+# (CPython 3.12 and 3.14 produced the same bytes when it was recorded). Last
+# changed when the report's contract authority became the shared JSON Schema.
+GOLDEN_RECORD_DIGEST = "23517428abee2443d12062fbd618f019b53528fa5f736d99aefa8ac324d1fd4e"
 
 
 def test_two_independent_runs_give_identical_reports(tmp_path):

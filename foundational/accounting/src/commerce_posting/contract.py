@@ -1,12 +1,12 @@
 """Strict Python mirror of the commerce sale event contract, version 1.
 
-The language-neutral JSON Schema and conformance files belong to the contract
-packages (PR W1 of the first wire). Until they land, tests compare this mirror
-field by field with a provisional copy of that schema in
-tests/fixtures/commerce_posting/. The structure below is plain data, so no
-JSON Schema library is needed. Cross-field rules S1-S6 and S8 are checked here;
-S7 needs the stored sale and is checked by the flow; S9 is stated by the
-adapter; S10 is the replay digest.
+The contract of record is the language-neutral JSON Schema in
+shared/events/financial-events/schema/commerce-sale-events.v1.schema.json,
+with the shared conformance cases beside it in conformance/commerce-sale-v1/.
+Tests compare this mirror field by field with that schema and run every shared
+case. The structure below is plain data, so no JSON Schema library is needed.
+Cross-field rules S1-S6 and S8 are checked here; S7 needs the stored sale and
+is checked by the flow; S9 is stated by the adapter; S10 is the replay digest.
 
 Values are validated exactly as delivered and never normalized: timestamps stay
 strings ending in Z, amounts stay integer minor units.
@@ -17,8 +17,8 @@ import re
 import uuid
 from datetime import date, datetime
 
-# Provisional: the namespace of the wire design's spike. W1 commits the
-# authoritative constant in contracts-financial; this one must then match it.
+# Equal to COMMERCE_EVENT_NAMESPACE in @ecosystem/contracts-financial and to the
+# namespace of the shared conformance cases (a test compares them).
 COMMERCE_EVENT_NAMESPACE = uuid.UUID("6f1d3c52-8a4e-4d7b-9c1e-2b5a7e9f0c31")
 CONTRACT_VERSION = 1
 SALE_RECORDED = "commerce.sale.recorded"
@@ -159,8 +159,8 @@ def _utc_instant(text):
 # $defs of the v1 JSON Schema, in the same order and with the same names.
 UUID = Text("^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 UUID_V5 = Text("^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
-INSTANT = Text("Z$", format="date-time")
-CALENDAR_DATE = Text("^[0-9]{4}-[0-9]{2}-[0-9]{2}$", format="date")
+INSTANT = Text(r"^[1-9][0-9]{3}-[0-9]{2}-[0-9]{2}T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]+)?Z$", format="date-time")
+CALENDAR_DATE = Text("^[1-9][0-9]{3}-[0-9]{2}-[0-9]{2}$", format="date")
 CURRENCY_CODE = Text("^[A-Z]{3}$")
 MINOR_UNITS = Integer(0, 100_000_000_000)
 SIGNED_MINOR_UNITS = Integer(-100_000_000_000, 100_000_000_000)
@@ -218,6 +218,7 @@ def _event(event_type, payload):
 EVENTS = {SALE_RECORDED: _event(SALE_RECORDED, SALE_RECORDED_PAYLOAD),
           SALE_REFUNDED: _event(SALE_REFUNDED, SALE_REFUNDED_PAYLOAD)}
 TAX_FREE_TREATMENTS = frozenset({"zero_rated", "exempt", "outside_scope", "margin_scheme"})
+TAX_FREE_FEE_TREATMENTS = frozenset({"exempt", "outside_scope"})
 
 
 def event_id_for(idempotency_key):
@@ -279,6 +280,9 @@ def validate(event):
                 raise ContractError(f"S8 event.payload.lines[{index}]: {line['taxTreatment']} line states tax")
             if (line["taxBasis"] == "not_applicable") != (line["tax"] == 0):
                 raise ContractError(f"S8 event.payload.lines[{index}]: taxBasis not_applicable must match zero tax")
+        for index, charge in enumerate(charges):
+            if charge["taxTreatment"] in TAX_FREE_FEE_TREATMENTS and charge["tax"] != 0:
+                raise ContractError(f"S8 event.payload.fees[{index}]: {charge['taxTreatment']} fee states tax")
 
 
 def check_refund_against_sale(refund, sale):
