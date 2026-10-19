@@ -48,6 +48,8 @@ Tax amounts and treatments are taken as the record states them; nothing is deriv
 
 `pnpm --filter @ecosystem/commerce-intake run test` (vitest; turbo builds first). The tests cover the mapping against the contract's golden events, the UK tax point across both clock changes, idempotent re-import, conflicts inside a file and against the spool, S7, damaged spools, and the CLI in child processes. A guard (`tests/no-network.mjs`) refuses sockets, name lookups and `fetch` in the test process and in every child.
 
+The whole wire, this CLI and then accounting's `consume` and `report`, runs end to end in [`tests/wires/test_wire_1_sale_to_ledger.py`](../../tests/wires/test_wire_1_sale_to_ledger.py), in CI as `.github/workflows/wire-e2e.yml`.
+
 ## No STATUS.md, PATH.md or LIGHT.md
 
 This package deliberately has none. Under owner decision D6 (dec-2026-10-17-7) no work here may cause an AWS action, and a push to `main` that touches any `**/STATUS.md`, `**/PATH.md` or `**/LIGHT.md` starts `.github/workflows/progress-sync.yml`, which configures AWS credentials and syncs to AWS.
