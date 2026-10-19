@@ -7,7 +7,8 @@
  * template syntax are shell-escaped (\\d, \\s, \\${...} in src/parser.ts), so
  * timeouts never parse, ${...} templates are never substituted and conditions
  * never match. The it.fails cases below state what the parser should do; they
- * pass while it does not, and fail once it is fixed, when the marker must go.
+ * pass while it does not, and fail once it is fixed, when the markers must go.
+ * The 'meanwhile' case pins today's behaviour and must go with them.
  * Fixing it starts real calls to /actions URLs that no domain serves yet, so
  * it belongs with the orchestration work (#14, "Noticed, not fixed").
  */
