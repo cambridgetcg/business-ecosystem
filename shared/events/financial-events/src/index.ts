@@ -4,6 +4,42 @@
  */
 
 import { z } from 'zod';
+import {
+  COMMERCE_SALE_RECORDED,
+  COMMERCE_SALE_REFUNDED,
+  checkCommerceSaleRules,
+  saleRecordedStructureSchema,
+  saleRefundedStructureSchema,
+} from './commerce-sale.js';
+
+// Commerce sale events, contract version 1: see commerce-sale.ts. The
+// structure-only schemas stay internal, so every exported parser applies the
+// cross-field rules.
+export {
+  COMMERCE_CONTRACT_VERSION,
+  COMMERCE_SALE_EVENT_TYPES,
+  COMMERCE_SALE_RECORDED,
+  COMMERCE_SALE_REFUNDED,
+  CommerceContractError,
+  canonicalJson,
+  checkRefundAgainstSale,
+  commerceAggregateId,
+  commerceEventId,
+  commerceEventMetadataSchema,
+  commerceIdempotencyKey,
+  commerceSaleEventSchema,
+  commerceSaleRecordedEventSchema,
+  commerceSaleRefundedEventSchema,
+  replayDigest,
+  saleKeyOf,
+  saleRecordedPayloadSchema,
+  saleRefundedPayloadSchema,
+} from './commerce-sale.js';
+export type {
+  CommerceSaleEvent,
+  CommerceSaleRecordedEvent,
+  CommerceSaleRefundedEvent,
+} from './commerce-sale.js';
 
 // ============================================================================
 // Base Event Schema (shared)
@@ -134,15 +170,23 @@ export type AccountBalanceChangedEvent = z.infer<typeof accountBalanceChangedEve
 // Event Union
 // ============================================================================
 
-export const financialEventSchema = z.discriminatedUnion('type', [
-  transactionCreatedEventSchema,
-  transactionCompletedEventSchema,
-  transactionFailedEventSchema,
-  invoiceCreatedEventSchema,
-  invoicePaidEventSchema,
-  invoiceOverdueEventSchema,
-  accountBalanceChangedEventSchema,
-]);
+export const financialEventSchema = z
+  .discriminatedUnion('type', [
+    transactionCreatedEventSchema,
+    transactionCompletedEventSchema,
+    transactionFailedEventSchema,
+    invoiceCreatedEventSchema,
+    invoicePaidEventSchema,
+    invoiceOverdueEventSchema,
+    accountBalanceChangedEventSchema,
+    saleRecordedStructureSchema,
+    saleRefundedStructureSchema,
+  ])
+  .superRefine((event, ctx) => {
+    if (event.type === COMMERCE_SALE_RECORDED || event.type === COMMERCE_SALE_REFUNDED) {
+      checkCommerceSaleRules(event, ctx);
+    }
+  });
 
 export type FinancialEvent = z.infer<typeof financialEventSchema>;
 
@@ -154,4 +198,6 @@ export const FINANCIAL_EVENT_TYPES = [
   'invoice.paid',
   'invoice.overdue',
   'account.balance_changed',
+  COMMERCE_SALE_RECORDED,
+  COMMERCE_SALE_REFUNDED,
 ] as const;

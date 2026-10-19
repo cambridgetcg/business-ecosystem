@@ -1,0 +1,19 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "lint": {
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "inputs": [
+        "src/**",
+        "tests/**",
+        "schema/**",
+        "conformance/**",
+        "package.json",
+        "vitest.config.ts"
+      ]
+    }
+  }
+}
