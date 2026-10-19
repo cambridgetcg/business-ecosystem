@@ -4,7 +4,9 @@ D8 (dec-2026-10-17-9) asks for a plan, not execution. The plan (schema estate.hy
 survey outside this tool) names where secrets and single copies live, so it is private: it lives in
 one file of the private curation, private/curated/hygiene.json, mode 0400 inside the 0500 dir, and
 changes only through `estate hygiene` (--import, --set), each write keeping the previous bytes as a
-new 0400 backup (curate.keep_private).
+new 0400 backup (curate.keep_private). It is an owner plan (plans.py): the file, the merge by item id,
+the owner's status and its log are the ones every owner plan shares; this module adds the plan's own
+shape, the baseline and the join.
 
 The file holds the newest plan verbatim beside what the estate adds per item: the owner's status
 (with a log), when the item was first and last in a plan, since when it is missing from the newest
@@ -14,32 +16,27 @@ again (join), so an item whose signals have all cleared reads "no longer observe
 editing it. That is a signal beside the plan, never a verdict on the fix: the status stays the
 owner's.
 """
-import difflib
-import hashlib
-import json
-import os
 from collections import Counter
 
 import curate
-import safety
-from safety import GuardError, require
+import plans
 
 PLAN_SCHEMA = "estate.hygiene/1"
 SCHEMA = "estate.hygiene-curation/1"
-PRIVATE_FILE = "curated/hygiene.json"
-# Read-only between owner verbs: a hand edit would bypass the status log and the backup.
-MODE = 0o400
-MAX_BYTES = 16 << 20
 SET_STATUSES = ("open", "in-progress", "in-progress-elsewhere", "done", "declined")
 # A plan may also record an issue it found already resolved; only the plan says that.
 PLAN_STATUSES = SET_STATUSES + ("mitigated",)
+STORE = plans.Store("hygiene", "hygiene plan", "hygiene item", "estate hygiene", PLAN_SCHEMA, SCHEMA, SET_STATUSES,
+                    PLAN_STATUSES, kept=("baseline",),
+                    note="The D8 hygiene plan, private: it names where secrets live, never their values. "
+                         "Changed only by `estate hygiene --import` and `estate hygiene --set`.")
+PRIVATE_FILE = STORE.private_file
+MODE = plans.MODE
 CLOSED = ("done", "declined", "mitigated")
 ELSEWHERE = "in-progress-elsewhere"
-SET_BY = "owner (estate hygiene --set)"
+SET_BY = STORE.set_by
 ITEM_TEXT = ("id", "title", "area", "severity", "status", "wave")
 ITEM_LISTS = ("where", "actions", "depends_on", "related_records", "related_items", "lens_ids")
-# Text a note may not carry: the secret shapes of the privacy lint (a status note is never a value).
-SECRET_SHAPED = ("hex", "token-prefix", "assignment")
 
 OBSERVED, CLEARED, UNKNOWN_NOW, NOT_OBSERVED, NOT_MEASURED = (
     "observed", "no longer observed", "unknown now", "not observed", "not measured")
@@ -248,66 +245,20 @@ def plan_notes(plan):
 
 def doc_problems(doc):
     """Why the private file cannot be used (empty when it can)."""
-    if not isinstance(doc, dict):
-        return ["not a JSON object"]
-    out = []
-    if doc.get("schema") != SCHEMA:
-        out.append("schema must be %s, not %r" % (SCHEMA, doc.get("schema")))
-    if not isinstance(doc.get("plan"), dict):
-        out.append("plan must be an object")
-    if not isinstance(doc.get("imports"), list):
-        out.append("imports must be a list")
-    items = doc.get("items")
-    if not isinstance(items, list):
-        return out + ["items must be a list"]
-    seen = set()
-    for item in items:
-        ident = item.get("id") if isinstance(item, dict) else None
-        if not isinstance(ident, str) or not ident or not isinstance(item.get("plan"), dict) \
-                or item["plan"].get("id") != ident:
-            out.append("an item has no id or no plan of its own")
-            continue
-        if ident in seen:
-            out.append("%s appears twice" % ident)
-        seen.add(ident)
-        owner = item.get("owner")
-        if owner is not None and not (isinstance(owner, dict) and owner.get("status") in SET_STATUSES):
-            out.append("%s: owner status must be one of %s" % (ident, ", ".join(SET_STATUSES)))
-        for key in ("log", "baseline"):
-            if not (isinstance(item.get(key), list) and all(isinstance(e, dict) for e in item[key])):
-                out.append("%s: %s must be a list of objects" % (ident, key))
-    return out
+    return plans.doc_problems(STORE, doc)
 
 
 def load(path):
     """(doc, None) for a usable private file, else (None, reason): "missing", or why it is not."""
-    raw, reason = safety.read_checked(path, MAX_BYTES)
-    if raw is None:
-        return None, reason
-    try:
-        doc = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, ValueError) as exc:
-        return None, "invalid json: %s" % exc
-    problems = doc_problems(doc)
-    return (None, "invalid: " + "; ".join(problems[:5])) if problems else (doc, None)
+    return plans.load(STORE, path)
 
 
 def read_plan(path):
-    """The plan JSON at an absolute path, checked; GuardError when unusable."""
-    require(os.path.isabs(path), "--import needs an absolute path")
-    raw, reason = safety.read_checked(path, MAX_BYTES)
-    require(raw is not None, "cannot read %s: %s" % (path, reason))
-    try:
-        plan = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, ValueError) as exc:
-        raise GuardError("%s is not JSON: %s" % (path, exc)) from exc
-    problems = plan_problems(plan)
-    require(not problems, "%s is not a usable %s plan: %s" % (path, PLAN_SCHEMA, "; ".join(problems[:10])))
-    return plan, hashlib.sha256(raw).hexdigest()
+    """(plan, sha256): the plan JSON at an absolute path, checked; GuardError when unusable."""
+    return plans.read_plan(STORE, path, plan_problems)
 
 
-def text_of(doc):
-    return json.dumps(doc, indent=1, ensure_ascii=False) + "\n"
+text_of = plans.text_of
 
 
 # ── import: merge by stable id ──────────────────────────────────────────────────────────────
@@ -325,95 +276,40 @@ def _union(old, new):
 
 
 def merge(plan, doc, by_id, run, source_sha256, now_iso):
-    """(new doc, counts, notes): plan merged into doc by item id. A known item takes the new plan's
-    words and keeps the owner's status, log and baseline (gaining the signals seen now); a new item
-    starts with no owner status; an item the plan no longer lists is kept and marked missing since
-    the plan's observed_at. Nothing is written here."""
-    observed = plan["observed_at"]
-    old_items = {i["id"]: i for i in (doc or {}).get("items") or []}
-    counts = Counter()
-    items = []
-    for item_plan in plan["items"]:
-        base = baseline_of(item_plan, by_id, run)
-        old = old_items.pop(item_plan["id"], None)
-        if old is None:
-            counts["added"] += 1
-            items.append({"id": item_plan["id"], "plan": item_plan, "first_seen": observed, "last_seen": observed,
-                          "missing_since": None, "owner": None, "log": [], "baseline": base})
-            continue
-        counts["updated" if old["plan"] != item_plan else "unchanged"] += 1
-        if old.get("missing_since"):
-            counts["returned"] += 1
-        if old.get("owner"):
-            counts["owner_status_kept"] += 1
-        items.append(dict(old, plan=item_plan, last_seen=observed, missing_since=None,
-                          baseline=_union(old.get("baseline") or [], base)))
-    for old in old_items.values():
-        counts["missing"] += 1
-        items.append(dict(old, missing_since=old.get("missing_since") or observed))
-    new = {"schema": SCHEMA,
-           "note": "The D8 hygiene plan, private: it names where secrets live, never their values. "
-                   "Changed only by `estate hygiene --import` and `estate hygiene --set`.",
-           "plan": {k: v for k, v in plan.items() if k != "items"},
-           "items": items,
-           "imports": list((doc or {}).get("imports") or [])}
-    counts["items"] = len(items)
-    counts["baseline_signals"] = sum(len(i["baseline"]) for i in items)
-    if doc is not None and {k: v for k, v in new.items() if k != "imports"} == \
-            {k: v for k, v in doc.items() if k != "imports"}:
-        return doc, counts, plan_notes(plan)
-    new["imports"].append({"at": now_iso, "source_sha256": source_sha256, "schema": plan["schema"],
-                           "observed_at": observed, "generated_at": plan.get("generated_at"),
-                           "baseline_run": run.get("id"), "baseline_observed_at": run.get("observed_at"),
-                           **{k: counts[k] for k in ("added", "updated", "unchanged", "missing", "returned")}})
+    """(new doc, counts, notes): plan merged into doc by item id (plans.merge). A known item takes the
+    new plan's words and keeps the owner's status, log and baseline (gaining the signals seen now); a
+    new item starts with no owner status and the signals seen now; an item the plan no longer lists is
+    kept and marked missing since the plan's observed_at. Nothing is written here."""
+    new, counts = plans.merge(
+        STORE, plan, doc, source_sha256, now_iso,
+        added=lambda item_plan: {"baseline": baseline_of(item_plan, by_id, run)},
+        kept=lambda item_plan, old: {"baseline": _union(old.get("baseline") or [], baseline_of(item_plan, by_id, run))},
+        import_extra={"baseline_run": run.get("id"), "baseline_observed_at": run.get("observed_at")})
+    counts["baseline_signals"] = sum(len(i["baseline"]) for i in new["items"])
     return new, counts, plan_notes(plan)
 
 
 # ── an owner status change ──────────────────────────────────────────────────────────────────
 
 def note_problems(note):
-    if note is None:
-        return []
-    findings = curate.lint_text(note, "hygiene-note", "code")
-    return sorted({f["rule"] for f in findings if f["rule"] in SECRET_SHAPED})
+    return plans.note_problems(STORE, note)
 
 
 def set_status(doc, ident, status, note, now_iso):
     """(new doc, before, after): the item's owner status set, with a log entry; after is before
     when the owner already set this status (and note). GuardError for an unknown id or status, or a
     note shaped like a secret."""
-    require(status in SET_STATUSES, "--status must be one of %s" % ", ".join(SET_STATUSES))
-    bad = note_problems(note)
-    require(not bad, "the note looks like it holds a secret value (%s); a note says what was done, never "
-                     "with what" % ", ".join(bad))
-    index = next((n for n, i in enumerate(doc["items"]) if i["id"] == ident), None)
-    require(index is not None, "no hygiene item %r in private/%s" % (ident, PRIVATE_FILE))
-    item = doc["items"][index]
-    owner = item.get("owner") or {}
-    if owner.get("status") == status and note in (None, owner.get("note")):
-        return doc, item, item
-    before = effective(item)
-    entry = {"at": now_iso, "from": before[0], "to": status, "note": note, "by": SET_BY}
-    changed = dict(item, owner={"status": status, "at": now_iso, "note": note},
-                   log=list(item.get("log") or []) + [entry])
-    items = list(doc["items"])
-    items[index] = changed
-    return dict(doc, items=items), item, changed
+    return plans.set_status(STORE, doc, ident, status, note, now_iso)
 
 
 def effective(item):
     """(status, basis): the owner's status when one is set, else the plan's."""
-    owner = item.get("owner")
-    return (owner["status"], "owner") if owner else (item["plan"].get("status"), "plan")
+    return plans.effective(STORE, item)
 
 
 def status_diff(before, after):
     """A unified diff of one item's estate fields, the plan's words left out."""
-    def lines(item):
-        shown = {k: item.get(k) for k in ("id", "owner", "log", "missing_since")}
-        return (json.dumps(shown, indent=1, ensure_ascii=False) + "\n").splitlines(True)
-    return "".join(difflib.unified_diff(lines(before), lines(after), fromfile="%s %s (now)" % (PRIVATE_FILE, before["id"]),
-                                        tofile="%s %s (estate hygiene --set)" % (PRIVATE_FILE, after["id"])))
+    return plans.status_diff(STORE, before, after)
 
 
 # ── the join a build renders ────────────────────────────────────────────────────────────────
@@ -489,28 +385,13 @@ def join_item(item, by_id, elsewhere, refs=None):
 
 
 def join(doc, reason, records, decision=None, run_id=None, refs=None):
-    """The view a build renders: {status ok|none|invalid, reason, degraded, plan, imports, items[],
-    counts}. records: the run's records (None when no run is at hand: nothing is joined); refs:
+    """The view a build renders (plans.view): {status ok|none|invalid, reason, degraded, plan, imports,
+    items[], counts}. records: the run's records (None when no run is at hand: nothing is joined); refs:
     reference_status() of the curation. Each item carries its plan, effective status and basis,
     owner and log, and join_item's result."""
-    out = {"status": "ok", "reason": None, "degraded": None, "file": "private/" + PRIVATE_FILE, "decision": decision,
-           "run_id": run_id, "plan": None, "imports": [], "items": [], "counts": {}}
-    if doc is None:
-        out.update(status="none" if reason in (None, "missing") else "invalid", reason=reason or "missing")
-        if out["status"] == "invalid" or decision:
-            out["degraded"] = "the private hygiene plan (private/%s) is %s%s" % (
-                PRIVATE_FILE, out["reason"], "; owner decision %s places it there" % decision if decision else "")
-        out["counts"] = summary(out)
-        return out
     by_id = {r["id"]: r for r in records if isinstance(r, dict) and r.get("id")} if records is not None else None
     elsewhere = decided_elsewhere(by_id or {})
-    for item in doc["items"]:
-        status, basis = effective(item)
-        out["items"].append(dict(item, status=status, status_basis=basis,
-                                 join=join_item(item, by_id, elsewhere, refs)))
-    out.update(plan=doc["plan"], imports=doc.get("imports") or [])
-    out["counts"] = summary(out)
-    return out
+    return plans.view(STORE, doc, reason, lambda item: join_item(item, by_id, elsewhere, refs), summary, decision, run_id)
 
 
 def summary(view):

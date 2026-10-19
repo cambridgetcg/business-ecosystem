@@ -38,10 +38,11 @@ repository, after claiming the paths through agenttool-collab.
 - `tool/`: standard-library Python, one module per concern. `tool/safety.py` holds every guard:
   the git allowlist, the guarded reader, the private writer, the run lock and the deletion gates.
   `tool/decisions.py` reads the owner decisions a build applies; `tool/sphere.py` holds the KINGDOM OS
-  sphere facet; `tool/hygiene.py` holds the D8 hygiene plan and its join with a run; `tool/capability.py`
-  holds the business capability map and the one business scope the Business view uses; `tool/packages.py`
-  holds the package records of the host repositories the map reads; `tool/wires.py` the wires between
-  them and `tool/motifs.py` the motifs view.
+  sphere facet; `tool/plans.py` holds what an owner plan shares (the private file, the merge by item id,
+  the owner's status and its log), and `tool/hygiene.py` the D8 hygiene plan on it and its join with a
+  run; `tool/capability.py` holds the business capability map and the one business scope the Business
+  view uses; `tool/packages.py` holds the package records of the host repositories the map reads;
+  `tool/wires.py` the wires between them and `tool/motifs.py` the motifs view.
 - `vocab/`: the record contract ([`vocab/records.toml`](vocab/records.toml), the single source for
   every record's fields and privacy class), the facet registry, the raw-tag map and the KINGDOM
   integrity lock.

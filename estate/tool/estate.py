@@ -68,6 +68,7 @@ import kingdom  # noqa: E402
 import model  # noqa: E402
 import motifs  # noqa: E402
 import packages  # noqa: E402
+import plans  # noqa: E402
 import proposals  # noqa: E402
 import render  # noqa: E402
 import safety  # noqa: E402
@@ -880,13 +881,14 @@ def check_status(ctx):
     mode = ctx.area.curated_mode()
     if mode != 0o500:
         warnings.append("private curated dir is %s, not 0500 between writes" % ("missing" if mode is None else "%o" % mode))
-    try:
-        plan_mode = stat.S_IMODE(os.lstat(ctx.area.path(hygiene.PRIVATE_FILE)).st_mode)
-    except FileNotFoundError:
-        plan_mode = None
-    if plan_mode not in (None, hygiene.MODE):
-        warnings.append("private %s is %o, not %o (only estate hygiene changes it)" % (
-            hygiene.PRIVATE_FILE, plan_mode, hygiene.MODE))
+    for store in (hygiene.STORE,):
+        try:
+            plan_mode = stat.S_IMODE(os.lstat(ctx.area.path(store.private_file)).st_mode)
+        except FileNotFoundError:
+            plan_mode = None
+        if plan_mode not in (None, plans.MODE):
+            warnings.append("private %s is %o, not %o (only %s changes it)" % (
+                store.private_file, plan_mode, plans.MODE, store.verb))
     warnings += ["private area: %s" % p for p in ctx.area.dir_problems()]
     for name in STATIC_LINKS:
         path = os.path.join(ctx.private, name)
@@ -1736,7 +1738,7 @@ def cmd_hygiene(ctx, args):
         require(args.status is not None, "--set needs --status %s" % "|".join(hygiene.SET_STATUSES))
         require(not filters, "--wave, --severity, --area, --needs-yu and --agent-safe filter the listing; they do "
                              "not go with --set")
-        return _locked(ctx, args.write, set_hygiene, args)
+        return _locked(ctx, args.write, functools.partial(set_plan, store=hygiene.STORE), args)
     require(not args.write and args.note is None, "--write and --note go with --import or --set")
     return list_hygiene(ctx, args)
 
@@ -1751,31 +1753,34 @@ def _locked(ctx, write, step, args):
         return step(ctx, args, True)
 
 
-def hygiene_run(ctx):
-    """(records of the current run or None, {id, observed_at, why})."""
+def plan_run(ctx, want=("records",)):
+    """(records of the current run or None, {id, observed_at, why, doc}): what an owner plan's listing or
+    import joins with; doc is the run's run.json when want names "run"."""
     run_dir, why = current_run(ctx.area)
     if run_dir is None:
-        return None, {"id": None, "observed_at": None, "why": why}
-    run = read_run(run_dir, ("records",))
+        return None, {"id": None, "observed_at": None, "why": why, "doc": None}
+    run = read_run(run_dir, want)
     if run["problems"]:
-        return None, {"id": run["id"], "observed_at": None, "why": "; ".join(run["problems"])}
-    return run["records"], {"id": run["id"], "observed_at": (run["header"] or {}).get("observed_at"), "why": None}
+        return None, {"id": run["id"], "observed_at": None, "why": "; ".join(run["problems"]), "doc": None}
+    return run["records"], {"id": run["id"], "observed_at": (run["header"] or {}).get("observed_at"), "why": None,
+                            "doc": run["run"]}
 
 
-def hygiene_file(ctx, verb):
-    doc, reason = hygiene.load(ctx.area.path(hygiene.PRIVATE_FILE))
+def plan_file(ctx, store, verb):
+    """The private file of an owner plan (plans.py), None when there is none yet; refused when unusable."""
+    doc, reason = plans.load(store, ctx.area.path(store.private_file))
     require(doc is not None or reason == "missing", "private/%s is not usable (%s); restore its newest backup "
-                                                    "beside it before %s" % (hygiene.PRIVATE_FILE, reason, verb))
+                                                    "beside it before %s" % (store.private_file, reason, verb))
     return doc
 
 
-def keep_hygiene(ctx, doc):
-    result = curate.keep_private(ctx.area, hygiene.PRIVATE_FILE, hygiene.text_of(doc), mode=hygiene.MODE)
-    say("  private/%s: %s%s" % (hygiene.PRIVATE_FILE, result["status"], "; " + result["change"] if result.get("change") else ""))
+def keep_plan(ctx, store, doc):
+    result = curate.keep_private(ctx.area, store.private_file, plans.text_of(doc), mode=plans.MODE)
+    say("  private/%s: %s%s" % (store.private_file, result["status"], "; " + result["change"] if result.get("change") else ""))
 
 
 def list_hygiene(ctx, args):
-    doc = hygiene_file(ctx, "listing")
+    doc = plan_file(ctx, hygiene.STORE, "listing")
     if doc is None:
         say("hygiene: no plan in private/%s; import one with estate hygiene --import ABS_PATH --write"
             % hygiene.PRIVATE_FILE)
@@ -1785,7 +1790,7 @@ def list_hygiene(ctx, args):
         wanted = getattr(args, name)
         require(wanted is None or wanted.lower() in {v.lower() for v in allowed[name]},
                 "--%s filters by one of %s (case does not matter)" % (name, ", ".join(allowed[name]) or "none"))
-    records, run = hygiene_run(ctx)
+    records, run = plan_run(ctx)
     view = hygiene.join(doc, None, records, None, run["id"], refs=hygiene.reference_status(model.load_curated(ctx.layer)))
     counts = view["counts"]
     say("hygiene plan (private/%s): %d items, %d missing from the newest plan · plan observed %s · %s" % (
@@ -1812,8 +1817,8 @@ def list_hygiene(ctx, args):
 
 def import_hygiene(ctx, args, write):
     plan, sha = hygiene.read_plan(args.import_path)
-    old = hygiene_file(ctx, "an import")
-    records, run = hygiene_run(ctx)
+    old = plan_file(ctx, hygiene.STORE, "an import")
+    records, run = plan_run(ctx)
     by_id = {r["id"]: r for r in records or [] if r.get("id")}
     new, counts, notes = hygiene.merge(plan, old, by_id, run, sha, safety.iso(safety.utc_now()))
     say("hygiene --import: %s observed %s · %s" % (plan["schema"], plan["observed_at"], ", ".join(
@@ -1830,24 +1835,26 @@ def import_hygiene(ctx, args, write):
     if not write:
         say("nothing written; add --write (the previous file is kept as a 0400 backup)")
         return 0
-    keep_hygiene(ctx, new)
+    keep_plan(ctx, hygiene.STORE, new)
     return 0
 
 
-def set_hygiene(ctx, args, write):
-    doc = hygiene_file(ctx, "--set")
-    require(doc is not None, "no plan in private/%s; import one first" % hygiene.PRIVATE_FILE)
+def set_plan(ctx, args, write, store):
+    """--set of an owner plan (hygiene, ideas): the owner's status of one item, with a log entry and the
+    diff of the item's estate fields; written only with --write."""
+    doc = plan_file(ctx, store, "--set")
+    require(doc is not None, "no plan in private/%s; import one first" % store.private_file)
     note = args.note.strip() if args.note is not None else None
     require(note is None or note, "--note needs text")
-    new, before, after = hygiene.set_status(doc, args.set_id, args.status, note, safety.iso(safety.utc_now()))
+    new, before, after = plans.set_status(store, doc, args.set_id, args.status, note, safety.iso(safety.utc_now()))
     if after is before:
-        say("hygiene --set: %s is already %s by the owner; nothing to change" % (args.set_id, args.status))
+        say("%s --set: %s is already %s by the owner; nothing to change" % (store.kind, args.set_id, args.status))
         return 0
-    sys.stdout.write(hygiene.status_diff(before, after))
-    say("hygiene --set: %s %s -> %s (%s)" % (args.set_id, hygiene.effective(before)[0], args.status,
-                                            "writing" if write else "not written; add --write"))
+    sys.stdout.write(plans.status_diff(store, before, after))
+    say("%s --set: %s %s -> %s (%s)" % (store.kind, args.set_id, plans.effective(store, before)[0], args.status,
+                                       "writing" if write else "not written; add --write"))
     if write:
-        keep_hygiene(ctx, new)
+        keep_plan(ctx, store, new)
     return 0
 
 
