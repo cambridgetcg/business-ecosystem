@@ -148,6 +148,8 @@ describe('ReportGenerator sections', () => {
         { id: 'a', type: 'contract', title: 'A', value: 150, status: 'draft', meta: { rank: 2 } },
         { id: 'b', type: 'contract', title: 'B', value: 900, status: 'active', meta: { rank: 3 } },
         { id: 'c', type: 'contract', title: 'C', value: 50, status: 'active', meta: { rank: 1 } },
+        // On the boundary: '>' leaves it out.
+        { id: 'd', type: 'contract', title: 'D', value: 100, status: 'active', meta: { rank: 4 } },
       ],
     });
     const report = await new ReportGenerator(ENDPOINTS).generate(custom, {});
@@ -155,7 +157,7 @@ describe('ReportGenerator sections', () => {
       { domain: 'contracts-legal', type: 'contract', id: 'b', value: 900 },
       { domain: 'contracts-legal', type: 'contract', id: 'a', value: 150 },
     ]);
-    expect(report.sections[1]?.items.map((i) => i.id)).toEqual(['c', 'b']);
+    expect(report.sections[1]?.items.map((i) => i.id)).toEqual(['c', 'b', 'd']);
     expect(report.summary).toBeUndefined();
   });
 });
