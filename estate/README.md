@@ -267,9 +267,10 @@ as they are now: exit 1 when a curated wired claim has no consuming code, 10 whe
 could not be measured, a row is invalid or a row changed since the build, and 0 otherwise. Committed rows hold
 only forge ids, package ids, repository-relative anchors and short evidence that passes the privacy lint.
 The first rows, all `reviewed = false`, are the plan's seed: the compliance-status route and the breach and
-entity events into the workflow engine (`wired-unbuilt`), four calls or events the other side does not
-answer (`contradicted`), and the first wire, `sale-to-ledger`, `declared` and `designed` while its producer
-package is not on main.
+entity events into the workflow engine (`wired`, since the quarantine follow-ups let both sides build), four
+calls or events the other side does not answer (`contradicted`), and the first wire, `sale-to-ledger`,
+`wired` and still `designed`: it becomes `demonstrated` once `build --forge` can read a green
+`wire-e2e.yml` run on main.
 
 ## Hygiene: the plan of owner decision D8
 
