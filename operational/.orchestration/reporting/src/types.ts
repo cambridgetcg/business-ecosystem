@@ -90,7 +90,7 @@ export interface ReportData {
   generatedAt: Date;
   parameters: Record<string, unknown>;
   sections: ReportSectionData[];
-  summary?: ReportSummary;
+  summary?: ReportSummary | undefined;
 }
 
 export interface ReportSectionData {
@@ -99,6 +99,9 @@ export interface ReportSectionData {
   count: number;
 }
 
+// One record a domain returns for a report query. Domains add fields of their
+// own (daysUntilExpiration, expirationDate, updatedAt), which report
+// definitions filter, sort and select by name.
 export interface ReportItem {
   domain: OperationalDomain;
   type: string;
@@ -107,6 +110,7 @@ export interface ReportItem {
   status?: string;
   date?: Date;
   metadata?: Record<string, unknown>;
+  [field: string]: unknown;
 }
 
 export interface ReportSummary {

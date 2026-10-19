@@ -81,24 +81,6 @@
       "exit": "F8; lint exits 0."
     },
     {
-      "package": "@ecosystem/operational-reporting",
-      "task": "lint",
-      "reason": "Linted for the first time now that ESLint reaches .orchestration: mostly no-unsafe-* that follow from its undeclared uuid and node-cron imports.",
-      "first_error": "src/index.ts:31:3 'OperationalDomain' is defined but never used @typescript-eslint/no-unused-vars",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 27,
-      "exit": "F6; lint exits 0."
-    },
-    {
-      "package": "@ecosystem/operational-reporting",
-      "task": "typecheck",
-      "reason": "The code imports uuid and node-cron, but package.json declares cron and @paralleldrive/cuid2 (TS2307 x2); 12 values of type unknown (TS18046); ReportItem passed as Record<string, unknown>.",
-      "first_error": "src/generator.ts(72,5): error TS2375: Type '{ reportId: string; reportName: string; generatedAt: Date; parameters: Record<string, unknown>; sections: ReportSectionData[]; summary: ReportSummary | undefined; }' is not assignable to type 'ReportData' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 20,
-      "exit": "F6: align dependencies with the code and type ReportItem; typecheck exits 0. Remove with the build entry."
-    },
-    {
       "package": "@ecosystem/outbox",
       "task": "typecheck",
       "reason": "drizzle insert overloads (TS2769 x2) and noUncheckedIndexedAccess (TS18048 x2) in src/index.ts. Nothing imports outbox.",
@@ -106,15 +88,6 @@
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
       "errors": 4,
       "exit": "O1 (outbox defects); typecheck exits 0. Remove with the build entry."
-    },
-    {
-      "package": "@ecosystem/operational-reporting",
-      "task": "build",
-      "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
-      "first_error": "src/generator.ts(72,5): error TS2375: Type '{ reportId: string; reportName: string; generatedAt: Date; parameters: Record<string, unknown>; sections: ReportSectionData[]; summary: ReportSummary | undefined; }' is not assignable to type 'ReportData' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 20,
-      "exit": "F6; build exits 0. Remove with the typecheck entry."
     },
     {
       "package": "@ecosystem/outbox",
