@@ -4,8 +4,7 @@
 
 import { eq, and } from 'drizzle-orm';
 import { getDb, identities, documents, verificationRequests } from '../../infrastructure/persistence/index.js';
-import { VerificationStatus, RiskLevel } from '../../domain/value-objects/index.js';
-import { createKycEvent } from '../../domain/events/index.js';
+import { VerificationStatus } from '../../domain/value-objects/index.js';
 import type {
   CreateIdentityCommand,
   UpdateIdentityCommand,

@@ -2,7 +2,7 @@
  * Document REST API Routes
  */
 
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { DocumentCommandHandler } from '../../../application/handlers/command-handlers.js';
 import { DocumentQueryHandler } from '../../../application/handlers/query-handlers.js';
@@ -28,7 +28,11 @@ const expiringQuerySchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(50),
 });
 
-export async function documentRoutes(fastify: FastifyInstance) {
+export function documentRoutes(
+  fastify: FastifyInstance,
+  _opts: FastifyPluginOptions,
+  done: (err?: Error) => void
+): void {
   // Get tenant ID from header
   const getTenantId = (request: FastifyRequest): string => {
     const tenantId = request.headers['x-tenant-id'] as string;
@@ -62,7 +66,7 @@ export async function documentRoutes(fastify: FastifyInstance) {
       tenantId,
     });
 
-    reply.status(201).send({ id });
+    return reply.status(201).send({ id });
   });
 
   // Get document by ID
@@ -87,11 +91,10 @@ export async function documentRoutes(fastify: FastifyInstance) {
     });
 
     if (!document) {
-      reply.status(404).send({ error: 'Document not found' });
-      return;
+      return reply.status(404).send({ error: 'Document not found' });
     }
 
-    reply.send(document);
+    return reply.send(document);
   });
 
   // List documents for an identity
@@ -117,7 +120,7 @@ export async function documentRoutes(fastify: FastifyInstance) {
       ...query,
     });
 
-    reply.send(result);
+    return reply.send(result);
   });
 
   // Get expiring documents
@@ -135,7 +138,7 @@ export async function documentRoutes(fastify: FastifyInstance) {
       ...query,
     });
 
-    reply.send(result);
+    return reply.send(result);
   });
 
   // Verify document
@@ -169,7 +172,7 @@ export async function documentRoutes(fastify: FastifyInstance) {
       ...body,
     });
 
-    reply.status(204).send();
+    return reply.status(204).send();
   });
 
   // Reject document
@@ -198,6 +201,8 @@ export async function documentRoutes(fastify: FastifyInstance) {
       ...body,
     });
 
-    reply.status(204).send();
+    return reply.status(204).send();
   });
+
+  done();
 }

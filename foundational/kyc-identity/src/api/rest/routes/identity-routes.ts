@@ -2,21 +2,14 @@
  * Identity REST API Routes
  */
 
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { IdentityCommandHandler } from '../../../application/handlers/command-handlers.js';
 import { IdentityQueryHandler } from '../../../application/handlers/query-handlers.js';
 import {
   createIdentityCommandSchema,
   updateIdentityCommandSchema,
-  verifyIdentityCommandSchema,
-  rejectIdentityCommandSchema,
 } from '../../../application/commands/index.js';
-import {
-  getIdentityQuerySchema,
-  getIdentityByExternalIdQuerySchema,
-  listIdentitiesQuerySchema,
-} from '../../../application/queries/index.js';
 
 const commandHandler = new IdentityCommandHandler();
 const queryHandler = new IdentityQueryHandler();
@@ -38,7 +31,11 @@ const listQuerySchema = z.object({
   orderDirection: z.enum(['asc', 'desc']).default('desc'),
 });
 
-export async function identityRoutes(fastify: FastifyInstance) {
+export function identityRoutes(
+  fastify: FastifyInstance,
+  _opts: FastifyPluginOptions,
+  done: (err?: Error) => void
+): void {
   // Get tenant ID from header (simplified - in production would use auth middleware)
   const getTenantId = (request: FastifyRequest): string => {
     const tenantId = request.headers['x-tenant-id'] as string;
@@ -72,7 +69,7 @@ export async function identityRoutes(fastify: FastifyInstance) {
       tenantId,
     });
 
-    reply.status(201).send({ id });
+    return reply.status(201).send({ id });
   });
 
   // Get identity by ID
@@ -97,11 +94,10 @@ export async function identityRoutes(fastify: FastifyInstance) {
     });
 
     if (!identity) {
-      reply.status(404).send({ error: 'Identity not found' });
-      return;
+      return reply.status(404).send({ error: 'Identity not found' });
     }
 
-    reply.send(identity);
+    return reply.send(identity);
   });
 
   // Get identity by external ID
@@ -126,11 +122,10 @@ export async function identityRoutes(fastify: FastifyInstance) {
     });
 
     if (!identity) {
-      reply.status(404).send({ error: 'Identity not found' });
-      return;
+      return reply.status(404).send({ error: 'Identity not found' });
     }
 
-    reply.send(identity);
+    return reply.send(identity);
   });
 
   // List identities
@@ -148,7 +143,7 @@ export async function identityRoutes(fastify: FastifyInstance) {
       tenantId,
     });
 
-    reply.send(result);
+    return reply.send(result);
   });
 
   // Update identity
@@ -174,7 +169,7 @@ export async function identityRoutes(fastify: FastifyInstance) {
       tenantId,
     });
 
-    reply.status(204).send();
+    return reply.status(204).send();
   });
 
   // Verify identity
@@ -203,7 +198,7 @@ export async function identityRoutes(fastify: FastifyInstance) {
       ...body,
     });
 
-    reply.status(204).send();
+    return reply.status(204).send();
   });
 
   // Reject identity
@@ -232,6 +227,8 @@ export async function identityRoutes(fastify: FastifyInstance) {
       ...body,
     });
 
-    reply.status(204).send();
+    return reply.status(204).send();
   });
+
+  done();
 }

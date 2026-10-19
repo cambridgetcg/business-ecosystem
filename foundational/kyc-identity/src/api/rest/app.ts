@@ -10,7 +10,7 @@ export async function buildApp() {
   });
 
   // Health check
-  app.get('/health', async () => ({ status: 'ok' }));
+  app.get('/health', () => ({ status: 'ok' }));
 
   // Register API routes under /api/v1
   await app.register(async (api) => {
@@ -24,16 +24,14 @@ export async function buildApp() {
     request.log.error(error);
 
     if (error.message === 'Missing x-tenant-id header') {
-      reply.status(400).send({ error: 'Missing required x-tenant-id header' });
-      return;
+      return reply.status(400).send({ error: 'Missing required x-tenant-id header' });
     }
 
     if (error.name === 'ZodError') {
-      reply.status(400).send({ error: 'Validation error', details: error });
-      return;
+      return reply.status(400).send({ error: 'Validation error', details: error });
     }
 
-    reply.status(500).send({ error: 'Internal server error' });
+    return reply.status(500).send({ error: 'Internal server error' });
   });
 
   return app;

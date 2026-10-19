@@ -99,15 +99,6 @@
       "exit": "F8; lint exits 0."
     },
     {
-      "package": "@ecosystem/kyc-identity",
-      "task": "lint",
-      "reason": "no-floating-promises (29) in route registration, unused variables (13).",
-      "first_error": "src/api/rest/app.ts:13:31 Async arrow function has no 'await' expression @typescript-eslint/require-await",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 46,
-      "exit": "F3; lint exits 0."
-    },
-    {
       "package": "@ecosystem/operational-gateway",
       "task": "lint",
       "reason": "Linted for the first time now that its tsconfig extends the real base: unnecessary type assertions (3), no-unsafe-assignment (2), require-await.",

@@ -17,11 +17,6 @@ import {
   corporateDetailsSchema,
   beneficialOwnerSchema,
   riskAssessmentSchema,
-  type PersonName,
-  type Address,
-  type DateOfBirth,
-  type CorporateDetails,
-  type BeneficialOwner,
   type RiskAssessment,
 } from '../value-objects/index.js';
 
