@@ -73,6 +73,7 @@ import safety  # noqa: E402
 import sources  # noqa: E402
 import sphere  # noqa: E402
 import tree  # noqa: E402
+import wires  # noqa: E402
 
 from collections import Counter  # noqa: E402
 from safety import GuardError, require  # noqa: E402
@@ -627,11 +628,13 @@ def build(ctx, args, cfg, cfg_note, lock):
     now = safety.utc_now()
     forge_summary, forge_raws, forge_reasons = merge_gh_listing(srcs, cfg, args.forge, now)
     reasons += forge_reasons
-    # The [[host]] rows name the repositories whose packages the canonical checkout reader also reads;
-    # the join reports their problems.
+    # The [[host]] rows name the repositories whose packages the canonical checkout reader also reads,
+    # and the [[wire]] rows the anchors it re-finds; the join reports the problems of both.
     hosts = packages.host_rows(curated)[0]
+    anchors = wires.anchors_by_repo(wires.rows(curated)[0])
     snapshot = model.build_records(census_data, foundation, srcs, curated, vocab, prev["snapshot"], cfg, now=now,
-                                   home=ctx.home, repo_reader=functools.partial(model.read_canonical, hosts=hosts))
+                                   home=ctx.home, repo_reader=functools.partial(model.read_canonical, hosts=hosts,
+                                                                                anchors=anchors))
 
     # 9: proposals, against the integrity lock.
     lock_doc, lock_read = kingdom.read_lock(ctx.layer)
@@ -732,6 +735,7 @@ def run_document(run_id, state, code, started, finished, args, census_data, snap
         "proposals": proposals.summary(props),
         "hygiene": (snapshot.get("hygiene") or {}).get("counts"),
         "capability": {k: (snapshot.get("capability") or {}).get(k) for k in ("packages", "hosts")},
+        "wires": snapshot.get("wires"),
         "lock_recovered": recovered,
         "forge_network": forge_summary,
         "previous": {"run_id": prev["run_id"], "problems": prev["problems"]},
@@ -761,6 +765,13 @@ def print_build_summary(ctx, run_doc, files, sums, links, kept):
             ", ".join("%s %d" % kv for kv in plan["by_verdict"].items())))
     else:
         say("  hygiene plan: %s" % (plan.get("status") or "not joined"))
+    wired = run_doc.get("wires")
+    if wired is not None:
+        measured = wired.get("measured") or {}
+        say("  wires: %d curated · verdicts %s · package imports %s · declared only %d (estate check --wires)" % (
+            len(wired.get("rows") or []), ", ".join("%s %d" % kv for kv in (wired.get("verdicts") or {}).items()) or "none",
+            ", ".join("%s %d" % kv for kv in (measured.get("measured-import") or {}).items()) or "none",
+            sum((measured.get("measured-manifest") or {}).values())))
     tree_doc = run_doc["tree"]
     if tree_doc.get("enabled"):
         say("  tree: %d links, %d refused, self-check %s" % (tree_doc["links"], len(tree_doc["refused"]),
@@ -786,7 +797,7 @@ def print_build_summary(ctx, run_doc, files, sums, links, kept):
 
 def cmd_check(ctx, args):
     codes = []
-    if not (args.commit_ready or args.vocab or args.tree or args.verify_harvest):
+    if not (args.commit_ready or args.vocab or args.tree or args.verify_harvest or args.wires):
         codes.append(check_status(ctx))
     if args.commit_ready:
         codes.append(check_commit_ready(ctx))
@@ -796,6 +807,8 @@ def cmd_check(ctx, args):
         codes.append(check_tree(ctx))
     if args.verify_harvest:
         codes.append(check_verify_harvest(ctx))
+    if args.wires:
+        codes.append(check_wires(ctx))
     return worst_exit(codes)
 
 
@@ -964,6 +977,27 @@ def check_vocab(ctx):
     if problems:
         return 1
     return 10 if unmapped else 0
+
+
+def check_wires(ctx):
+    """The curated wires of the current run against measurement (wires.check): exit 1 when a curated wired
+    claim has no consuming code; 10 when another curated state differs from measurement or could not be
+    measured, a row is invalid, or curated/wires.toml gained or changed a row after the build; else 0."""
+    run_dir, why = current_run(ctx.area)
+    if run_dir is None:
+        say("check --wires: %s" % why)
+        return 10
+    run = read_run(run_dir, ("run",))
+    summary = (run["run"] or {}).get("wires")
+    if summary is None:
+        say("check --wires: run %s holds no wire measurements (it predates them); rebuild" % run["id"])
+        return 10
+    rows, problems = wires.rows(model.load_curated(ctx.layer))
+    code, lines = wires.check(summary, rows, problems)
+    lines[0] += " (run %s)" % run["id"]
+    for line in lines:
+        say(line)
+    return code
 
 
 def check_tree(ctx):
@@ -1912,6 +1946,8 @@ def make_parser():
     sub.add_argument("--tree", action="store_true", help="compare the symlink tree with its manifest")
     sub.add_argument("--verify-harvest", action="store_true",
                      help="run harvest validate/conformance at the reviewed sha and compare with the mirror")
+    sub.add_argument("--wires", action="store_true",
+                     help="curated wires against measurement: 1 if a wired claim has no consuming code, 10 if a state differs")
     sub = verb("show", cmd_show, "one record with its checkouts, surfaces and proposals")
     sub.add_argument("query", help="an id, alias or name; otherwise up to 20 substring matches")
     sub = verb("ls", cmd_ls, "facet value counts, or the records matching --facet filters")

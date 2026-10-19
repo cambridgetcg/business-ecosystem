@@ -354,7 +354,7 @@ class PackageJoinTests(fixture.EstateTestCase):
         found = self.records(self.second, "package")
         self.assertEqual({r["presence"] for r in found.values()}, {"missing"})
         self.assertEqual(found[pkg("operational/data-privacy")]["measures"]["src_files"], 1)  # the last values, kept
-        self.assertEqual(sorted(self.second["reconcile"]["missing"]), sorted(found))
+        self.assertEqual(sorted(i for i in self.second["reconcile"]["missing"] if i.startswith("pkg:")), sorted(found))
         host = self.second["capability"]["hosts"][0]
         self.assertEqual((host["status"], host["reason"]), ("unknown", "its canonical checkout was not read for packages"))
         self.assertEqual(self.records(self.second, "project")[HOST]["packages"], [])

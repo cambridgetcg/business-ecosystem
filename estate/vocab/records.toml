@@ -505,23 +505,45 @@ observed_at = { type = "iso" }
 # ── relation ────────────────────────────────────────────────────────────────────────────────
 
 [kind.relation]
-id = "rel:<sha12 of from|verb|to>"
+id = "rel:<sha12 of from|verb|to>, with |<channel kind>:<channel name> appended for a wire that names a channel"
 id_pattern = '^rel:[0-9a-f]{12}$'
 privacy = "private"
-committed_part = "[[project.relations]] in curated/families/*.toml (forge or group ids at both ends)"
+committed_part = "[[project.relations]] in curated/families/*.toml (forge or group ids at both ends) and the [[wire]] rows of curated/wires.toml"
+note = "Wires (tool/wires.py) are relations: measured depends_on edges between package records, and curated [[wire]] rows. A wire adds code_state and, when curated, its claim, stage, verdict, channel, anchors and flow; code_state and stage are independent of each other."
 
 [kind.relation.fields]
 kind = { type = "str" }
 id = { type = "str" }
-from = { type = "str", ref = "project|group" }
+from = { type = "str", ref = "project|group|package" }
 verb = { type = "str", enum = "facets:vocab/relation" }
-to = { type = "str", ref = "project|group" }
+to = { type = "str", ref = "project|group|package" }
 basis = { type = "str", enum = "facets:vocab/relation_basis" }
 also = { type = "list" }
 raw_kind = { type = "str", nullable = true }
 note = { type = "str", nullable = true }
 src = { type = "str", nullable = true }
 at = { type = "iso" }
+# Wires only (tool/wires.py). code_state: what the code shows (null when what decides it was not read);
+# claimed {code_state, stage}: a curated row's claim; stage: measured (designed, demonstrated, accepted,
+# active, unknown); verdict: the claim against measurement; anchors [{side, path, text, found, files}].
+name = { type = "str", optional = true }
+code_state = { type = "str", nullable = true, optional = true, enum = "facets:vocab/wire_code_state" }
+reason = { type = "str", nullable = true, optional = true }
+claimed = { type = "dict", optional = true }
+stage = { type = "str", nullable = true, optional = true, enum = "facets:vocab/wire_stage" }
+stage_reason = { type = "str", nullable = true, optional = true }
+verdict = { type = "str", optional = true, enum = "facets:vocab/wire_verdict" }
+channel = { type = "dict", nullable = true, optional = true }
+anchors = { type = "list", optional = true }
+flow = { type = "str", optional = true }
+hop = { type = "int", optional = true }
+decision = { type = "str", optional = true }
+demonstrated_by = { type = "str", optional = true }
+evidence = { type = "str", optional = true }
+source = { type = "str", optional = true }
+reviewed = { type = "bool", optional = true }
+as_of = { type = "date", optional = true }
+review_after = { type = "date", optional = true }
 presence = { type = "str", enum = "presence" }
 missing_since = { type = "iso", nullable = true }
 observed_at = { type = "iso" }
@@ -555,6 +577,9 @@ build = { type = "dict" }
 # capability: the business capability field (capability_extra); basis curated:package, rule:package-path or none.
 capability = { type = "facet", enum = "facets:business/capability", statuses = ["none"] }
 group_ids = { type = "list", ref = "group" }
+# relations: the relation records at either end of which this package stands (wires, tool/wires.py);
+# optional only because missing and gone stubs carried from runs before wires lack it.
+relations = { type = "list", ref = "relation", optional = true }
 at_commit = { type = "str", nullable = true }
 commit_date = { type = "iso", nullable = true }
 at_head = { type = "bool", nullable = true }
