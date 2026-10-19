@@ -198,10 +198,11 @@ def mirror_targets(relations):
     return {k: sorted(v) for k, v in out.items()}
 
 
-def _root(pid, mirrors, base, projects):
-    """The project a mirror shares its sphere with: follow single mirror_of/copy_of links until a
-    project with its own curated assignment, or with no single target. None for a non-mirror, and
-    for a cycle of mirrors, which names no canonical project."""
+def mirror_root(pid, mirrors, projects, own):
+    """The project a mirror shares its value with: follow single mirror_of/copy_of links until a
+    project with its own assignment (own(project id) is true), or with no single target. None for
+    a non-mirror, and for a cycle of mirrors, which names no canonical project. The capability map
+    (capability.py) follows mirrors the same way."""
     seen, current = {pid}, pid
     while True:
         targets = [t for t in mirrors.get(current) or [] if t in projects]
@@ -211,7 +212,7 @@ def _root(pid, mirrors, base, projects):
             return None
         current = targets[0]
         seen.add(current)
-        if base[current]["basis"] == CURATED_PROJECT:
+        if own(current):
             return current
 
 
@@ -226,7 +227,7 @@ def resolve_projects(projects, rows, families, rule, mirrors, allowed, ref=None,
     for pid in sorted(projects):
         out = base[pid]
         if out["basis"] != CURATED_PROJECT:
-            root = _root(pid, mirrors, base, projects)
+            root = mirror_root(pid, mirrors, projects, lambda ident: base[ident]["basis"] == CURATED_PROJECT)
             if root is not None:
                 theirs = base[root]
                 out = facet(theirs["value"], MIRROR, theirs["decision"], theirs.get("src"), theirs.get("at"),

@@ -1,5 +1,5 @@
-"""Side sources around the census: schedulers, deploy manifests, portfolio-map/1, the Cloudflare
-observer, forge listings, prior maps and artifact lstat.
+"""Side sources around the census: schedulers, deploy manifests, monorepo packages, portfolio-map/1,
+the Cloudflare observer, forge listings, prior maps and artifact lstat.
 
 Each reader returns a dict with a status and its own errors, so a failing source becomes
 `unknown` plus a reason, never zero, clean or healthy. Secrets stay out by construction:
@@ -596,6 +596,277 @@ def read_manifests(checkout, git=None):
         if rel == "CNAME":
             hosting = _cname_hosting(next((h for h in hosts if h), None))
         out["surfaces"].append(_surface(rel, hosting, None, hosts, _tracked(runner, rel), clean, owner))
+    return out
+
+
+# ── packages inside a monorepo checkout ─────────────────────────────────────────────────────
+
+PACKAGE_MANIFESTS = {"package.json": "package-json", "pyproject.toml": "pyproject"}
+SOURCE_LANG = {".ts": "typescript", ".tsx": "typescript", ".mts": "typescript", ".cts": "typescript",
+               ".js": "javascript", ".jsx": "javascript", ".mjs": "javascript", ".cjs": "javascript", ".py": "python"}
+# Build output and dependency trees are never a package's own code, even when tracked.
+GENERATED_DIRS = ("node_modules", "dist", "build", ".turbo", "coverage")
+TEST_PATH = re.compile(r"(?:^|/)(?:tests?|__tests__|spec)/|\.(?:test|spec)\.[cm]?[jt]sx?$|(?:^|/)test_[^/]*\.py$"
+                       r"|_test\.py$")
+DEPENDENCY_KEYS = ("dependencies", "devDependencies", "peerDependencies", "optionalDependencies")
+MAX_PACKAGE_FILES = 20000
+# Static problems, each a code of the package it concerns (or of a workspace glob):
+#   workspace-glob-empty   a workspace glob matches no tracked package
+#   extends-unresolved     a tracked tsconfig extends a relative path that is not a tracked file
+#   duplicate-name         two packages declare the same name
+#   declared-not-imported  a manifest declares an internal package that no non-test source imports
+#   imported-not-declared  non-test source imports an internal package its manifest does not declare
+#   untracked-package      a directory a workspace glob matches holds a manifest git does not track
+PACKAGE_PROBLEMS = ("workspace-glob-empty", "extends-unresolved", "duplicate-name", "declared-not-imported",
+                    "imported-not-declared", "untracked-package")
+_IMPORT = re.compile(r"""(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*|^\s*import\s+)['"]([^'"\n]+)['"]""", re.M)
+_EXTENDS = re.compile(r'"extends"\s*:\s*"([^"]+)"')
+_PACKAGES_KEY = re.compile(r"^packages\s*:")
+_LIST_ITEM = re.compile(r"""^\s*-\s*(['"]?)([^'"#]+?)\1\s*(?:#.*)?$""")
+
+
+def strip_comments(text):
+    """JavaScript or TypeScript source without its // and /* */ comments; string and template
+    literals are kept whole, so an import specifier or a URL inside a string survives and an import
+    written inside a comment does not. Regular-expression literals are not recognised."""
+    out, i, n = [], 0, len(text)
+    while i < n:
+        ch = text[i]
+        if ch in "'\"`":
+            end = i + 1
+            while end < n and text[end] != ch and not (ch != "`" and text[end] == "\n"):
+                end += 2 if text[end] == "\\" else 1
+            out.append(text[i:end + 1])
+            i = end + 1
+        elif text.startswith("//", i):
+            end = text.find("\n", i)
+            i = n if end < 0 else end
+        elif text.startswith("/*", i):
+            end = text.find("*/", i + 2)
+            out.append("\n" * text.count("\n", i, n if end < 0 else end))
+            i = n if end < 0 else end + 2
+        else:
+            out.append(ch)
+            i += 1
+    return "".join(out)
+
+
+def import_names(text):
+    """The package names a JavaScript or TypeScript source imports (from, import(), require() and
+    side-effect imports), outside comments; relative paths and node: builtins are not packages."""
+    names = set()
+    for spec in _IMPORT.findall(strip_comments(text)):
+        if spec.startswith((".", "/", "node:")):
+            continue
+        parts = spec.split("/")
+        names.add("/".join(parts[:2]) if spec.startswith("@") and len(parts) > 1 else parts[0])
+    return names
+
+
+def glob_match(path, pattern):
+    """pnpm workspace semantics: * never crosses /, ** does."""
+    regex = re.escape(pattern).replace(r"\*\*", "\0").replace(r"\*", "[^/]*").replace("\0", ".*")
+    return re.fullmatch(regex, path) is not None
+
+
+def workspace_globs(root, tracked):
+    """(include globs, exclude globs) from a tracked pnpm-workspace.yaml packages list, else the root
+    package.json workspaces field (a list, or a table with packages); ([], []) when neither says."""
+    patterns = []
+    if "pnpm-workspace.yaml" in tracked:
+        raw, _reason = read_checked(os.path.join(root, "pnpm-workspace.yaml"), MAX_SMALL)
+        inside = False
+        for line in (raw or b"").decode("utf-8", "replace").splitlines():
+            if _PACKAGES_KEY.match(line):
+                inside = True
+            elif inside and line.strip() and not line.startswith((" ", "\t", "-", "#")):
+                inside = False
+            elif inside:
+                item = _LIST_ITEM.match(line)
+                if item:
+                    patterns.append(item.group(2).strip())
+    elif "package.json" in tracked:
+        raw, _reason = read_checked(os.path.join(root, "package.json"), MAX_SMALL)
+        try:
+            spaces = json.loads(raw.decode("utf-8")).get("workspaces") if raw is not None else None
+        except (UnicodeDecodeError, ValueError, AttributeError):
+            spaces = None
+        if isinstance(spaces, dict):
+            spaces = spaces.get("packages")
+        patterns = [p for p in spaces or [] if isinstance(p, str)] if isinstance(spaces, list) else []
+    include = [p.rstrip("/") for p in patterns if not p.startswith("!")]
+    exclude = [p[1:].rstrip("/") for p in patterns if p.startswith("!")]
+    return include, exclude
+
+
+def _glob_dirs(root, pattern):
+    """Directories on disk a workspace glob matches (no link followed; ** globs are not expanded)."""
+    if "**" in pattern:
+        return []
+    found = [""]
+    for part in pattern.split("/"):
+        nxt = []
+        for base in found:
+            try:
+                with os.scandir(os.path.join(root, base) if base else root) as entries:
+                    names = sorted(e.name for e in entries if e.is_dir(follow_symlinks=False))
+            except OSError:
+                continue
+            nxt += [base + "/" + name if base else name for name in names if glob_match(name, part)]
+        found = nxt
+    return found
+
+
+def _manifest_of(subpath, tracked):
+    kinds = [kind for name, kind in PACKAGE_MANIFESTS.items() if subpath + "/" + name in tracked]
+    return "both" if len(kinds) > 1 else (kinds[0] if kinds else "module-folder")
+
+
+def _read_package_json(root, subpath, tracked):
+    """(name, {declared dependency names}) of a tracked package.json, else a pyproject.toml's
+    [project].name with no dependencies matched; (None, set()) when neither reads."""
+    if subpath + "/package.json" in tracked:
+        raw, _reason = read_checked(os.path.join(root, subpath, "package.json"), MAX_SMALL)
+        try:
+            data = json.loads(raw.decode("utf-8")) if raw is not None else None
+        except (UnicodeDecodeError, ValueError):
+            data = None
+        if isinstance(data, dict):
+            declared = set()
+            for key in DEPENDENCY_KEYS:
+                if isinstance(data.get(key), dict):
+                    declared |= set(data[key])
+            return (data["name"] if isinstance(data.get("name"), str) else None), declared
+    if subpath + "/pyproject.toml" in tracked:
+        doc = _read_toml(root, subpath + "/pyproject.toml", [])
+        name = ((doc or {}).get("project") or {}).get("name")
+        return (name if isinstance(name, str) else None), set()
+    return None, set()
+
+
+def _unresolved_extends(root, subpath, tracked):
+    """The relative extends targets of the package's own tracked tsconfig files that resolve to
+    no tracked file (with or without .json)."""
+    out = []
+    for rel in sorted(t for t in tracked if t.startswith(subpath + "/tsconfig") and t.endswith(".json")
+                      and "/" not in t[len(subpath) + 1:]):
+        raw, _reason = read_checked(os.path.join(root, rel), MAX_SMALL)
+        match = _EXTENDS.search(strip_comments(raw.decode("utf-8", "replace"))) if raw is not None else None
+        if match and match.group(1).startswith("."):
+            target = os.path.normpath(os.path.join(subpath, match.group(1)))
+            if target not in tracked and target + ".json" not in tracked:
+                out.append("%s extends %s" % (rel, match.group(1)))
+    return out
+
+
+def read_packages(checkout, extra_folders=(), git=None):
+    """The packages of one monorepo checkout, measured from tracked files only (git ls-files) and
+    read through the deny list: a package is a directory holding a tracked package.json or
+    pyproject.toml, or a folder extra_folders names. For each: its manifest kind, name and whether a
+    workspace glob includes it; non-test source files, non-blank lines (by language) and test files;
+    files the reader may not or could not open (unread_files, and then loc_partial: a lower bound,
+    never a zero); declared internal dependencies against the imports its non-test JavaScript and
+    TypeScript actually make; who imports it; and its static problems (PACKAGE_PROBLEMS). Python
+    files count toward lines, but their imports are not matched to packages. The working tree is
+    read, so at_head is false when census measured modified tracked files and None when that is
+    unknown. Build state is not read here."""
+    root = checkout["path"]
+    runner = git or GitRunner(root)
+    dirty = checkout.get("dirty") or {}
+    out = {"status": "ok", "reason": None, "at_commit": checkout.get("head"), "commit_date": checkout.get("last_commit_at"),
+           "at_head": _clean(checkout) if dirty.get("mode") == "normal" else None, "files": None,
+           "globs": {}, "packages": {}, "problems": []}
+    try:
+        res = runner.run("ls-files", "-z")
+    except safety.GitRefused as exc:
+        return dict(out, status="error", reason=str(exc))
+    if not res.ok:
+        return dict(out, status="error", reason="ls-files failed: exit %s" % res.code)
+    files = [p for p in res.out.split("\0") if p]
+    if len(files) > MAX_PACKAGE_FILES:
+        return dict(out, status="error", reason="%d tracked files, more than the %d the reader reads" % (
+            len(files), MAX_PACKAGE_FILES), files=len(files))
+    out["files"] = len(files)
+    tracked = set(files)
+    include, exclude = workspace_globs(root, tracked)
+
+    def generated(rel):
+        return any(part in GENERATED_DIRS for part in rel.split("/")[:-1])
+
+    dirs = {f.rsplit("/", 1)[0] for f in files if "/" in f and f.rsplit("/", 1)[1] in PACKAGE_MANIFESTS
+            and not generated(f)}
+    dirs |= {d.strip("/") for d in extra_folders if d.strip("/")}
+    packages = out["packages"]
+    for subpath in sorted(dirs):
+        name, declared = _read_package_json(root, subpath, tracked)
+        packages[subpath] = {
+            "subpath": subpath, "name": name, "manifest": _manifest_of(subpath, tracked),
+            "workspace": any(glob_match(subpath, g) for g in include) and not any(glob_match(subpath, g) for g in exclude),
+            "measures": {"src_files": 0, "loc": 0, "loc_by_lang": {}, "test_files": 0, "md_files": 0, "unread_files": 0,
+                         "loc_partial": False},
+            "deps": {"declared": declared}, "imports": {"internal": set()}, "imported_by": [], "static": []}
+    out["globs"] = {g: sorted(d for d in packages if glob_match(d, g)) for g in include}
+    by_name = {}
+    for subpath, package in packages.items():
+        if package["name"]:
+            by_name.setdefault(package["name"], []).append(subpath)
+    owners = sorted(packages, key=len, reverse=True)
+    for rel in files:
+        owner = next((d for d in owners if rel.startswith(d + "/")), None)
+        if owner is None or generated(rel):
+            continue
+        measures, inner = packages[owner]["measures"], rel[len(owner) + 1:]
+        base, ext = os.path.basename(rel), os.path.splitext(rel)[1]
+        if ext == ".md":
+            measures["md_files"] += 1
+            continue
+        if ext not in SOURCE_LANG or rel.endswith(".d.ts"):
+            continue
+        if TEST_PATH.search(inner):
+            measures["test_files"] += 1
+            continue
+        raw, _reason = (None, "denied") if safety.is_denied(base) else read_checked(os.path.join(root, rel), MAX_SMALL)
+        if raw is None:
+            measures["unread_files"] += 1
+            measures["loc_partial"] = True
+            continue
+        text = raw.decode("utf-8", "replace")
+        lines = sum(1 for line in text.splitlines() if line.strip())
+        measures["src_files"] += 1
+        measures["loc"] += lines
+        lang = SOURCE_LANG[ext]
+        measures["loc_by_lang"][lang] = measures["loc_by_lang"].get(lang, 0) + lines
+        if lang != "python":
+            own = packages[owner]["name"]
+            packages[owner]["imports"]["internal"] |= {n for n in import_names(text) if n in by_name and n != own}
+    for subpath, package in packages.items():
+        declared, imported = package["deps"].pop("declared"), package["imports"]["internal"]
+        internal = {n for n in declared if n in by_name and n != package["name"]}
+        package["deps"] = {"declared_internal": sorted(internal), "declared_external_n": len(declared - set(by_name))}
+        package["imports"] = {"internal": sorted(imported), "undeclared": sorted(imported - internal)}
+        for name in sorted(imported):
+            for target in by_name[name]:
+                packages[target]["imported_by"].append(package["name"] or subpath)
+        codes = []
+        if package["name"] and len(by_name[package["name"]]) > 1:
+            codes.append(("duplicate-name", "%s is also declared by %s" % (package["name"], ", ".join(
+                d for d in by_name[package["name"]] if d != subpath))))
+        codes += [("declared-not-imported", n) for n in sorted(internal - imported)]
+        codes += [("imported-not-declared", n) for n in sorted(imported - internal)]
+        codes += [("extends-unresolved", d) for d in _unresolved_extends(root, subpath, tracked)]
+        package["static"] = sorted({code for code, _ in codes})
+        out["problems"] += [{"code": code, "path": subpath, "detail": detail} for code, detail in codes]
+    for package in packages.values():
+        package["imported_by"] = sorted(set(package["imported_by"]))
+    for pattern in include:
+        if not out["globs"][pattern]:
+            out["problems"].append({"code": "workspace-glob-empty", "path": pattern, "detail": "matches no tracked package"})
+        for subpath in _glob_dirs(root, pattern):
+            loose = [n for n in PACKAGE_MANIFESTS if subpath + "/" + n not in tracked
+                     and os.path.isfile(os.path.join(root, subpath, n)) and not os.path.islink(os.path.join(root, subpath, n))]
+            if loose and subpath not in packages:
+                out["problems"].append({"code": "untracked-package", "path": subpath,
+                                        "detail": "%s on disk, not tracked" % ", ".join(loose)})
     return out
 
 

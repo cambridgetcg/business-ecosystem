@@ -58,6 +58,7 @@ import subprocess  # noqa: E402
 import tarfile  # noqa: E402
 import tomllib  # noqa: E402
 
+import capability  # noqa: E402
 import census  # noqa: E402
 import curate  # noqa: E402
 import decisions  # noqa: E402
@@ -520,6 +521,8 @@ PERSISTENT (not regenerable; this machine holds the only copy)
                                 written by `estate sphere --import`)
   curated/hygiene.json          the D8 hygiene plan with the owner's statuses (0400; changed only
                                 by `estate hygiene --import` and `--set`)
+  curated/capability.toml       local ids and the full evidence of every capability row (0600;
+                                written by `estate capability --import`)
   curated/*.bak-<time>          the previous copy each owner verb keeps (0400)
   config.toml                   owner-edited input locators and options (no secrets)
 
@@ -1567,6 +1570,68 @@ def import_spheres(ctx, args, write):
     return 0
 
 
+def cmd_capability(ctx, args):
+    """The business capability map (capability.py) of the current run: projects by status and
+    basis, each band's values with the projects holding them, the unassigned projects in business
+    scope, and the curated rows that wait on a review or name no record. --import writes a
+    classification into curated/capabilities.toml (a printed diff; only with --write), keeping every
+    reviewed row unless --replace-reviewed names it, and the full evidence privately."""
+    if args.import_path:
+        return _locked(ctx, args.write, import_capabilities, args)
+    require(not args.write and not args.replace_reviewed, "--write and --replace-reviewed go with --import")
+    run = require_current(ctx, ("records",))
+    projects = {r["id"]: r for r in present(run["records"]) if r["kind"] == "project"}
+    facets = model.load_vocab(ctx.layer)["facets"]
+    fields = {pid: (r.get("display") or {}).get("capability") or {} for pid, r in projects.items()}
+    say("capability map of run %s (a display field of the Business view; a value needs code or a dated manual "
+        "claim):" % run["id"])
+    say("  projects %d: %s · by basis %s · in business scope %d" % (
+        len(fields), ", ".join("%s %d" % kv for kv in sorted(Counter(f.get("status") or "missing"
+                                                                       for f in fields.values()).items())),
+        ", ".join("%s %d" % kv for kv in sorted(Counter(f.get("basis") or "missing" for f in fields.values()).items())),
+        sum(1 for f in fields.values() if f.get("scope"))))
+    own = [f for f in fields.values() if f.get("basis") != capability.MIRROR]  # a mirror is not counted twice
+    for band, members in capability.bands(facets).items():
+        say("  %s: %s" % (band, " · ".join("%s %d" % (v, sum(1 for f in own if v in (f.get("values") or [])))
+                                          for v in members)))
+    unassigned = sorted(pid for pid, f in fields.items() if f.get("status") == capability.UNASSIGNED)
+    say("unassigned projects in business scope: %d" % len(unassigned))
+    for pid in unassigned:
+        say("  %s  [%s]" % (pid, "; ".join(fields[pid].get("scope") or [])))
+    rows, problems = capability.curated_index(model.load_curated(ctx.layer), facets)
+    checks = capability.row_checks(projects, rows, safety.utc_now().date().isoformat())
+    say("curated rows: %d · not yet reviewed %d · past review %d%s · naming no record of this run %d%s" % (
+        len(rows), len(checks["unreviewed"]), len(checks["overdue"]),
+        (" (" + ", ".join(rid for rid, _ in checks["overdue"]) + ")") if checks["overdue"] else "",
+        len(checks["unmatched"]), (": " + ", ".join(checks["unmatched"])) if checks["unmatched"] else ""))
+    for item in problems:
+        say("  problem: %s" % item)
+    return 1 if problems else 0
+
+
+def import_capabilities(ctx, args, write):
+    data = capability.read_classification(args.import_path)
+    facets = model.load_vocab(ctx.layer)["facets"]
+    plan = capability.plan_import(data, facets, ctx.layer, args.replace_reviewed or ())
+    say("capability --import: %s" % ", ".join("%s %d" % kv for kv in sorted(plan["counts"].items())))
+    for ident in plan["kept_reviewed"]:
+        say("  kept %s: reviewed by Yu (name it with --replace-reviewed to replace it)" % ident)
+    results = [safety.write_committed(rel, text, "capability --import", False, ctx.layer)
+               for rel, text in sorted(plan["committed"].items())]
+    say("private/%s: %d rows (contents not shown)" % (capability.PRIVATE_FILE, plan["counts"]["private_rows"]))
+    if not write:
+        say("nothing written; add --write after reviewing the diff")
+        return 0
+    for result in results:
+        if result["changed"]:
+            safety.write_committed(result["path"], plan["committed"][result["path"]], "capability --import", True,
+                                   ctx.layer, quiet=True)
+            say("  written %s" % result["path"])
+    kept = curate.keep_private(ctx.area, capability.PRIVATE_FILE, plan["private"])
+    say("  private/%s: %s%s" % (capability.PRIVATE_FILE, kept["status"], "; " + kept["change"] if kept.get("change") else ""))
+    return 0
+
+
 def cmd_hygiene(ctx, args):
     """The hygiene plan of owner decision D8 (hygiene.py): its items joined with the current run,
     filtered by wave, severity, status or area. --import merges a plan into the private curation
@@ -1864,6 +1929,13 @@ def make_parser():
                                      "classification")
     sub.add_argument("--import", dest="import_path", metavar="ABS_PATH", help="a classification JSON (tool/sphere.py)")
     sub.add_argument("--write", action="store_true", help="change the curation and private/curated/sphere.toml")
+    sub = verb("capability", cmd_capability, "the business capability map: counts by band, the unassigned list and "
+                                             "the rows waiting on review, or import a classification")
+    sub.add_argument("--import", dest="import_path", metavar="ABS_PATH", help="a classification JSON (tool/capability.py)")
+    sub.add_argument("--replace-reviewed", action="append", metavar="ID",
+                     help="with --import: also replace this row Yu has reviewed (repeatable)")
+    sub.add_argument("--write", action="store_true",
+                     help="change curated/capabilities.toml and private/curated/capability.toml")
     sub = verb("hygiene", cmd_hygiene, "the hygiene plan (owner decision D8) joined with the current run, or "
                                        "import a plan or set an item's status")
     sub.add_argument("--wave", help="list one wave (as the plan names it)")

@@ -19,6 +19,7 @@ import re
 import tomllib
 from collections import Counter
 
+import capability
 import census
 import curate
 import decisions
@@ -36,6 +37,7 @@ TAG_MAP = "vocab/tag-map.tsv"
 FAMILIES_DIR = "curated/families"
 CURATED_ESTATE = "curated/estate.toml"
 DECISIONS = "curated/decisions.toml"
+CAPABILITIES = capability.COMMITTED_FILE
 PRIVATE_PROJECTS = "private/curated/projects.toml"
 PRIVATE_ESTATE = "private/curated/estate.toml"
 # The owner's own words behind the owner decisions, verbatim; private, written by `estate decisions`.
@@ -43,6 +45,9 @@ PRIVATE_DECISIONS = "private/curated/decisions.toml"
 # Local-id sphere rows and the full evidence of every sphere row; private, written by `estate sphere`.
 PRIVATE_SPHERE = "private/" + sphere.PRIVATE_FILE
 PRIVATE_HYGIENE = "private/" + hygiene.PRIVATE_FILE
+# Local-id capability rows and the full evidence of every capability row; private, written by
+# `estate capability`.
+PRIVATE_CAPABILITY = "private/" + capability.PRIVATE_FILE
 MAX_TOML = 4 << 20
 
 LOCAL = curate.LOCAL
@@ -375,6 +380,9 @@ def _private_rows(layer, out):
     rows, reason = _read_toml(os.path.join(layer, PRIVATE_SPHERE))
     out["status"][PRIVATE_SPHERE] = reason or "ok"
     out["private"]["sphere"] = rows or {}
+    rows, reason = _read_toml(os.path.join(layer, PRIVATE_CAPABILITY))
+    out["status"][PRIVATE_CAPABILITY] = reason or "ok"
+    out["private"]["capability"] = rows or {}
     # JSON, not TOML: the D8 plan is kept as its own schema, verbatim (hygiene.py).
     doc, reason = hygiene.load(os.path.join(layer, PRIVATE_HYGIENE))
     out["status"][PRIVATE_HYGIENE] = reason or "ok"
@@ -382,13 +390,14 @@ def _private_rows(layer, out):
 
 
 def load_curated(layer_dir=None):
-    """The committed curation (families, groups, estate.toml, decisions.toml) plus the private
-    curation, with the owner decisions applied to its questions and disputes (decisions.apply).
-    Any file that is absent is recorded in status as missing; nothing is invented."""
+    """The committed curation (families, groups, estate.toml, decisions.toml, capabilities.toml)
+    plus the private curation, with the owner decisions applied to its questions and disputes
+    (decisions.apply). Any file that is absent is recorded in status as missing; nothing is invented."""
     layer = _layer(layer_dir)
     out = {"families": {}, "projects": {}, "groups": {}, "identity": [], "surfaces": [], "zones": [],
-           "disputes": [], "questions": [], "upstream_notes": [], "spheres": [], "owners": {}, "legal": {},
-           "decisions": [], "private": {"projects": {}, "estate": {}, "decisions": {}, "sphere": {}, "hygiene": None},
+           "disputes": [], "questions": [], "upstream_notes": [], "spheres": [], "capabilities": [], "owners": {},
+           "legal": {}, "decisions": [],
+           "private": {"projects": {}, "estate": {}, "decisions": {}, "sphere": {}, "capability": {}, "hygiene": None},
            "status": {},
            "problems": []}
     _family_files(layer, out)
@@ -403,6 +412,9 @@ def load_curated(layer_dir=None):
     decided, reason = _read_toml(os.path.join(layer, DECISIONS))
     out["status"][DECISIONS] = reason or "ok"
     out["decisions"] = list((decided or {}).get("decision") or [])
+    rows, reason = _read_toml(os.path.join(layer, CAPABILITIES))
+    out["status"][CAPABILITIES] = reason or "ok"
+    out["capabilities"] = list((rows or {}).get("capability") or [])
     _private_rows(layer, out)
     return decisions.apply(_plain(out))
 
@@ -612,7 +624,7 @@ class _Join:
         self.projects, self.surfaces, self.schedulers, self.zones = {}, {}, {}, {}
         self.groups, self.families, self.relations, self.artifacts = {}, {}, {}, {}
         self.repo, self.roster, self.fleet = {}, {}, {}
-        self.sphere, self.hygiene = {}, {}
+        self.sphere, self.hygiene, self.capability = {}, {}, {}
         priv = (self.curated.get("private") or {}).get("estate") or {}
         self.private_estate = priv
         self.private_projects = (self.curated.get("private") or {}).get("projects") or {}
@@ -1779,6 +1791,19 @@ class _Join:
                                          "stands until Yu reviews it" % (item["value"], item["project"],
                                                                          item["project_value"])})
 
+    def capabilities(self):
+        """The business capability map (capability.py) on every project's display: its curated row
+        (under its id or an alias), else the values of the one project it mirrors, else unassigned
+        when it is in business scope (capability.business_scope) and none outside it. QUEUE lists the
+        unassigned, framework-domain candidates, rows past their review date and rows naming no record."""
+        facets = self.vocab.get("facets")
+        rows, problems = capability.curated_index(self.curated, facets)
+        problems += capability.resolve_projects(self.projects, rows, sphere.mirror_targets(self.relations.values()))
+        checks = capability.row_checks(self.projects, rows, self.now.date().isoformat())
+        self.queue += capability.queue_items(self.projects, checks)
+        self.capability = capability.summary(self.projects, facets, rows, problems, checks)
+        self.problems += problems
+
     def _curation(self, pid, project):
         row = (self.curated.get("projects") or {}).get(pid)
         group_rows = [self.groups[g] for g in project["group_ids"] if g in self.groups]
@@ -2703,6 +2728,7 @@ def build_records(census_data, foundation, srcs, curated, vocab, prev=None, cfg=
     j.group_claims()
     j.build_relations()
     j.spheres()
+    j.capabilities()
     j.risks()
     j.expectations()
     j.source_entries()
@@ -2729,7 +2755,8 @@ def build_records(census_data, foundation, srcs, curated, vocab, prev=None, cfg=
                                                     "runtime": e.get("runtime"), "repo": e.get("repo"),
                                                     "status": e.get("status")} for e in j.registry]},
         "foundation": foundation_summary(foundation),
-        "authority": j.authority, "sphere": j.sphere, "hygiene": j.hygiene, "decision_effects": j.decision_effects(),
+        "authority": j.authority, "sphere": j.sphere, "capability": j.capability, "hygiene": j.hygiene,
+        "decision_effects": j.decision_effects(),
         "problems": j.problems + list((curated or {}).get("problems") or []),
     }
     snapshot["reconcile"] = reconcile(prev, snapshot, now)

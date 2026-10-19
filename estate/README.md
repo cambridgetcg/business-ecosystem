@@ -38,7 +38,8 @@ repository, after claiming the paths through agenttool-collab.
 - `tool/`: standard-library Python, one module per concern. `tool/safety.py` holds every guard:
   the git allowlist, the guarded reader, the private writer, the run lock and the deletion gates.
   `tool/decisions.py` reads the owner decisions a build applies; `tool/sphere.py` holds the KINGDOM OS
-  sphere facet; `tool/hygiene.py` holds the D8 hygiene plan and its join with a run.
+  sphere facet; `tool/hygiene.py` holds the D8 hygiene plan and its join with a run; `tool/capability.py`
+  holds the business capability map and the one business scope the Business view uses.
 - `vocab/`: the record contract ([`vocab/records.toml`](vocab/records.toml), the single source for
   every record's fields and privacy class), the facet registry, the raw-tag map and the KINGDOM
   integrity lock.
@@ -73,6 +74,8 @@ estate/bin/estate decisions --private-from ABS_PATH --write   # private refineme
 estate/bin/estate accept-vocab --reviewed-harvest SHA256 --write   # record a hand review of harvest.ts
 estate/bin/estate sphere                  # the sphere facet of the current run: counts and the undecided list
 estate/bin/estate sphere --import ABS_PATH --write   # write a sphere classification into the curation
+estate/bin/estate capability              # the business capability map: counts by band, unassigned, rows to review
+estate/bin/estate capability --import ABS_PATH --write   # merge a classification into curated/capabilities.toml
 estate/bin/estate hygiene                 # the hygiene plan (D8), joined with the current run
 estate/bin/estate hygiene --severity P0 --status open   # filters: --wave, --severity, --status, --area
 estate/bin/estate hygiene --needs-yu      # the items the plan marks as needing Yu (also --agent-safe)
@@ -126,7 +129,8 @@ from reading under the Desktop folder, and a quietly failing job is worse than n
 
 - `private/ATLAS.html` (reached as `estate/atlas.html`) and `private/ATLAS.md`, the atlas;
 - `private/current/` (the newest run): `PROPOSALS.md`, `DRIFT.md`, `QUEUE.md`, `ATTENTION.md`,
-  `HYGIENE.md`, `portfolio-join.json`, `records.jsonl`, `proposals.jsonl`, `run.json` and `SHA256SUMS`;
+  `HYGIENE.md`, `CAPABILITIES.md`, `portfolio-join.json`, `records.jsonl`, `proposals.jsonl`, `run.json` and
+  `SHA256SUMS`;
 - `private/tree` (reached as `estate/tree`), the symlink tree of canonical checkouts.
 
 The tree has eight axes: `0-foundation` (the kingdom-os and REALM checkouts the taxonomy is read
@@ -175,6 +179,37 @@ the undecided list for Yu); proposals carry their subject's sphere, and the esta
 (P09, P12) for members of KINGDOM OS or surfaces in a KINGDOM OS zone ahead of the same rule for others: an
 ordering of the estate's own, not part of D4. A citizen's roster row is not raised, because harvest's own
 discovery (P17, the follow-up of D2) is the route for citizens.
+
+## Business: the capability map
+
+The Business view says what the business has code for, or does by hand, with 23 capabilities in four
+bands (`vocab/facets.toml [business.capability]`): sell, grow, run (exactly the eleven `be.framework_domain`
+ids, so business-ecosystem's own domain packages join by name) and own funds. It is a display field of the
+Business view, not a navigation facet: only an owner decision makes it one. One business population serves
+the whole view (`capability.business_scope`): a KINGDOM layer commerce or economy, a business purpose group,
+a commerce, economy or business-ecosystem family, the role revenue, or the KINGDOM kind venture.
+
+Each value carries `impl` (code, code-unbuilt, stub, manual or unread), an `operating` claim (in-use,
+paused, retired, never or unknown, as of its row) and `serves` (self, customers or both). A capability that
+is only documented or designed is listed under `designed`, never as a value; an idea is never a value. A
+project takes its curated row (under its id or an alias), else the values of the one project it mirrors,
+else `unassigned` when it is in business scope and `none` outside it. business-ecosystem's own packages get
+their values from code once package records exist, not from a curated row.
+
+Whole repositories are curated in `curated/capabilities.toml`, one `[[capability]]` row per forge id,
+`reviewed = false` until Yu reviews it. `estate capability --import ABS_PATH` prints the diff and writes
+only with `--write`; it merges by id, keeps every row with `reviewed = true` unless `--replace-reviewed ID`
+names it, keeps rows the import leaves out, and puts local ids and the full evidence of every row in
+`private/curated/capability.toml` (0600, one copy). QUEUE lists `capability-unassigned` (in scope, nothing
+places it), `capability-candidate` (a run-band value `be.framework_domain` names that the project neither
+holds nor lists as designed), `capability-review-overdue` and `capability-orphan-row` (a row naming no record).
+
+The map is the body of the atlas's Business (secondary) section: per band, each capability with the records
+holding it and their operating claims, who it serves, where it is designed only and which records name it
+as `be.framework_domain` relevance; then the gaps (sell and grow capabilities no record holds as in use,
+worded as a statement about code, not a verdict on the business) and every record in business scope.
+`CAPABILITIES.md` beside the atlas holds the whole map value by value, with each row's private evidence;
+Questions for Yu carries one line for the rows waiting on review.
 
 ## Hygiene: the plan of owner decision D8
 

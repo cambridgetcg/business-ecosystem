@@ -438,6 +438,64 @@ def make_repo(path, files=None, remote=None, remotes=None, card=None, card_track
     return path
 
 
+def _package_json(name, deps=(), dev=()):
+    data = {"name": name, "private": True}
+    if deps:
+        data["dependencies"] = {d: "workspace:*" for d in deps}
+    if dev:
+        data["devDependencies"] = {d: "workspace:*" for d in dev}
+    return json.dumps(data, indent=1) + "\n"
+
+
+def make_monorepo(path, home=None):
+    """A small pnpm monorepo shaped like business-ecosystem, for the package reader: workspace globs
+    (one of them empty), a package in a dot folder that operational/* must not reach, a deny-listed
+    source file, an import written only in a comment, tests, a declaration file, tracked build output,
+    a duplicate name, an unresolved tsconfig extends, a Python package, and an untracked package
+    directory left on disk."""
+    secret_name = "trade-" + "secret.entity.ts"  # deny-listed by name; never opened
+    files = {
+        "package.json": _package_json("fixture-monorepo"),
+        "pnpm-workspace.yaml": ("packages:\n  # domain apps\n  - 'foundational/*'\n  - \"operational/*\"\n"
+                                "- operational/.orchestration/*\n  - 'shared/libs/*'\n  - 'infra/*'\n"),
+        "tsconfig.base.json": "{}\n",
+        "foundational/ledger/package.json": _package_json("@fixture/ledger", deps=("@fixture/messaging",
+                                                                                   "@fixture/outbox", "zod")),
+        "foundational/ledger/tsconfig.json": '{\n  // the strict base\n  "extends": "../../tsconfig.base.json"\n}\n',
+        "foundational/ledger/src/index.ts": ("import { publish } from '@fixture/messaging'\n"
+                                             "// import { relay } from '@fixture/outbox'\n"
+                                             "/* import { audit } from '@fixture/audit' */\n"
+                                             "const docs = 'https://example.invalid/import'\n\n"
+                                             "export const ledger = () => publish(docs)\n"),
+        "foundational/ledger/src/types.d.ts": "export type Entry = { id: string }\n",
+        "foundational/ledger/src/index.test.ts": "import { ledger } from './index'\n",
+        "foundational/ledger/dist/index.js": "module.exports = {}\n",
+        "foundational/ledger/README.md": "# ledger\n",
+        "foundational/accounts/package.json": _package_json("@fixture/accounts"),
+        "foundational/accounts/pyproject.toml": '[project]\nname = "fixture-accounts"\n',
+        "foundational/accounts/src/posting.py": "def post():\n\n    return 1\n",
+        "foundational/accounts/tests/test_posting.py": "def test_post():\n    assert True\n",
+        "operational/patents/package.json": _package_json("@fixture/patents"),
+        "operational/patents/tsconfig.json": '{ "extends": "../../../tsconfig.base.json" }\n',
+        "operational/patents/src/index.ts": "const m = require('@fixture/messaging')\nimport('@fixture/ledger')\n",
+        "operational/patents/src/domain/" + secret_name: "export const fixtureNeverRead = 1\n",
+        "operational/.orchestration/engine/package.json": _package_json("@fixture/engine",
+                                                                        deps=("@fixture/messaging",)),
+        "operational/.orchestration/engine/src/index.ts": "import '@fixture/messaging'\nexport * from '@fixture/messaging/types'\n",
+        "shared/libs/messaging/package.json": _package_json("@fixture/messaging"),
+        "shared/libs/messaging/src/index.ts": "export const publish = (x: string) => x\n",
+        "shared/libs/outbox/package.json": _package_json("@fixture/outbox"),
+        "shared/libs/outbox/src/index.ts": "export const relay = 1\n",
+        "shared/libs/copy/package.json": _package_json("@fixture/outbox"),
+        "infrastructure/lambda/package.json": _package_json("fixture-lambda"),
+        "infrastructure/lambda/index.js": "exports.handler = async () => 1\n",
+    }
+    make_repo(path, files=files, home=home,
+              untracked={"foundational/drafts/package.json": _package_json("@fixture/drafts"),
+                         "foundational/ledger/src/scratch.ts": "import '@fixture/outbox'\n"})
+    return path
+
+
 def make_promisor_clone(path, keys=("promisor", "partialclonefilter"), remote_name="x",
                         url="https://github.com/cambridgetcg/promisor-demo.git", home=None):
     """A repo whose ONLY promisor markers are the given remote.<x>.* keys (no

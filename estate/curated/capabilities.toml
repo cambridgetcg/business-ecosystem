@@ -1,0 +1,540 @@
+# The business capability map (vocab/facets.toml [business.capability]): one row per project, keyed by
+# forge id. Written by `estate capability --import ABS_PATH --write`, which merges by id, keeps every row
+# with reviewed = true, and renders this file anew (comments other than this header are not kept).
+# impl, operating and serves name values whose reading a row states; the others read impl code,
+# operating unknown, serves self. operating is a claim as of the row's as_of. A row with no values says
+# the project has no business capability. Local ids and the full evidence of every row live in
+# private/curated/capability.toml.
+
+[[capability]]
+id = "codeberg.org/zerone-dev/ai-love"
+values = []
+evidence = "A public site; no business code."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "codeberg.org/zerone-dev/oracle"
+values = ["own-account-trading"]
+confidence = "low"
+evidence = "Prediction research code; last seen running on 2026-07-24."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "codeberg.org/zerone-dev/zerone-truth"
+values = []
+evidence = "A public site; no business code."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/artbitrage"
+values = ["market-pricing", "agent-commerce"]
+serves = { market-pricing = "customers", agent-commerce = "customers" }
+confidence = "medium"
+evidence = "Art-market data service with auction fee calculations, offered to agents; its site answered on 2026-10-18."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/axiepro"
+values = ["market-pricing", "business-analytics"]
+serves = { market-pricing = "customers", business-analytics = "customers" }
+evidence = "Read-only analytics and price data for a game-asset market; its app answered on 2026-10-18."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/betangel-research"
+values = ["own-account-trading"]
+confidence = "low"
+evidence = "Betting-exchange research; a collector app was reported deployed."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/betangel-suite"
+values = ["own-account-trading"]
+confidence = "low"
+evidence = "Betting-exchange tooling; forge-only here."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/cambridge-tcg"
+values = ["catalogue-channels", "market-pricing"]
+operating = { catalogue-channels = "retired", market-pricing = "paused" }
+evidence = "Python pipeline: supplier yen prices with a GBP rate into channel prices, pushed to Shopify and eBay, plus stock-sync scripts. Price acquisition stopped on 2026-07-12 until source rights exist; channel sync ended with the shop on 2026-07-06."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/cambridge-tcg-monorepo"
+values = ["goods-sales", "marketplace", "stock-sourcing", "catalogue-channels", "market-pricing", "billing", "agent-commerce", "customer-messaging", "customer-loyalty", "business-analytics", "kyc-identity"]
+operating = { goods-sales = "unknown", marketplace = "paused", stock-sourcing = "retired", catalogue-channels = "retired", market-pricing = "in-use", billing = "retired" }
+serves = { marketplace = "customers", market-pricing = "both", agent-commerce = "customers", customer-loyalty = "customers" }
+confidence = "medium"
+evidence = "Monorepo: the cambridgetcg.com collectors' market and open price data, retired retail, wholesale and admin apps, and the RewardsPro app. Retail and trade-in closed 2026-07-06; new listings, bids and checkout answer 410 since 2026-09-23. goods-sales stays unknown until the sales channel is named."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/cambridgetcg"
+values = []
+evidence = "The GitHub profile repository: public text only, no business code."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/cambridgetcg-storefront"
+values = ["goods-sales", "stock-sourcing", "billing", "customer-messaging"]
+operating = { goods-sales = "retired", stock-sourcing = "retired", billing = "retired", customer-messaging = "retired" }
+evidence = "Next.js retail shop with checkout, trade-in and memberships; copied into the monorepo on 2026-04-27 and superseded there; retail closed on 2026-07-06."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/cambridgetcg.github.io"
+values = []
+evidence = "Public GitHub Pages copies; no business code."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/captioneer"
+values = []
+evidence = "Archived media tool; no capability of the map's vocabulary."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/cardforum"
+values = ["marketplace", "kyc-identity"]
+operating = { marketplace = "never", kyc-identity = "never" }
+serves = { marketplace = "customers" }
+evidence = "Cross-border peer-to-peer exchange prototype: listings, trust and identity pages; its payments and escrow are designed only. Never launched."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/cardforum_io"
+values = ["market-pricing", "business-analytics"]
+operating = { market-pricing = "retired", business-analytics = "retired" }
+serves = { market-pricing = "customers", business-analytics = "customers" }
+evidence = "Next.js frontend of a card-market price API; archived on the forge."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/cashloom"
+values = ["agent-commerce", "banking-treasury"]
+serves = { agent-commerce = "customers", banking-treasury = "both" }
+confidence = "medium"
+evidence = "Money-information service with wallet views, payment sending and bank-rail reads, offered to agents through MCP; its site and API answered on 2026-10-18."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/cashloom-aws"
+values = []
+designed = ["banking-treasury", "corporate-security"]
+evidence = "Infrastructure design for the money-information service; whether it was applied is unknown, so its capabilities are designed only."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/ctcg-fun"
+values = []
+evidence = "An empty repository, archived on the forge."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/did-extensions"
+values = []
+evidence = "A fork for a DID method change: a standard, not a business capability."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/first-customer-push"
+values = []
+designed = ["marketing-outreach"]
+evidence = "An archived outreach plan; designed only."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/fomoengine"
+values = []
+designed = ["marketing-outreach"]
+evidence = "Public site of the copy-audit lab; outreach is designed only."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/fomoscan"
+values = ["billing", "agent-commerce"]
+operating = { billing = "in-use", agent-commerce = "in-use" }
+serves = { agent-commerce = "customers" }
+evidence = "Copy-scan API that charges per call through x402; it answered on 2026-10-18."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/legible"
+values = []
+designed = ["billing"]
+evidence = "Developer tool; its billing is designed only and was never realised."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/legible-money-web"
+values = []
+evidence = "An unrealised public site; no business code."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/legible-standard"
+values = []
+evidence = "Doctrine documents; no business capability."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/legible_money"
+values = []
+evidence = "An archived chain ledger superseded by zerone; not the business's books."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/love-engine"
+values = []
+evidence = "Content generation on scheduled workflows; no capability of the map's vocabulary."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/mindicraft"
+values = []
+evidence = "Public content site and data pages; no capability of the map's vocabulary."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/mythseal"
+values = []
+evidence = "A game site; no capability of the map's vocabulary."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/open-lens"
+values = []
+evidence = "Copy-audit reader methodology; no capability of the map's vocabulary."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/open-press"
+values = []
+evidence = "Methodology documents; no business capability."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/prediction-markets"
+values = ["own-account-trading"]
+operating = { own-account-trading = "paused" }
+evidence = "Prediction-market research and trading of the business's own funds; its card has said dormant since 2026-06."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/prism-app"
+values = ["market-pricing", "business-analytics"]
+operating = { market-pricing = "never", business-analytics = "never" }
+evidence = "One-commit price-index prototype; dormant."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/quay"
+values = []
+evidence = "Deploy tooling; no business capability."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/rewardspro"
+values = ["customer-loyalty", "business-analytics"]
+serves = { customer-loyalty = "customers", business-analytics = "customers" }
+confidence = "low"
+evidence = "A separate development Shopify app of the loyalty product."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/rewardspro-docs"
+values = []
+evidence = "Help documentation of the loyalty product; customer-support waits as a candidate value."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/rewardspro-landing"
+values = []
+evidence = "A former landing page; the current landing is served from the monorepo."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/rewardspro-marketing"
+values = ["marketing-outreach", "business-analytics"]
+operating = { marketing-outreach = "retired", business-analytics = "retired" }
+evidence = "Outreach scheduler and campaign tooling for the loyalty app; retired on 2026-09-23."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/rewardspro-production"
+values = ["billing", "customer-messaging", "customer-loyalty", "business-analytics", "data-privacy"]
+operating = { billing = "retired" }
+serves = { customer-messaging = "customers", customer-loyalty = "customers", business-analytics = "customers" }
+confidence = "medium"
+evidence = "Shopify loyalty app: points, store credit, tiers and gift cards for merchants, with campaigns, dashboards and privacy webhooks; plan billing through Shopify. New paid subscriptions retired on 2026-09-23; the App Store listing is live."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/rewardspro-shopify"
+values = ["billing", "customer-loyalty", "business-analytics"]
+operating = { billing = "retired" }
+serves = { customer-loyalty = "customers", business-analytics = "customers" }
+evidence = "An earlier line of the same Shopify app identity; how it relates to the current line is an open question."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/rhetorlint-spec"
+values = []
+evidence = "Copy-audit specification and npm packages; no capability of the map's vocabulary."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/saas-marketing-suite"
+values = []
+designed = ["marketing-outreach", "business-analytics"]
+evidence = "An archived single-commit design of a marketing suite; designed only."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/saas-marketing-template"
+values = []
+designed = ["marketing-outreach", "business-analytics"]
+evidence = "An archived marketing suite template; designed only."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/shopifytheme_tcg"
+values = ["goods-sales", "stock-sourcing", "market-pricing", "billing", "customer-loyalty"]
+operating = { goods-sales = "unknown", stock-sourcing = "retired" }
+evidence = "Liquid theme of the Shopify store with trade-in, membership and loyalty sections; last theme sync 2026-03-25. Whether the store is still open is an open question, so goods-sales stays unknown."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/sinovai"
+values = ["kyc-identity"]
+serves = { kyc-identity = "customers" }
+confidence = "low"
+evidence = "Trust and identity records service; its worker is up."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/slips"
+values = []
+evidence = "A fork kept for reference; no business capability."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/taxsorted"
+values = ["tax"]
+operating = { tax = "retired" }
+serves = { tax = "customers" }
+evidence = "Earlier tax guidance app, archived; its content moved into taxsorted.io."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/taxsorted-studies"
+values = []
+designed = ["tax"]
+confidence = "low"
+evidence = "Forge-only tax studies: documents as far as the inventory read them, so tax is designed here."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/taxsorted.io"
+values = ["tax"]
+serves = { tax = "customers" }
+evidence = "Tax guidance product; its site and API answered on 2026-10-18. HMRC filing is designed only."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/tcg-pricing-backend"
+values = ["market-pricing"]
+operating = { market-pricing = "retired" }
+evidence = "Card-market price API (FastAPI on Lambda); archived on the forge."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/tcg-wholesale"
+values = ["goods-sales", "catalogue-channels", "market-pricing", "tax"]
+operating = { goods-sales = "retired", catalogue-channels = "retired", market-pricing = "retired", tax = "retired" }
+evidence = "Next.js B2B quote app with yen-to-GBP pricing, stock sync and VAT figures; its domain redirects to cambridgetcg.com since about 2026-07-05."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/tradeinpro"
+values = ["stock-sourcing", "market-pricing"]
+operating = { stock-sourcing = "retired", market-pricing = "retired" }
+evidence = "Embedded Shopify trade-in app with price quotes; the trade-in desk closed on 2026-07-06."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/ww3-intelligence"
+values = ["own-account-trading"]
+confidence = "low"
+evidence = "Geopolitical research for trading; whether its app still runs is an open question."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
+
+[[capability]]
+id = "github.com/cambridgetcg/xenia"
+values = []
+evidence = "A rights standard published to npm; not a business capability."
+source = "capability-2026-10-18"
+reviewed = false
+as_of = 2026-10-18
+review_after = 2027-01-16
