@@ -634,7 +634,7 @@ adopted = "a package imports one of its libraries in non-test source"
 reimplemented = "no package imports its libraries, and code elsewhere does the same by hand (a curated anchor found as code)"
 unused = "no package imports its libraries, and no curated anchor is found as code"
 no-library = "no shared library embodies it; its curated anchors show where code does it"
-not-measured = "no package imports the libraries read, and what would decide the state could not be read (a library's host not read, an anchor not searched or unreadable)"
+not-measured = "no file read imports its libraries, and what would decide the state could not be read (a library's host or importers not read, unread source in a package that could import one, an anchor not searched or unreadable)"
 
 # ── packages (record kind package, tool/packages.py) ────────────────────────────────────────
 

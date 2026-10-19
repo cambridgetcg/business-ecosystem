@@ -1414,7 +1414,9 @@ def _motifs(doc, v, level, full=False):
     doc.p("A motif is a design pattern the code repeats. Its users are measured: the packages whose non-test source "
           "imports a shared library that embodies it (adopted). With no importer, a curated anchor found as code "
           "elsewhere reads reimplemented and none reads unused; a pattern no library embodies reads no-library. A "
-          "package whose manifest only declares a library is not a user. Curated motifs: %d (%d not yet reviewed), "
+          "package whose manifest only declares a library is not a user. Source the reader may not open in a package "
+          "that could import a library makes its count a lower bound (≥) and, with no importer found, the motif "
+          "not-measured. Curated motifs: %d (%d not yet reviewed), "
           "by state %s%s." % (
               len(rows), sum(1 for m in rows if m.get("reviewed") is not True), motifs.states_text(info.get("states")),
               "; %d stale line%s in QUEUE (motif-stale)" % (info["stale"], "" if info["stale"] == 1 else "s")
@@ -1437,9 +1439,11 @@ def _motifs(doc, v, level, full=False):
             doc.p("%s Measured: %s.%s" % (m.get("pattern") or "—", m.get("reason") or "—", " Evidence: %s" % clip(
                 m["evidence"], 400) if m.get("evidence") else ""))
             if m.get("libraries"):
-                doc.table(("library", "name", "importers", "of them quarantined", "declared only", "not measured"),
+                doc.table(("library", "name", "importers", "of them quarantined", "declared only",
+                           "unread source in (files)", "not measured"),
                           [(lib["id"], lib.get("name") or "—", ", ".join(lib.get("users") or []) or "—",
                             lib.get("unbuilt_users") or 0, ", ".join(lib.get("declared") or []) or "—",
+                            ", ".join("%s (%d)" % (p["id"], p["files"]) for p in lib.get("unread_in") or []) or "—",
                             lib.get("reason") or "—") for lib in m["libraries"]])
             if m.get("anchors"):
                 doc.table(("in", "path", "text", "found", "files"),

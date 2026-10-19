@@ -289,6 +289,9 @@ the packages whose non-test source imports one of its libraries (the `measured-i
 manifest only declares one is listed apart), and reads `adopted` when there is one, `reimplemented` when there
 is none and a curated anchor is found as code, `unused` when neither, `no-library` for a pattern with no
 library and `not-measured` when what would decide it could not be read; positive evidence decides first. A
+source file the reader may not or could not open, in any package of the host that is not already a user,
+could hide an importer: the count is then a lower bound (`≥`), and with no importer found the motif reads
+`not-measured`, naming those packages, never `unused` or `reimplemented`. A
 library that is no package of its host's checkout, or an anchor code no longer holds, is listed in QUEUE
 (`motif-stale`). The map shows a Motifs table after the wires, `CAPABILITIES.md` each library and anchor,
 and `estate capability` one line per motif. The first rows, all `reviewed = false`, are the plan's: domain

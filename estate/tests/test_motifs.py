@@ -4,9 +4,11 @@ A motif's users are measured as the packages whose non-test source imports one o
 measured-import edges between package records); a package whose manifest only declares a library, a test
 that imports it and a sibling library of the same motif are not users. With no importer, a curated
 also_in anchor re-found as code reads reimplemented and none reads unused; a pattern no library embodies
-reads no-library; what cannot be read reads not-measured, and positive evidence decides first. A library
-that is no package of its host's checkout, or an anchor code no longer holds, is queued as stale. The
-synthetic monorepo is built in a temporary directory, and the command line runs on a synthetic estate."""
+reads no-library; what cannot be read reads not-measured, and positive evidence decides first. Source the
+reader may not open in a package of the host that is not a user makes the count a lower bound, and with no
+importer the motif not-measured, never unused or reimplemented. A library that is no package of its host's
+checkout, or an anchor code no longer holds, is queued as stale. The synthetic monorepo is built in a
+temporary directory, and the command line runs on a synthetic estate."""
 import os
 import tomllib
 
@@ -18,6 +20,7 @@ import curate
 import model
 import motifs
 import packages
+import sources
 import wires
 
 HOST = test_packages.HOST
@@ -41,8 +44,9 @@ MOTIF_ROWS = [
      "libraries": [pkg("shared/libs/audit-logging")], "reviewed": False}]
 
 
-def record(subpath, name, unbuilt=False):
-    return {"id": pkg(subpath), "host": HOST, "name": name, "build": {"unbuilt": unbuilt}}
+def record(subpath, name, unbuilt=False, unread=0, manifest="package-json", host=HOST):
+    return {"id": packages.package_id(host, subpath), "host": host, "name": name, "manifest": manifest,
+            "measures": {"unread_files": unread}, "build": {"unbuilt": unbuilt}}
 
 
 def edge(frm, to, basis=wires.MEASURED_IMPORT):
@@ -177,6 +181,43 @@ class EvaluateTests(fixture.EstateTestCase):
                                  ("operational/ledger/src/ledger.py", "compensate by hand", "code"))
         self.assertEqual(self.evaluate(2, unreadable)["state"], motifs.REIMPLEMENTED)
 
+    def test_unread_source_that_could_import_a_library_is_never_a_zero(self):
+        found = anchor_hits(("operational/engine/src", "async function runCompensation(", "code"),
+                            ("operational/ledger/src/ledger.py", "compensate by hand", "code"))
+        blind = dict(self.records)
+        for extra in (record("operational/vault", "@x/vault", unread=2),  # declares nothing, imports unseen
+                      record("operational/away", "@x/away", unread=5, host="github.com/cambridgetcg/elsewhere")):
+            blind[extra["id"]] = extra
+        blind[pkg("operational/engine")] = record("operational/engine", "@x/engine", unbuilt=True, unread=3)
+        outbox = self.evaluate(1, records=blind)
+        self.assertEqual(outbox["state"], motifs.NOT_MEASURED)
+        # Another host's packages cannot import it; the engine's 3 unread files count, as the vault's do.
+        self.assertEqual(outbox["libraries"][0]["unread_in"], [{"id": pkg("operational/engine"), "files": 3},
+                                                               {"id": pkg("operational/vault"), "files": 2}])
+        self.assertEqual(outbox["reason"], "no file read imports shared/libs/outbox; 5 non-test source files unread "
+                                           "in 2 packages that could import it, none of them declaring one: "
+                                           "operational/engine (3), operational/vault (2)")
+        self.assertEqual(motifs.library_text(outbox["libraries"][0]),
+                         "shared/libs/outbox: imported by ≥0, declared only by 0, 5 files unread in 2 packages")
+        # An anchor found as code does not make it reimplemented while an importer could be unseen.
+        self.assertEqual(self.evaluate(2, found, records=blind)["state"], motifs.NOT_MEASURED)
+        self.assertEqual(self.evaluate(2, found)["state"], motifs.REIMPLEMENTED)
+        # One importer is still adoption; a user's own unread files hide nothing more of it.
+        events = self.evaluate(0, records=blind)
+        self.assertEqual(events["state"], motifs.ADOPTED)
+        self.assertEqual(events["libraries"][0]["unread_in"], [{"id": pkg("operational/vault"), "files": 2}])
+        self.assertTrue(motifs.library_text(events["libraries"][0]).startswith("shared/libs/messaging: imported by ≥1 "))
+
+    def test_a_library_whose_imports_are_not_matched_is_not_measured(self):
+        python = dict(self.records)
+        python[pkg("shared/libs/outbox")] = record("shared/libs/outbox", "fixture-outbox", manifest="pyproject")
+        outbox = self.evaluate(1, records=python)
+        self.assertEqual((outbox["state"], outbox["stale"]), (motifs.NOT_MEASURED, []))
+        self.assertIn("only imports of a package.json name are matched", outbox["reason"])
+        self.assertEqual(motifs.library_text(outbox["libraries"][0]), "shared/libs/outbox: not measured (its importers "
+                                                                      "are not measured: only imports of a package.json "
+                                                                      "name are matched)")
+
     def test_the_summary_counts_states_in_vocabulary_order(self):
         evaluated = [self.evaluate(i) for i in range(len(MOTIF_ROWS))]
         view = motifs.summary(evaluated, ["motifs: a problem"])
@@ -228,6 +269,24 @@ class MotifJoinTests(fixture.EstateTestCase):
         self.assertEqual([name for name, _detail in queued], ["audit-trail", "saga-compensation"])
         self.assertIn("is not a package of %s" % HOST, queued[0][1])
         self.assertEqual(self.snapshot["motifs"]["stale"], 2)
+
+
+class UnreadImporterTests(fixture.EstateTestCase):
+
+    def test_an_import_in_a_deny_listed_file_leaves_the_motif_not_measured(self):
+        root = fixture.make_motif_monorepo(os.path.join(self.case_dir(), "motifs"), unread_importer=True)
+        checkout = {"path": root, "head": "f" * 40, "last_commit_at": "2026-10-18T00:00:00Z",
+                    "dirty": {"mode": "normal", "modified": 0, "untracked": 0}}
+        with fixture.tracking_opens() as opened:
+            read = sources.read_packages(checkout)
+        self.assertFalse([p for p in opened if os.path.basename(p) == "tokens.ts"])  # never opened
+        records = packages.records(HOST, read, None, test_model.NOW_ISO)
+        rows = motifs.rows({"motifs": MOTIF_ROWS})[0]
+        outbox = motifs.evaluate(rows["transactional-outbox"], records, wires.measured_edges(records), {})
+        self.assertEqual(outbox["state"], motifs.NOT_MEASURED)
+        self.assertEqual(outbox["libraries"][0]["declared"], [pkg("operational/engine"), pkg("operational/intake")])
+        self.assertIn("1 non-test source file unread in 1 package that could import it, 1 of them declaring one: "
+                      "operational/intake (1)", outbox["reason"])
 
 
 class CommandLineMotifTests(fixture.EstateTestCase):
@@ -284,7 +343,10 @@ class CommandLineMotifTests(fixture.EstateTestCase):
         self.assertIn("| transactional-outbox | unused | shared/libs/outbox: imported by 0, declared only by 2 | — | "
                       "operational/engine, operational/intake | — |", business)
         self.assertIn("shared/libs/audit-logging (not in this run): not measured (not a package of", business)
+        self.assertIn("makes its count a lower bound (≥) and, with no importer found, the motif not-measured", business)
         self.assertIn("### saga-compensation (reimplemented)", self.full)
+        self.assertIn("| library | name | importers | of them quarantined | declared only | unread source in (files) "
+                      "| not measured |", self.full)
         self.assertIn("| %s | operational/ledger/src/ledger.py | compensate by hand | none | — |"
                       % pkg("operational/ledger"), self.full)
         self.assertIn("motif-stale", self.queue)
