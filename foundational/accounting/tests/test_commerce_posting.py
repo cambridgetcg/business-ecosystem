@@ -156,7 +156,6 @@ def test_zero_lines_are_omitted_and_provider_collected_tax_is_never_posted(tmp_p
     ({"lines": [line("L1", "goods", 1000, 0, "outside_scope")]}, "unsupported_treatment_v1"),
     ({"lines": [line("L1", "goods", 1000, 0, "margin_scheme")]}, "unsupported_treatment_v1"),
     ({"fees": [fee("F1", 100, 0, "reverse_charge")]}, "unsupported_treatment_v1"),
-    ({"fees": [fee("F1", 100, 20, "exempt")]}, "unsupported_treatment_v1"),
     ({"lines": [line("L1", "goods", 0, 0)], "fees": []}, "zero_value"),
 ])
 def test_policy_refusal_records_evidence_and_never_posts(tmp_path, changes, reason):

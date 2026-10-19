@@ -1,12 +1,14 @@
-"""The Python contract mirror against the provisional schema copy and cross-language vectors.
+"""The Python contract mirror against the shared contract of record and its conformance cases.
 
-The schema copy is provisional (see fixtures/commerce_posting/README.md): PR W1
-makes the shared contract and its conformance files authoritative. This module
-also holds the synthetic event builders that the other commerce tests import.
+The JSON Schema and CASES.json live in shared/events/financial-events, where the
+TypeScript tests run the same cases with zod and ajv. This module also holds the
+synthetic event builders that the other commerce tests import.
 """
 import copy
 import importlib
 import json
+import re
+import uuid
 from pathlib import Path
 
 import pytest
@@ -16,7 +18,9 @@ GOLDEN = FIXTURES / "golden-synthetic-2026-09-10.ndjson"
 SELLER = "synthetic-seller-lab"
 BOOKS_OF = {"entityId": "00000000-0000-4000-8000-00000000b00c", "decisionRef": "synthetic-books-lab"}
 CHANNEL = {"kind": "marketplace", "name": "synthetic-market"}
-SCHEMA = FIXTURES / "commerce-sale-events.v1.schema.provisional-copy.json"
+SHARED_CONTRACT = Path(__file__).resolve().parents[3] / "shared" / "events" / "financial-events"
+SCHEMA = SHARED_CONTRACT / "schema" / "commerce-sale-events.v1.schema.json"
+CASES = SHARED_CONTRACT / "conformance" / "commerce-sale-v1" / "CASES.json"
 ANNOTATIONS = {"description", "$id", "$schema", "title", "x-semantic-rules"}
 
 
@@ -147,26 +151,91 @@ def test_every_semantic_rule_is_enforced_or_stated_by_the_adapter():
     assert sorted(rules) == sorted(contract().ENFORCED_RULES + contract().ADAPTER_STATED_RULES)
 
 
-def _vector_event(name):
-    if ":" in name:
-        file, number = name.split(":")
-        return json.loads((FIXTURES / file).read_text(encoding="utf-8").splitlines()[int(number) - 1])
-    return json.loads((FIXTURES / name).read_text(encoding="utf-8"))
+def _cases():
+    return json.loads(CASES.read_text(encoding="utf-8"))
 
 
-def test_typescript_ids_and_cross_language_digest_vectors_hold():
+def _shared_event(name):
+    return copy.deepcopy(next(case["event"] for case in _cases()["valid"] if case["name"] == name))
+
+
+def _patched(document, patch):
+    """RFC 6902 add, replace and remove as the shared cases use them; the path '' replaces the document."""
+    document = copy.deepcopy(document)
+    for operation in patch:
+        op, value = operation["op"], copy.deepcopy(operation.get("value"))
+        if operation["path"] == "":
+            document = value
+            continue
+        *parents, last = operation["path"][1:].split("/")
+        target = document
+        for part in parents:
+            target = target[int(part)] if isinstance(target, list) else target[part]
+        if isinstance(target, list):
+            index = int(last)
+            if op == "add":
+                target.insert(index, value)
+            elif op == "replace":
+                target[index] = value
+            else:
+                del target[index]
+        elif op == "remove":
+            del target[last]
+        else:
+            assert (last in target) == (op == "replace"), operation
+            target[last] = value
+    return document
+
+
+def _named(cases):
+    return pytest.mark.parametrize("case", cases, ids=[case["name"] for case in cases])
+
+
+def test_shared_cases_use_this_namespace_and_schema():
+    cases = _cases()
+    assert cases["namespace"] == str(contract().COMMERCE_EVENT_NAMESPACE)
+    assert (CASES.parent / cases["schema"]).resolve() == SCHEMA.resolve()
+
+
+@_named(_cases()["valid"])
+def test_shared_valid_cases_hold_with_their_ids_and_replay_digest(case):
     c = contract()
-    vectors = json.loads((FIXTURES / "id-and-digest-vectors.json").read_text(encoding="utf-8"))
-    assert vectors["namespace"] == str(c.COMMERCE_EVENT_NAMESPACE)
-    assert {vector["file"].split(":")[0] for vector in vectors["vectors"]} == {
-        "typescript-spike-sale.json", "typescript-spike-refund.json", "golden-synthetic-2026-09-10.ndjson"}
-    assert len(vectors["vectors"]) == 9
-    for vector in vectors["vectors"]:
-        event = _vector_event(vector["file"])
-        c.validate(event)
-        assert event["id"] == vector["id"] == c.event_id_for(vector["idempotencyKey"])
-        assert event["aggregateId"] == vector["aggregateId"] == c.aggregate_id_for(c.sale_key_of(event))
-        assert c.replay_digest(event) == vector["replayDigest"]
+    event = case["event"]
+    c.validate(event)
+    assert event["id"] == c.event_id_for(event["payload"]["idempotencyKey"])
+    assert event["aggregateId"] == c.aggregate_id_for(c.sale_key_of(event))
+    assert c.replay_digest(event) == case["replayDigest"]
+
+
+@_named(_cases()["invalid"])
+def test_shared_invalid_cases_are_contract_errors_naming_their_rule(case):
+    event = _patched(_shared_event(case["base"]), case["patch"])
+    with pytest.raises(contract().ContractError) as raised:
+        contract().validate(event)
+    if case["rule"] == "schema":
+        assert not re.match(r"S[0-9]+ ", str(raised.value))
+    else:
+        assert str(raised.value).startswith(case["rule"] + " ")
+
+
+@_named(_cases()["refundAgainstSale"])
+def test_shared_refund_against_sale_cases(case):
+    refund_event = _patched(_shared_event(case["refund"]), case["patch"])
+    if case["rule"] is None:
+        contract().check_refund_against_sale(refund_event, _shared_event(case["sale"]))
+    else:
+        with pytest.raises(contract().ContractError, match="^" + case["rule"] + " "):
+            contract().check_refund_against_sale(refund_event, _shared_event(case["sale"]))
+
+
+@_named(_cases()["uuidV5"])
+def test_shared_uuid_v5_vectors(case):
+    assert str(uuid.uuid5(contract().COMMERCE_EVENT_NAMESPACE, case["name"])) == case["uuid"]
+
+
+def test_golden_fixture_is_the_shared_golden_cases_in_delivery_order():
+    golden = [case["event"] for case in _cases()["valid"] if case["name"].startswith("golden-")]
+    assert [json.loads(line) for line in GOLDEN.read_text(encoding="utf-8").splitlines()] == golden == golden_events()
 
 
 def test_replay_digest_covers_raw_values_but_not_metadata():
@@ -224,8 +293,9 @@ def _delete(path):
     (_sale, _set(("occurredAt",), "2026-09-14T10:15:00+01:00"), "does not match"),
     (_sale, _set(("occurredAt",), "2026-09-14T10:15:00z"), "does not match"),
     (_sale, _set(("occurredAt",), "2026-09-14T10:15:00Z\n"), "does not match"),
-    (_sale, _set(("occurredAt",), "2026-09-14 10:15:00Z"), "RFC 3339"),
-    (_sale, _set(("occurredAt",), "2026-09-14T25:15:00Z"), "RFC 3339"),
+    (_sale, _set(("occurredAt",), "2026-09-14 10:15:00Z"), "does not match"),
+    (_sale, _set(("occurredAt",), "2026-09-14T25:15:00Z"), "does not match"),
+    (_sale, _set(("occurredAt",), "2026-02-30T10:15:00Z"), "RFC 3339"),
     (_sale, _set(("payload", "taxPointDate"), "2026-02-30"), "calendar date"),
     (_sale, _set(("payload", "currency"), "gbp"), "does not match"),
     (_sale, _set(("payload", "provider", "name"), "paypal"), "not one of"),
@@ -259,6 +329,8 @@ def test_contract_violations_are_errors(base, change, message):
     (lambda: sale("syn-sale-s8", "2026-09-10", [line("L1", "goods", 1000, 10, "margin_scheme")]), "S8"),
     (lambda: sale("syn-sale-s8", "2026-09-10", [line("L1", "goods", 1000, 200, basis="not_applicable")]), "S8"),
     (lambda: sale("syn-sale-s8", "2026-09-10", [line("L1", "goods", 1000, 0, basis="source_stated")]), "S8"),
+    (lambda: sale("syn-sale-s8", "2026-09-10", [line("L1", "goods", 1000, 200)], [fee("F1", 100, 20, "exempt")]), "S8"),
+    (lambda: sale("syn-sale-s8", "2026-09-10", [line("L1", "goods", 1000, 200)], [fee("F1", 100, 20, "outside_scope")]), "S8"),
 ])
 def test_cross_field_rule_violations_are_errors(event, message):
     with pytest.raises(contract().ContractError, match=message):
