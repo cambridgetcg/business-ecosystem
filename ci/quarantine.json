@@ -214,15 +214,6 @@
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
       "errors": 0,
       "exit": "F9: a first real test in this package passes."
-    },
-    {
-      "package": "@foundational/accounting",
-      "task": "test",
-      "reason": "vitest run finds no TypeScript tests. The package's real tests are Python and run in offline-evidence.yml.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: the test script runs real tests (TypeScript, or the Python suite offline-evidence.yml runs)."
     }
   ]
 }
