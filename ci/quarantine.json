@@ -24,7 +24,7 @@
         "file": "operational/contracts-legal/STATUS.md",
         "lines": "14",
         "claim": "Blockers: None",
-        "measured": "Its lint (127 errors) and test (no test files) are quarantined below. Its build and typecheck pass since F7."
+        "measured": "Its lint (127 errors) is quarantined below. Its build and typecheck pass since F7, and its tests since F9."
       },
       {
         "file": "foundational/banking-treasury/STATUS.md",
