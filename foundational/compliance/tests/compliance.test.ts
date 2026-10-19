@@ -51,6 +51,43 @@ describe('ComplianceService.calculateComplianceScore', () => {
     });
   });
 
+  it('counts only obligations completed by their due date, at 40%', async () => {
+    const due = new Date('2026-03-31');
+    const obligation = (id: string, title: string, completedDate?: Date) =>
+      ComplianceObligationSchema.parse({
+        id,
+        entityId: ENTITY,
+        requirementId: REQUIREMENT,
+        regulator: 'fincen',
+        category: 'cta',
+        title,
+        status: completedDate ? 'completed' : 'pending',
+        dueDate: due,
+        completedDate,
+        createdAt: due,
+        updatedAt: due,
+        version: 1,
+      });
+    // The service has no writer for obligations or BOI filings; these feed it.
+    class Seeded extends ComplianceService {
+      override getEntityObligations() {
+        return Promise.resolve([
+          obligation('1c9e6b2a-0d3f-4e5a-8b7c-6d5e4f3a2b10', 'on time', new Date('2026-03-30')),
+          obligation('2d0f7c3b-1e4a-4f6b-9c8d-7e6f5a4b3c21', 'late', new Date('2026-04-01')),
+          obligation('3e1a8d4c-2f5b-4a7c-8d9e-8f7a6b5c4d32', 'open'),
+        ]);
+      }
+      override getBOIFilingStatus() {
+        return Promise.resolve({ hasActiveFiling: true, isCompliant: true });
+      }
+    }
+    // 33 * 0.4 + 100 * 0.4 (no findings) + 100 * 0.2 = 73.2
+    expect(await new Seeded().calculateComplianceScore(ENTITY)).toEqual({
+      score: 73,
+      breakdown: { obligationsOnTime: 33, findingsResolved: 100, boiCompliant: true },
+    });
+  });
+
   it('reports no BOI filing as neither active nor compliant', async () => {
     expect(await new ComplianceService().getBOIFilingStatus(ENTITY)).toEqual({
       hasActiveFiling: false,
