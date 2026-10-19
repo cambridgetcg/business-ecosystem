@@ -11,7 +11,11 @@ on:
       - 'turbo.json'
       - 'shared/**/package.json'
       - 'operational/gateway/package.json'
+  # Pushes to main and develop only, as in the other workflows: a pull
+  # request's branch is checked through pull_request, and a push to it used to
+  # run the same job a second time.
   push:
+    branches: [main, develop]
     paths:
       - '.github/workflows/workspace-wiring.yml'
       - 'gateway/**'
