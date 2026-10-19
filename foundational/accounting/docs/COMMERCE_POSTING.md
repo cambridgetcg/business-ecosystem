@@ -6,10 +6,12 @@ The implementation lives in `src/commerce_posting/`, outside `src/application/` 
 
 ```
 synthetic fixture
-  -> operational/commerce-intake (TypeScript, PR W2): map, validate, append to events.ndjson
+  -> operational/commerce-intake (TypeScript): map, validate, append to events.ndjson
   -> scripts/commerce_posting.py consume (this slice): PostingService -> SQLite ledger + evidence
   -> scripts/commerce_posting.py report: report.json
 ```
+
+`tests/wires/test_wire_1_sale_to_ledger.py` (repository root) runs all three through their command-line tools in child processes, offline; `.github/workflows/wire-e2e.yml` runs it in CI.
 
 ## Isolated setup and verification
 
