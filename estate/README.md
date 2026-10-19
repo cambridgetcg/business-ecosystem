@@ -39,7 +39,8 @@ repository, after claiming the paths through agenttool-collab.
   the git allowlist, the guarded reader, the private writer, the run lock and the deletion gates.
   `tool/decisions.py` reads the owner decisions a build applies; `tool/sphere.py` holds the KINGDOM OS
   sphere facet; `tool/hygiene.py` holds the D8 hygiene plan and its join with a run; `tool/capability.py`
-  holds the business capability map and the one business scope the Business view uses.
+  holds the business capability map and the one business scope the Business view uses; `tool/packages.py`
+  holds the package records of the host repositories the map reads.
 - `vocab/`: the record contract ([`vocab/records.toml`](vocab/records.toml), the single source for
   every record's fields and privacy class), the facet registry, the raw-tag map and the KINGDOM
   integrity lock.
@@ -76,6 +77,7 @@ estate/bin/estate sphere                  # the sphere facet of the current run:
 estate/bin/estate sphere --import ABS_PATH --write   # write a sphere classification into the curation
 estate/bin/estate capability              # the business capability map: counts by band, unassigned, rows to review
 estate/bin/estate capability --import ABS_PATH --write   # merge a classification into curated/capabilities.toml
+estate/bin/estate ls --kind package       # the packages of the host repositories ([[host]] rows)
 estate/bin/estate hygiene                 # the hygiene plan (D8), joined with the current run
 estate/bin/estate hygiene --severity P0 --status open   # filters: --wave, --severity, --status, --area
 estate/bin/estate hygiene --needs-yu      # the items the plan marks as needing Yu (also --agent-safe)
@@ -193,8 +195,24 @@ Each value carries `impl` (code, code-unbuilt, stub, manual or unread), an `oper
 paused, retired, never or unknown, as of its row) and `serves` (self, customers or both). A capability that
 is only documented or designed is listed under `designed`, never as a value; an idea is never a value. A
 project takes its curated row (under its id or an alias), else the values of the one project it mirrors,
-else `unassigned` when it is in business scope and `none` outside it. business-ecosystem's own packages get
-their values from code once package records exist, not from a curated row.
+else `unassigned` when it is in business scope and `none` outside it. business-ecosystem's own packages give
+it its values from code, not from a curated row.
+
+Packages are records of their own, `pkg:<forge id>//<subpath>`, for the repositories a `[[host]]` row of
+`curated/capabilities.toml` opts in (business-ecosystem only, so far). The canonical checkout's tracked
+manifests name them (`sources.read_packages`), every file is read through the deny list, and each package
+carries its lines of code, test files, declared against imported internal dependencies and static problems.
+A package takes its curated row (a `[[capability]]` row keyed by its package id), else the run-band value
+its directory names (`rule:package-path`: business-ecosystem's domain packages are named after their
+framework domain), else none; a host project with no row of its own takes the union of its packages that
+have code (`derived:packages`). Build state comes from the tracked quarantine list the host row names
+(`ci/quarantine.json`): a task is `quarantined` when listed, `gated` when CI runs it and `not-run`
+otherwise, read as the list at the checkout's HEAD, which is the contract CI enforces there. An entry's
+`measured_at` is the earlier commit its error count was measured at, shown as dated evidence with its
+distance from HEAD and never compared with HEAD. When the list cannot be read as HEAD's (missing,
+untracked, or the checkout not measured clean) every task is `not-measured`. A package whose build or
+typecheck is quarantined reads `code-unbuilt`. The estate runs no build: `gated` is CI's contract, not an
+observed run.
 
 Whole repositories are curated in `curated/capabilities.toml`, one `[[capability]]` row per forge id,
 `reviewed = false` until Yu reviews it. `estate capability --import ABS_PATH` prints the diff and writes
@@ -207,7 +225,9 @@ holds nor lists as designed), `capability-review-overdue` and `capability-orphan
 The map is the body of the atlas's Business (secondary) section: per band, each capability with the records
 holding it and their operating claims, who it serves, where it is designed only and which records name it
 as `be.framework_domain` relevance; then the gaps (sell and grow capabilities no record holds as in use,
-worded as a statement about code, not a verdict on the business) and every record in business scope.
+worded as a statement about code, not a verdict on the business) and every record in business scope; each
+value also shows what its packages measure (lines, test files, importers, unread files, and how many have no
+measured build state), and each host where and at which commit its packages were read.
 `CAPABILITIES.md` beside the atlas holds the whole map value by value, with each row's private evidence;
 Questions for Yu carries one line for the rows waiting on review.
 

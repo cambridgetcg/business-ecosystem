@@ -23,6 +23,7 @@ import capability
 import curate
 import model
 import packages
+import render
 import safety
 import sources
 
@@ -261,6 +262,14 @@ class PackageRecordTests(fixture.EstateTestCase):
         self.assertIn("build state not measured: %s was not read as the one at HEAD" % fixture.DOMAIN_LIST,
                       capability.host_text(summary))
 
+    def test_the_measured_cell_names_packages_without_a_build_state(self):
+        privacy = self.records[pkg("operational/data-privacy")]
+        unmeasured = dict(privacy, build=packages.build_state(privacy, None))
+        self.assertEqual(render._measured([privacy]), "1 package: 1 line, 0 test files, imported by 0, 0 unread")
+        self.assertEqual(render._measured([privacy, unmeasured]), "2 packages: 2 lines, 0 test files, imported by 0, "
+                                                                  "0 unread; build state not measured for 1")
+        self.assertEqual(render._build_text(unmeasured), "not measured")
+
     def test_records_join_groups_and_host_rows_are_checked(self):
         privacy = self.records[pkg("operational/data-privacy")]
         self.assertEqual((privacy["host"], privacy["name"], privacy["manifest"], privacy["group_ids"]),
@@ -383,6 +392,8 @@ class CommandLinePackageTests(fixture.EstateTestCase):
         cls.verb = test_e2e.cli(e.layer, "capability")
         cls.listed = test_e2e.cli(e.layer, "ls", "--kind", "package")
         cls.shown = test_e2e.cli(e.layer, "show", pkg("operational/data-privacy"))
+        cls.atlas = test_e2e.read_text(os.path.join(cls.run_dir, "ATLAS.md"))
+        cls.full = test_e2e.read_text(os.path.join(cls.run_dir, "CAPABILITIES.md"))
 
     def test_the_import_keeps_the_host_row_and_the_build_reads_the_host(self):
         self.assertEqual(self.imported[0], 0, self.imported[1] + self.imported[2])
@@ -412,6 +423,16 @@ class CommandLinePackageTests(fixture.EstateTestCase):
         self.assertIn("build state from %s at HEAD, 6 entries, error counts measured at %s (" % (
             fixture.DOMAIN_LIST, self.measured[:12]), out)
         self.assertIn("package capabilities by impl: code 1, code-unbuilt 1, stub 1, unread 1", out)
+
+    def test_the_map_shows_the_measured_columns(self):
+        business = self.atlas[self.atlas.index("\n## Business (secondary)"):self.atlas.index("\n## Freshness")]
+        self.assertIn("measured (packages)", business)
+        self.assertIn("Packages, measured from tracked files: 6 records, 4 holding a capability", business)
+        self.assertIn("1 package: 1 line, 0 test files, imported by 0, 0 unread", business)  # data-privacy
+        self.assertIn("1 package: 4 lines, 1 test file, imported by 0, 0 unread", business)  # accounting
+        self.assertIn("1 package: ≥0 lines, 0 test files, imported by 0, 1 unread", business)  # intellectual-property
+        self.assertIn("quarantined: build 7 at %s; typecheck 7 at" % self.measured[:12], self.full)
+        self.assertIn("| %s |" % pkg("foundational/accounting"), self.full)
 
 
 if __name__ == "__main__":  # pragma: no cover
