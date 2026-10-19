@@ -24,6 +24,7 @@ import census
 import curate
 import decisions
 import hygiene
+import ideas
 import kingdom
 import motifs
 import packages
@@ -50,6 +51,9 @@ PRIVATE_DECISIONS = "private/curated/decisions.toml"
 # Local-id sphere rows and the full evidence of every sphere row; private, written by `estate sphere`.
 PRIVATE_SPHERE = "private/" + sphere.PRIVATE_FILE
 PRIVATE_HYGIENE = "private/" + hygiene.PRIVATE_FILE
+# The ideas plan: business ideas as proposals whose statuses only the owner sets; private, written by
+# `estate ideas`.
+PRIVATE_IDEAS = "private/" + ideas.PRIVATE_FILE
 # Local-id capability rows and the full evidence of every capability row; private, written by
 # `estate capability`.
 PRIVATE_CAPABILITY = "private/" + capability.PRIVATE_FILE
@@ -392,6 +396,10 @@ def _private_rows(layer, out):
     doc, reason = hygiene.load(os.path.join(layer, PRIVATE_HYGIENE))
     out["status"][PRIVATE_HYGIENE] = reason or "ok"
     out["private"]["hygiene"] = doc
+    # JSON as well: the ideas plan is an owner plan like the D8 one (ideas.py, plans.py).
+    doc, reason = ideas.load(os.path.join(layer, PRIVATE_IDEAS))
+    out["status"][PRIVATE_IDEAS] = reason or "ok"
+    out["private"]["ideas"] = doc
 
 
 def load_curated(layer_dir=None):
@@ -403,7 +411,8 @@ def load_curated(layer_dir=None):
     out = {"families": {}, "projects": {}, "groups": {}, "identity": [], "surfaces": [], "zones": [],
            "disputes": [], "questions": [], "upstream_notes": [], "spheres": [], "capabilities": [], "hosts": [],
            "wires": [], "motifs": [], "owners": {}, "legal": {}, "decisions": [],
-           "private": {"projects": {}, "estate": {}, "decisions": {}, "sphere": {}, "capability": {}, "hygiene": None},
+           "private": {"projects": {}, "estate": {}, "decisions": {}, "sphere": {}, "capability": {}, "hygiene": None,
+                       "ideas": None},
            "status": {},
            "problems": []}
     _family_files(layer, out)
@@ -647,7 +656,7 @@ class _Join:
         self.projects, self.surfaces, self.schedulers, self.zones = {}, {}, {}, {}
         self.groups, self.families, self.relations, self.artifacts = {}, {}, {}, {}
         self.repo, self.roster, self.fleet = {}, {}, {}
-        self.sphere, self.hygiene, self.capability = {}, {}, {}
+        self.sphere, self.hygiene, self.capability, self.ideas = {}, {}, {}, {}
         self.packages, self.hosts, self.package_problems, self.wires = {}, [], [], {}
         # The package import edges and the anchors found in each checkout, kept for the motifs view.
         self.package_edges, self.anchors_found, self.motifs = [], {}, {}
@@ -2877,6 +2886,11 @@ def build_records(census_data, foundation, srcs, curated, vocab, prev=None, cfg=
     j.hygiene = hygiene.join(private.get("hygiene"), ((curated or {}).get("status") or {}).get(PRIVATE_HYGIENE),
                              records, (j.decided.get("hygiene") or {}).get("decision"),
                              refs=hygiene.reference_status(curated))
+    # The ideas plan joined with this run's records, wires and motifs (ideas.join); a view, never a record.
+    # An idea the owner marked done that this run does not back is queued, its status left as it is.
+    j.ideas = ideas.join(private.get("ideas"), ((curated or {}).get("status") or {}).get(PRIVATE_IDEAS), records,
+                         j.wires, j.motifs)
+    j.queue += ideas.queue_items(j.ideas)
     snapshot = {
         "schema": SNAPSHOT_SCHEMA, "observed_at": j.now_iso, "ref": j.primary,
         "layers": list((j.refs.get(j.primary) or {}).get("layers") or []),
@@ -2891,7 +2905,7 @@ def build_records(census_data, foundation, srcs, curated, vocab, prev=None, cfg=
                                                     "status": e.get("status")} for e in j.registry]},
         "foundation": foundation_summary(foundation),
         "authority": j.authority, "sphere": j.sphere, "capability": j.capability, "wires": j.wires, "motifs": j.motifs,
-        "hygiene": j.hygiene,
+        "hygiene": j.hygiene, "ideas": j.ideas,
         "decision_effects": j.decision_effects(),
         "problems": j.problems + list((curated or {}).get("problems") or []),
     }
@@ -3026,8 +3040,9 @@ def degraded_reasons(snapshot, census_data=None):
         reasons.append("the primary kingdom-os ref %s (%s) could not be read; this run resolved KINGDOM facets "
                        "on %s" % (authority["unreadable"], authority.get("decision") or authority.get("basis"),
                                   snapshot.get("ref")))
-    if (snapshot.get("hygiene") or {}).get("degraded"):
-        reasons.append(snapshot["hygiene"]["degraded"])
+    for view in ("hygiene", "ideas"):
+        if (snapshot.get(view) or {}).get("degraded"):
+            reasons.append(snapshot[view]["degraded"])
     return reasons
 
 

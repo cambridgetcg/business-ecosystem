@@ -64,10 +64,12 @@ import census  # noqa: E402
 import curate  # noqa: E402
 import decisions  # noqa: E402
 import hygiene  # noqa: E402
+import ideas  # noqa: E402
 import kingdom  # noqa: E402
 import model  # noqa: E402
 import motifs  # noqa: E402
 import packages  # noqa: E402
+import plans  # noqa: E402
 import proposals  # noqa: E402
 import render  # noqa: E402
 import safety  # noqa: E402
@@ -528,6 +530,8 @@ PERSISTENT (not regenerable; this machine holds the only copy)
                                 by `estate hygiene --import` and `--set`)
   curated/capability.toml       local ids and the full evidence of every capability row (0600;
                                 written by `estate capability --import`)
+  curated/ideas.json            business ideas as proposals with the owner's statuses (0400;
+                                changed only by `estate ideas --import` and `--set`)
   curated/*.bak-<time>          the previous copy each owner verb keeps (0400)
   config.toml                   owner-edited input locators and options (no secrets)
 
@@ -744,6 +748,7 @@ def run_document(run_id, state, code, started, finished, args, census_data, snap
         "validation": {"ok": True, "problems_n": 0},
         "proposals": proposals.summary(props),
         "hygiene": (snapshot.get("hygiene") or {}).get("counts"),
+        "ideas": (snapshot.get("ideas") or {}).get("counts"),
         "capability": {k: (snapshot.get("capability") or {}).get(k) for k in ("packages", "hosts")},
         "wires": snapshot.get("wires"),
         "motifs": snapshot.get("motifs"),
@@ -776,6 +781,14 @@ def print_build_summary(ctx, run_doc, files, sums, links, kept):
             ", ".join("%s %d" % kv for kv in plan["by_verdict"].items())))
     else:
         say("  hygiene plan: %s" % (plan.get("status") or "not joined"))
+    plan = run_doc.get("ideas") or {}
+    if plan.get("status") == "ok":
+        say("  ideas plan: %d ideas · by status %s · backing %s%s" % (
+            plan["items"], ", ".join("%s %d" % kv for kv in plan["by_status"].items()),
+            ", ".join("%s %d" % kv for kv in plan["by_verdict"].items()),
+            " · done but not backed %d (QUEUE idea-done-unbacked)" % plan["done_unbacked"] if plan.get("done_unbacked") else ""))
+    else:
+        say("  ideas plan: %s" % (plan.get("status") or "not joined"))
     wired = run_doc.get("wires")
     if wired is not None:
         measured = wired.get("measured") or {}
@@ -880,13 +893,14 @@ def check_status(ctx):
     mode = ctx.area.curated_mode()
     if mode != 0o500:
         warnings.append("private curated dir is %s, not 0500 between writes" % ("missing" if mode is None else "%o" % mode))
-    try:
-        plan_mode = stat.S_IMODE(os.lstat(ctx.area.path(hygiene.PRIVATE_FILE)).st_mode)
-    except FileNotFoundError:
-        plan_mode = None
-    if plan_mode not in (None, hygiene.MODE):
-        warnings.append("private %s is %o, not %o (only estate hygiene changes it)" % (
-            hygiene.PRIVATE_FILE, plan_mode, hygiene.MODE))
+    for store in (hygiene.STORE, ideas.STORE):
+        try:
+            plan_mode = stat.S_IMODE(os.lstat(ctx.area.path(store.private_file)).st_mode)
+        except FileNotFoundError:
+            plan_mode = None
+        if plan_mode not in (None, plans.MODE):
+            warnings.append("private %s is %o, not %o (only %s changes it)" % (
+                store.private_file, plan_mode, plans.MODE, store.verb))
     warnings += ["private area: %s" % p for p in ctx.area.dir_problems()]
     for name in STATIC_LINKS:
         path = os.path.join(ctx.private, name)
@@ -1736,7 +1750,7 @@ def cmd_hygiene(ctx, args):
         require(args.status is not None, "--set needs --status %s" % "|".join(hygiene.SET_STATUSES))
         require(not filters, "--wave, --severity, --area, --needs-yu and --agent-safe filter the listing; they do "
                              "not go with --set")
-        return _locked(ctx, args.write, set_hygiene, args)
+        return _locked(ctx, args.write, functools.partial(set_plan, store=hygiene.STORE), args)
     require(not args.write and args.note is None, "--write and --note go with --import or --set")
     return list_hygiene(ctx, args)
 
@@ -1751,31 +1765,34 @@ def _locked(ctx, write, step, args):
         return step(ctx, args, True)
 
 
-def hygiene_run(ctx):
-    """(records of the current run or None, {id, observed_at, why})."""
+def plan_run(ctx, want=("records",)):
+    """(records of the current run or None, {id, observed_at, why, doc}): what an owner plan's listing or
+    import joins with; doc is the run's run.json when want names "run"."""
     run_dir, why = current_run(ctx.area)
     if run_dir is None:
-        return None, {"id": None, "observed_at": None, "why": why}
-    run = read_run(run_dir, ("records",))
+        return None, {"id": None, "observed_at": None, "why": why, "doc": None}
+    run = read_run(run_dir, want)
     if run["problems"]:
-        return None, {"id": run["id"], "observed_at": None, "why": "; ".join(run["problems"])}
-    return run["records"], {"id": run["id"], "observed_at": (run["header"] or {}).get("observed_at"), "why": None}
+        return None, {"id": run["id"], "observed_at": None, "why": "; ".join(run["problems"]), "doc": None}
+    return run["records"], {"id": run["id"], "observed_at": (run["header"] or {}).get("observed_at"), "why": None,
+                            "doc": run["run"]}
 
 
-def hygiene_file(ctx, verb):
-    doc, reason = hygiene.load(ctx.area.path(hygiene.PRIVATE_FILE))
+def plan_file(ctx, store, verb):
+    """The private file of an owner plan (plans.py), None when there is none yet; refused when unusable."""
+    doc, reason = plans.load(store, ctx.area.path(store.private_file))
     require(doc is not None or reason == "missing", "private/%s is not usable (%s); restore its newest backup "
-                                                    "beside it before %s" % (hygiene.PRIVATE_FILE, reason, verb))
+                                                    "beside it before %s" % (store.private_file, reason, verb))
     return doc
 
 
-def keep_hygiene(ctx, doc):
-    result = curate.keep_private(ctx.area, hygiene.PRIVATE_FILE, hygiene.text_of(doc), mode=hygiene.MODE)
-    say("  private/%s: %s%s" % (hygiene.PRIVATE_FILE, result["status"], "; " + result["change"] if result.get("change") else ""))
+def keep_plan(ctx, store, doc):
+    result = curate.keep_private(ctx.area, store.private_file, plans.text_of(doc), mode=plans.MODE)
+    say("  private/%s: %s%s" % (store.private_file, result["status"], "; " + result["change"] if result.get("change") else ""))
 
 
 def list_hygiene(ctx, args):
-    doc = hygiene_file(ctx, "listing")
+    doc = plan_file(ctx, hygiene.STORE, "listing")
     if doc is None:
         say("hygiene: no plan in private/%s; import one with estate hygiene --import ABS_PATH --write"
             % hygiene.PRIVATE_FILE)
@@ -1785,7 +1802,7 @@ def list_hygiene(ctx, args):
         wanted = getattr(args, name)
         require(wanted is None or wanted.lower() in {v.lower() for v in allowed[name]},
                 "--%s filters by one of %s (case does not matter)" % (name, ", ".join(allowed[name]) or "none"))
-    records, run = hygiene_run(ctx)
+    records, run = plan_run(ctx)
     view = hygiene.join(doc, None, records, None, run["id"], refs=hygiene.reference_status(model.load_curated(ctx.layer)))
     counts = view["counts"]
     say("hygiene plan (private/%s): %d items, %d missing from the newest plan · plan observed %s · %s" % (
@@ -1812,8 +1829,8 @@ def list_hygiene(ctx, args):
 
 def import_hygiene(ctx, args, write):
     plan, sha = hygiene.read_plan(args.import_path)
-    old = hygiene_file(ctx, "an import")
-    records, run = hygiene_run(ctx)
+    old = plan_file(ctx, hygiene.STORE, "an import")
+    records, run = plan_run(ctx)
     by_id = {r["id"]: r for r in records or [] if r.get("id")}
     new, counts, notes = hygiene.merge(plan, old, by_id, run, sha, safety.iso(safety.utc_now()))
     say("hygiene --import: %s observed %s · %s" % (plan["schema"], plan["observed_at"], ", ".join(
@@ -1830,24 +1847,95 @@ def import_hygiene(ctx, args, write):
     if not write:
         say("nothing written; add --write (the previous file is kept as a 0400 backup)")
         return 0
-    keep_hygiene(ctx, new)
+    keep_plan(ctx, hygiene.STORE, new)
     return 0
 
 
-def set_hygiene(ctx, args, write):
-    doc = hygiene_file(ctx, "--set")
-    require(doc is not None, "no plan in private/%s; import one first" % hygiene.PRIVATE_FILE)
+def set_plan(ctx, args, write, store):
+    """--set of an owner plan (hygiene, ideas): the owner's status of one item, with a log entry and the
+    diff of the item's estate fields; written only with --write."""
+    doc = plan_file(ctx, store, "--set")
+    require(doc is not None, "no plan in private/%s; import one first" % store.private_file)
     note = args.note.strip() if args.note is not None else None
     require(note is None or note, "--note needs text")
-    new, before, after = hygiene.set_status(doc, args.set_id, args.status, note, safety.iso(safety.utc_now()))
+    new, before, after = plans.set_status(store, doc, args.set_id, args.status, note, safety.iso(safety.utc_now()))
     if after is before:
-        say("hygiene --set: %s is already %s by the owner; nothing to change" % (args.set_id, args.status))
+        say("%s --set: %s is already %s by the owner; nothing to change" % (store.kind, args.set_id, args.status))
         return 0
-    sys.stdout.write(hygiene.status_diff(before, after))
-    say("hygiene --set: %s %s -> %s (%s)" % (args.set_id, hygiene.effective(before)[0], args.status,
-                                            "writing" if write else "not written; add --write"))
+    sys.stdout.write(plans.status_diff(store, before, after))
+    say("%s --set: %s %s -> %s (%s)" % (store.kind, args.set_id, plans.effective(store, before)[0], args.status,
+                                       "writing" if write else "not written; add --write"))
     if write:
-        keep_hygiene(ctx, new)
+        keep_plan(ctx, store, new)
+    return 0
+
+
+def cmd_ideas(ctx, args):
+    """The ideas plan (ideas.py): business ideas as proposals, each joined with the current run's
+    measurements of what would back it, filtered by status or kind. --import merges a plan into the
+    private curation by idea id (an import only proposes); --set records the owner's status of one idea.
+    Both print what changes and write only with --write, keeping the previous file as a new 0400 backup."""
+    require(not (args.import_path and args.set_id), "--import and --set exclude each other")
+    if args.import_path:
+        require(args.status is None and args.kind is None and args.note is None,
+                "--status, --kind and --note do not go with --import")
+        return _locked(ctx, args.write, import_ideas, args)
+    if args.set_id:
+        require(args.status is not None, "--set needs --status %s" % "|".join(ideas.SET_STATUSES))
+        require(args.kind is None, "--kind filters the listing; it does not go with --set")
+        return _locked(ctx, args.write, functools.partial(set_plan, store=ideas.STORE), args)
+    require(not args.write and args.note is None, "--write and --note go with --import or --set")
+    return list_ideas(ctx, args)
+
+
+def list_ideas(ctx, args):
+    doc = plan_file(ctx, ideas.STORE, "listing")
+    if doc is None:
+        say("ideas: no plan in private/%s; import one with estate ideas --import ABS_PATH --write" % ideas.PRIVATE_FILE)
+        return 0
+    for name, allowed in (("status", ideas.SET_STATUSES), ("kind", ideas.KINDS)):
+        wanted = getattr(args, name)
+        require(wanted is None or wanted.lower() in allowed,
+                "--%s filters by one of %s (case does not matter)" % (name, ", ".join(allowed)))
+    records, run = plan_run(ctx, ("run", "records"))
+    view = ideas.join(doc, None, records, (run["doc"] or {}).get("wires"), (run["doc"] or {}).get("motifs"), run["id"])
+    counts = view["counts"]
+    say("ideas plan (private/%s): %d ideas, %d missing from the newest plan · plan observed %s · %s" % (
+        ideas.PRIVATE_FILE, counts["items"], counts["missing"], counts["observed_at"],
+        "joined with run %s" % run["id"] if records is not None else "not joined (%s)" % run["why"]))
+    say("  by status %s · by kind %s · backing %s" % tuple(", ".join("%s %d" % kv for kv in counts[key].items())
+                                                        for key in ("by_status", "by_kind", "by_verdict")))
+    if counts["done_unbacked"]:
+        say("  marked done and not backed in this run: %d (QUEUE idea-done-unbacked)" % counts["done_unbacked"])
+    rows = ideas.filtered(view["items"], args.status, args.kind)
+    if len(rows) != len(view["items"]):
+        say("  %d shown (filters: %s)" % (len(rows), ", ".join("%s=%s" % (k, v) for k, v in (
+            ("status", args.status), ("kind", args.kind)) if v)))
+    for item in rows:
+        say("  %-16s %-11s %-12s %s%s  %s" % (
+            item["status"] + (" (owner)" if item["status_basis"] == "owner" else ""), item["plan"].get("kind"),
+            item["join"]["verdict"] or "not joined", item["id"],
+            " (missing since %s)" % item["missing_since"] if item.get("missing_since") else "",
+            render.clip(item["plan"].get("title"), 110)))
+    return 0
+
+
+def import_ideas(ctx, args, write):
+    facets = model.load_vocab(ctx.layer)["facets"]
+    plan, sha = ideas.read_plan(args.import_path, facets)
+    old = plan_file(ctx, ideas.STORE, "an import")
+    new, counts = ideas.merge(plan, old, sha, safety.iso(safety.utc_now()))
+    say("ideas --import: %s observed %s · %s (an import only proposes; statuses stay the owner's)" % (
+        plan["schema"], plan["observed_at"], ", ".join("%s %d" % kv for kv in sorted(counts.items()))))
+    if new is old:
+        say("  private/%s: unchanged" % ideas.PRIVATE_FILE)
+        return 0
+    say("  private/%s: %s (%d bytes, contents not shown)" % (
+        ideas.PRIVATE_FILE, "replace" if old is not None else "create", len(plans.text_of(new).encode("utf-8"))))
+    if not write:
+        say("nothing written; add --write (the previous file is kept as a 0400 backup)")
+        return 0
+    keep_plan(ctx, ideas.STORE, new)
     return 0
 
 
@@ -2042,6 +2130,16 @@ def make_parser():
     sub.add_argument("--note", help="with --set: what was done (private; never a secret value)")
     sub.add_argument("--write", action="store_true",
                      help="change private/curated/hygiene.json (the previous file is kept as a 0400 backup)")
+    sub = verb("ideas", cmd_ideas, "the ideas plan (business ideas as proposals) joined with the current run, or "
+                                   "import a plan or set an idea's status")
+    sub.add_argument("--status", help="list one status; with --set, the new status (%s)" % "|".join(ideas.SET_STATUSES))
+    sub.add_argument("--kind", help="list one kind (%s)" % "|".join(ideas.KINDS))
+    sub.add_argument("--import", dest="import_path", metavar="ABS_PATH",
+                     help="an estate.ideas/1 plan, merged by idea id (an import only proposes)")
+    sub.add_argument("--set", dest="set_id", metavar="ID", help="an idea id: record the owner's --status")
+    sub.add_argument("--note", help="with --set: why (private; never a secret value)")
+    sub.add_argument("--write", action="store_true",
+                     help="change private/curated/ideas.json (the previous file is kept as a 0400 backup)")
     sub = verb("export-private", cmd_export_private, "write a 0600 tar of the private curation (the only backup)")
     sub.add_argument("--to", required=True, metavar="ABS_PATH", help="a new file outside business-ecosystem")
     verb("untree", cmd_untree, "remove the symlink tree from every run and stop building it")
