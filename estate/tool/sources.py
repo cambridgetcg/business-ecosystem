@@ -1437,9 +1437,9 @@ def read_forge_listings(paths, now=None):
 
 
 def gh_listing(owners, allow_network=False, limit=2000):
-    """The opt-in `--forge` listing, the overlay's only network access: `gh repo list OWNER
-    --limit N --json name,nameWithOwner,isPrivate,isArchived,isFork,pushedAt,description` per
-    owner. Without allow_network=True nothing is spawned. Returns {status, owners{owner:
+    """The opt-in `--forge` listing, one of the overlay's two network reads (workflow_runs is the
+    other): `gh repo list OWNER --limit N --json name,nameWithOwner,isPrivate,isArchived,isFork,
+    pushedAt,description` per owner. Without allow_network=True nothing is spawned. Returns {status, owners{owner:
     {status, count, repos[], raw (bytes for the run dir), error}}}."""
     if allow_network is not True:
         return {"source": "gh", "status": "skipped", "reason": "network not requested (--forge)", "owners": {}}
@@ -1460,6 +1460,104 @@ def gh_listing(owners, allow_network=False, limit=2000):
         rows = [r for _, r in normalize_listing(items if isinstance(items, list) else []) if r]
         out["owners"][owner] = {"status": "ok", "count": len(rows), "repos": rows, "raw": res.raw}
     if any(v.get("status") != "ok" for v in out["owners"].values()):
+        out["status"] = "partial"
+    return out
+
+
+# ── one workflow's latest run on main (build --forge; tool/wires.py) ────────────────────────
+
+RUN_FIELDS = "databaseId,status,conclusion,headSha,event,createdAt"
+RUN_STATUSES = ("requested", "queued", "pending", "waiting", "in_progress", "completed")
+RUN_CONCLUSIONS = ("success", "failure", "cancelled", "skipped", "timed_out", "action_required", "neutral", "stale",
+                   "startup_failure")
+_GITHUB_REPO = re.compile(r"github\.com/([A-Za-z0-9][A-Za-z0-9-]{0,38})/([A-Za-z0-9._-]{1,100})")
+WORKFLOW_FILE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*\.ya?ml")
+_SHA = re.compile(r"[0-9a-f]{40}")
+
+
+def workflow_run_argv(repo, workflow):
+    """The one workflow-run read the estate makes, as gh argv: `gh run list --repo OWNER/NAME --workflow
+    FILE --branch main --limit 1 --json RUN_FIELDS`, read-only; None unless repo is a github.com forge id
+    and workflow a workflow file name (FILE.yml or FILE.yaml, no path)."""
+    match = _GITHUB_REPO.fullmatch(repo) if isinstance(repo, str) else None
+    if match is None or not (isinstance(workflow, str) and WORKFLOW_FILE.fullmatch(workflow)):
+        return None
+    return ["run", "list", "--repo", "%s/%s" % match.groups(), "--workflow", workflow, "--branch", "main",
+            "--limit", "1", "--json", RUN_FIELDS]
+
+
+def _run_of(item):
+    """The fields kept of one `gh run list` row, each shape-checked: {id, status, conclusion, head_sha,
+    event, created_at}; None when the row is not of that shape (nothing else from it is kept)."""
+    if not isinstance(item, dict):
+        return None
+    run = {"id": item.get("databaseId"), "status": item.get("status"), "conclusion": item.get("conclusion") or None,
+           "head_sha": item.get("headSha"), "event": item.get("event"), "created_at": item.get("createdAt")}
+    ok = (type(run["id"]) is int and run["status"] in RUN_STATUSES
+          and (run["conclusion"] is None or run["conclusion"] in RUN_CONCLUSIONS)
+          and isinstance(run["head_sha"], str) and _SHA.fullmatch(run["head_sha"])
+          and isinstance(run["event"], str) and re.fullmatch(r"[a-z_]{1,40}", run["event"])
+          and isinstance(run["created_at"], str) and _is_iso(run["created_at"]))
+    return run if ok else None
+
+
+def _is_iso(text):
+    try:
+        dt.datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    return True
+
+
+def _gh_failure(result):
+    """Why a gh call failed, in the estate's own words: gh's output is never kept, so nothing it prints
+    (a token among it) reaches a record, a run file or the terminal."""
+    if result.timed_out:
+        return "timeout after %ss" % GH_TIMEOUT
+    if result.code is None:
+        return "gh could not be started" if "not found" not in (result.err or "") else "gh not found on PATH"
+    return "gh exited %s" % result.code
+
+
+def workflow_runs(requests, allow_network=False, transport=None):
+    """The latest run on main of each (repository forge id, workflow file) in requests, read with
+    workflow_run_argv and nothing else: read-only, one call per pair, through transport (argv -> a
+    safety.Result; by default gh with the minimal environment of _run_tool, which passes no token).
+    Without allow_network=True nothing is called. Only the fields _run_of keeps are kept, and a failure
+    keeps only the estate's own words for it. {source, status (ok | partial | skipped), reason, runs
+    {"repo|workflow": {status (read | none | refused | error | invalid), reason, run}}}: none is a read
+    that found no run on main."""
+    if allow_network is not True:
+        return {"source": "gh-runs", "status": "skipped", "reason": "network not requested (--forge)", "runs": {}}
+    call = transport or (lambda argv: _run_tool("gh", argv, timeout=GH_TIMEOUT))
+    out = {"source": "gh-runs", "status": "ok", "reason": None, "runs": {}, "observed_at": _now()}
+    for repo, workflow in requests or []:
+        key = "%s|%s" % (repo, workflow)
+        if key in out["runs"]:
+            continue
+        argv = workflow_run_argv(repo, workflow)
+        if argv is None:
+            out["runs"][key] = {"status": "refused", "reason": "not a github.com repository and a workflow file name",
+                                "run": None}
+            continue
+        result = call(argv)
+        if not result.ok:
+            out["runs"][key] = {"status": "error", "reason": _gh_failure(result), "run": None}
+            continue
+        try:
+            items = _load_json(result.raw)
+        except (UnicodeDecodeError, ValueError, RecursionError):
+            items = None
+        if not isinstance(items, list):
+            out["runs"][key] = {"status": "invalid", "reason": "gh printed no JSON list", "run": None}
+        elif not items:
+            out["runs"][key] = {"status": "none", "reason": "no run of %s on main" % workflow, "run": None}
+        elif _run_of(items[0]) is None:
+            out["runs"][key] = {"status": "invalid", "reason": "the run gh printed is not of the expected shape",
+                                "run": None}
+        else:
+            out["runs"][key] = {"status": "read", "reason": None, "run": _run_of(items[0])}
+    if any(item["status"] not in ("read", "none") for item in out["runs"].values()):
         out["status"] = "partial"
     return out
 

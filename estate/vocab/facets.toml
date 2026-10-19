@@ -595,7 +595,7 @@ rule = "How far a curated wire has been shown to work. Independent of code_state
 
 [vocab.wire_stage.values]
 designed = "a design or a claim; nothing has shown it working end to end"
-demonstrated = "the latest run on main of the workflow the row names is green"
+demonstrated = "the latest run on main of the workflow the row names is green, as build --forge read it"
 accepted = "an owner decision the row names accepts it"
 active = "an owner decision the row names says it is in use"
 unknown = "the evidence the claimed stage needs could not be read"

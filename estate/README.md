@@ -56,13 +56,13 @@ estate/bin/estate build                   # measure, join, render and seal a new
 estate/bin/estate build --full            # walk every root at unlimited depth (automatic after 7 days)
 estate/bin/estate build --reuse-census    # re-read KINGDOM and sources against the last census
 estate/bin/estate build --no-tree         # this run without the symlink tree
-estate/bin/estate build --forge           # also list the forge owners with gh (the only network use)
+estate/bin/estate build --forge           # also list forge repos and read wires' workflow runs (the only network use)
 estate/bin/estate check                   # verify the current run: checksums, age, stale sources
 estate/bin/estate check --tree            # compare the symlink tree with its manifest
 estate/bin/estate check --vocab           # tag-map closure against facets.toml and the live enums
 estate/bin/estate check --commit-ready    # privacy lint and host checks before a commit
 estate/bin/estate check --verify-harvest  # the authority ref's harvest validate/conformance vs the mirror
-estate/bin/estate check --wires           # curated wires against the code: 1 if a wired claim has no consuming code
+estate/bin/estate check --wires           # curated wires against measurement: 1 if a wired claim has no code
 estate/bin/estate show <query>            # one record, claims beside measurements
 estate/bin/estate ls --facet layer=soul   # records by facet
 estate/bin/estate ls --facet sphere=kingdom-os   # the members of KINGDOM OS (D4): projects, zones, surfaces
@@ -246,9 +246,19 @@ non-test code for it and no end package is on the build or typecheck quarantine 
 end package is), `declared` (no code consumes it yet, or nothing is tracked yet where one side's anchors
 point) or `contradicted` (one side has the code and the other side's code does not answer it). `stage` is how
 far it has been shown to work: `designed`; `demonstrated` only when the latest run on main of the workflow
-the row names (`demonstrated_by`) is read green, which this version does not read, so such a claim reads
-`unknown`; `accepted` or `active` only with the owner decision the row names. Neither says live, which in
-the estate means observed up, and CI alone never makes a wire accepted or active.
+the row names (`demonstrated_by`, in the repository of the wire's consuming side) is read green;
+`accepted` or `active` only with the owner decision the row names. Neither says live, which in the estate
+means observed up, and CI alone never makes a wire accepted or active.
+
+The run is read only by `build --forge`, with one allowlisted, read-only call per workflow: `gh run list
+--repo OWNER/NAME --workflow FILE --branch main --limit 1 --json
+databaseId,status,conclusion,headSha,event,createdAt`, for host repositories (a `[[host]]` row) on github.com
+only. gh runs with the estate's minimal environment, which passes it no token variable (it uses its own stored
+login), and nothing gh prints is kept but those six fields, checked one by one; a failed call keeps only the
+estate's own words for why (exit code, timeout), so no token can reach a record, a run file or the terminal. A
+green run reads `demonstrated`; a run that concluded otherwise, or no run on main, reads `designed`; a run
+still in progress, a build without `--forge` or a failed read reads `unknown`, and a failed read degrades the
+run. A wire shows the run it was measured against (its id, commit and time).
 
 Each build measures every curated row and compares it with its claim: `agrees`, `unevidenced` (it claims
 `wired` or `wired-unbuilt` and the consuming side has no code for it), `differs` or `not-measured`. QUEUE
@@ -312,7 +322,7 @@ forge id. Everything measured, generated or risk-bearing lives in `private/`.
   every transport protocol disabled, an allowlist of read subcommands, no object reads on
   promisor clones, and no `status` where a filter driver is configured (status would run it;
   that checkout's dirty state is reported unknown). The only network access is the opt-in
-  `build --forge` repository listing.
+  `build --forge`: its repository listing and the latest-run read of the workflows demonstrated wires name.
 - Nothing is published: no artifact, site, bundle or registry entry.
 
 `estate/bin/estate check --commit-ready` runs the privacy lint over the committed files. Beyond

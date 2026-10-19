@@ -3,8 +3,11 @@
 Anchors are re-found in tracked files with comments stripped, and a hit counts as code only outside
 tests and documents. A curated row's code_state is measured from its anchors and its end packages'
 build state (wired, wired-unbuilt, declared, contradicted, or None when what decides it was not read);
-its stage reads designed, unknown for a demonstrated claim this version cannot evidence, and accepted or
-active only with an owner decision. The verdict compares claim and measurement, and check --wires exits
+its stage reads designed; demonstrated only when the latest run on main of the workflow it names is read
+green, through one allowlisted, read-only gh call per workflow (a fake transport in the unit tests and a
+stub gh on the command line, so no test touches the network), designed when that run is red or absent,
+and unknown when it was not read; accepted or active only with an owner decision. Nothing gh prints
+beyond the run's checked fields is kept. The verdict compares claim and measurement, and check --wires exits
 1 when a curated wired claim has no consuming code and 10 when another state differs, could not be
 measured or the row changed after the build. Measured depends_on edges come from package imports and
 manifests. A designed wire may name an end not built yet: it is measured and shown, but gives no
@@ -20,6 +23,7 @@ from . import test_packages
 import curate
 import model
 import packages
+import safety
 import sources
 import wires
 
@@ -40,6 +44,14 @@ def found(**by_side):
     """sides() output with the given found values per side: found(from_=["code"], to=["none"])."""
     return {side: [{"side": side, "path": "p", "text": "t", "found": f, "files": []}
                    for f in by_side.get(side + "_", by_side.get(side, []))] for side in wires.SIDES}
+
+
+# One `gh run list --json ...` row as gh prints it (with fields the reader drops), and what it keeps.
+GREEN = {"databaseId": 42, "status": "completed", "conclusion": "success", "headSha": "a" * 40, "event": "push",
+         "createdAt": "2026-10-19T00:00:00Z", "url": "https://github.com/cambridgetcg/fixture-domains/actions/runs/42",
+         "displayTitle": "dropped"}
+RUN = {"id": 42, "status": "completed", "conclusion": "success", "head_sha": "a" * 40, "event": "push",
+       "created_at": "2026-10-19T00:00:00Z"}
 
 
 class VocabularyTests(fixture.EstateTestCase):
@@ -188,10 +200,27 @@ class MeasureTests(fixture.EstateTestCase):
         self.assertEqual(wires.consumer_side("depends_on"), "from")
 
     def test_stage_needs_evidence_and_decisions(self):
-        self.assertEqual(wires.stage_of(row(), set()), ("designed", None))
-        stage, reason = wires.stage_of(row(stage="demonstrated", demonstrated_by="wire-e2e.yml"), set())
-        self.assertEqual(stage, "unknown")
-        self.assertIn("wire-e2e.yml", reason)
+        self.assertEqual(wires.stage_of(row(), set()), ("designed", None, None))
+        demo = row(stage="demonstrated", demonstrated_by="wire-e2e.yml")
+        stage, reason, run = wires.stage_of(demo, set())
+        self.assertEqual((stage, run), ("unknown", None))
+        self.assertIn("the latest run of wire-e2e.yml on main was not read (build --forge reads it)", reason)
+        key = wires.run_key(HOST, "wire-e2e.yml")  # the repository of the consuming side
+
+        def runs(read="read", reason=None, **fields):
+            return {"runs": {key: {"status": read, "reason": reason,
+                                   "run": dict(RUN, **fields) if read == "read" else None}}}
+        cases = [(runs(), "demonstrated", "run 42 of 2026-10-19T00:00:00Z at aaaaaaaaaaaa, is green"),
+                 (runs(conclusion="failure"), "designed", "concluded failure"),
+                 (runs(status="in_progress", conclusion=None), "unknown", "is in_progress"),
+                 (runs("none", "no run of wire-e2e.yml on main"), "designed", "wire-e2e.yml has no run on main"),
+                 (runs("error", "gh exited 4"), "unknown", "could not be read: gh exited 4"),
+                 ({"runs": {}}, "unknown", "could not be read: not requested")]
+        for given, want, text in cases:
+            stage, reason, _run = wires.stage_of(demo, set(), given)
+            self.assertEqual(stage, want, given)
+            self.assertIn(text, reason)
+        self.assertEqual(wires.stage_of(demo, set(), runs())[2], RUN)
         self.assertEqual(wires.stage_of(row(stage="accepted", decision="dec-1"), {"dec-1"})[0], "accepted")
         self.assertEqual(wires.stage_of(row(stage="active", decision="dec-2"), {"dec-1"})[0], "unknown")
 
@@ -212,6 +241,7 @@ class MeasureTests(fixture.EstateTestCase):
         demo = row(stage="demonstrated", demonstrated_by="wire-e2e.yml")
         self.assertEqual(wires.verdict_of(demo, "wired", both, "unknown"), "not-measured")
         self.assertEqual(wires.verdict_of(demo, "wired", both, "designed"), "differs")
+        self.assertEqual(wires.verdict_of(demo, "wired", both, "demonstrated"), "agrees")
 
     def test_measured_edges_and_flows(self):
         records = {pkg("a"): {"id": pkg("a"), "host": HOST, "name": "@x/a", "imports": {"internal": ["@x/b"]},
@@ -259,6 +289,86 @@ class MeasureTests(fixture.EstateTestCase):
         code, lines = wires.check(run("agrees"), {"a": current["a"]}, [])
         self.assertEqual(code, 10)
         self.assertIn("  stale: b is in the current run but no longer in curated/wires.toml (rebuild)", lines)
+
+
+def answer(items=None, code=0, err="", timed_out=False):
+    """A safety.Result as gh would return it: items printed as JSON on success."""
+    raw = b"" if items is None else json.dumps(items).encode("utf-8")
+    return safety.Result(code == 0 and not timed_out, raw.decode("utf-8"), err, None if timed_out else code,
+                         timed_out, raw)
+
+
+def transport(*answers):
+    """(call, calls): a fake gh transport answering in order and recording each argv; never the network."""
+    calls, replies = [], list(answers)
+
+    def call(argv):
+        calls.append(list(argv))
+        return replies.pop(0)
+    return call, calls
+
+
+class WorkflowRunTests(fixture.EstateTestCase):
+
+    def test_one_allowlisted_read_only_call_per_workflow(self):
+        call, calls = transport(answer([GREEN]))
+        out = sources.workflow_runs([(HOST, "wire-e2e.yml"), (HOST, "wire-e2e.yml")], allow_network=True, transport=call)
+        self.assertEqual(calls, [["run", "list", "--repo", "cambridgetcg/fixture-domains", "--workflow", "wire-e2e.yml",
+                                  "--branch", "main", "--limit", "1", "--json",
+                                  "databaseId,status,conclusion,headSha,event,createdAt"]])
+        self.assertEqual(out["runs"], {HOST + "|wire-e2e.yml": {"status": "read", "reason": None, "run": RUN}})
+        self.assertEqual(out["status"], "ok")
+
+    def test_nothing_is_called_without_network_or_outside_the_allowlist(self):
+        call, calls = transport()
+        self.assertEqual(sources.workflow_runs([(HOST, "wire-e2e.yml")], transport=call)["status"], "skipped")
+        refused = [("codeberg.org/zerone-dev/ai-love", "ci.yml"), (HOST, "../ci.yml"), (HOST, "ci.yml --web"),
+                   (HOST, ".github/workflows/ci.yml"), (HOST, "ci"), ("github.com/cambridgetcg", "ci.yml")]
+        out = sources.workflow_runs(refused, allow_network=True, transport=call)
+        self.assertEqual(calls, [])
+        self.assertEqual(len(out["runs"]), len(refused))
+        self.assertEqual({item["status"] for item in out["runs"].values()}, {"refused"})
+        self.assertEqual(out["status"], "partial")
+
+    def test_a_failure_keeps_only_the_estates_own_words(self):
+        shaped = "gh" + "p_" + "Q7" * 18  # shaped like a gh credential, built at run time; nothing kept may hold it
+        answers = [answer(code=4, err="HTTP 401: Bad credentials " + shaped), answer(timed_out=True, err=shaped),
+                   answer(code=None, err="gh not found on PATH"), safety.Result(True, shaped, "", 0, False, shaped.encode()),
+                   answer([]), answer([{"databaseId": "42", "status": "completed"}]),
+                   answer([dict(GREEN, status="in_progress", conclusion="")]), answer([dict(GREEN, headSha=shaped)])]
+        call, _calls = transport(*answers)
+        names = ["w%d.yml" % i for i in range(len(answers))]
+        out = sources.workflow_runs([(HOST, name) for name in names], allow_network=True, transport=call)
+        got = [(out["runs"][HOST + "|" + name]["status"], out["runs"][HOST + "|" + name]["reason"]) for name in names]
+        self.assertEqual(got, [("error", "gh exited 4"), ("error", "timeout after %ss" % sources.GH_TIMEOUT),
+                               ("error", "gh not found on PATH"), ("invalid", "gh printed no JSON list"),
+                               ("none", "no run of w4.yml on main"),
+                               ("invalid", "the run gh printed is not of the expected shape"), ("read", None),
+                               ("invalid", "the run gh printed is not of the expected shape")])
+        self.assertEqual(out["runs"][HOST + "|w6.yml"]["run"], dict(RUN, status="in_progress", conclusion=None))
+        self.assertNotIn(shaped, json.dumps(out))
+        self.assertEqual(out["status"], "partial")
+
+    def test_read_runs_asks_only_for_demonstrated_claims_in_host_repositories(self):
+        elsewhere = "github.com/cambridgetcg/elsewhere"
+        rows_ = {"demo": row("demo", stage="demonstrated", demonstrated_by="wire-e2e.yml"),
+                 "plain": row("plain", demonstrated_by="other.yml"),  # designed: nothing to read
+                 "away": row("away", to=elsewhere, stage="demonstrated", demonstrated_by="ci.yml")}
+        call, calls = transport(answer([GREEN]))
+        self.assertIsNone(wires.read_runs(rows_, {HOST: {}}, transport=call))  # no --forge: nothing read
+        out = wires.read_runs(rows_, {HOST: {}}, allow_network=True, transport=call)
+        self.assertEqual([argv[3] for argv in calls], ["cambridgetcg/fixture-domains"])
+        self.assertEqual(out["runs"][wires.run_key(HOST, "wire-e2e.yml")]["status"], "read")
+        away = out["runs"][wires.run_key(elsewhere, "ci.yml")]
+        self.assertEqual((away["status"], away["reason"]), ("refused", "%s is not a host repository ([[host]] row)"
+                                                            % elsewhere))
+        self.assertEqual(out["status"], "partial")
+        self.assertEqual(wires.stage_of(rows_["demo"], set(), out)[0], "demonstrated")
+        self.assertEqual(wires.stage_of(rows_["away"], set(), out)[0], "unknown")
+        summary = wires.summary([], [], [], out)
+        self.assertEqual(summary["runs"]["runs"][wires.run_key(HOST, "wire-e2e.yml")], {"status": "read", "reason": None,
+                                                                                       "run": RUN})
+        self.assertIsNone(wires.summary([], [], [])["runs"])
 
 
 WIRE_ROWS = [
@@ -401,6 +511,108 @@ class CommandLineWireTests(fixture.EstateTestCase):
         self.assertIn("Flow erasure: erase-to-ledger; its worst hop reads wired-unbuilt", business)
         self.assertIn("| to | foundational/accounting/src/ledger.py | def post | code | foundational/accounting/src/ledger.py |",
                       self.full)
+
+
+class CommandLineForgeRunTests(fixture.EstateTestCase):
+    """build --forge reads the latest run on main of the workflow a demonstrated wire names through a
+    stub gh (no network): green demonstrates it, red leaves it designed, a failed call leaves it unknown
+    and degrades the run, and nothing the stub prints on failure is kept or shown."""
+    allow_bins = ("launchctl", "crontab", "gh", "bun")
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        import shutil
+        e = fixture.make_estate(os.path.join(cls.tmp, "estate"))
+        cls.use_estate(e)
+        cls.layer, cls.private = e.layer, e.private
+        shutil.copytree(os.path.join(fixture.LAYER_DIR, "vocab"), os.path.join(e.layer, "vocab"))
+        os.unlink(os.path.join(e.layer, "vocab", "kingdom.lock.toml"))
+        caveat_dir = os.path.join(e.home, "empty-build")
+        os.makedirs(caveat_dir)
+        test_model.write_curation(e, caveat_dir)
+        fixture.make_domain_monorepo(os.path.join(e.desktop, "fixture-domains"), home=e.home, remote="https://%s.git" % HOST)
+        fixture.write_file(os.path.join(e.layer, "curated", "capabilities.toml"),
+                           "# fixture\n" + model.safety.toml_dumps({"host": [test_packages.HOST_ROW]}))
+        demo = dict(WIRE_ROWS[0], stage="demonstrated", demonstrated_by="wire-e2e.yml")
+        fixture.write_file(os.path.join(e.layer, wires.FILE), model.safety.toml_dumps({"wire": [demo, WIRE_ROWS[1]]}))
+        cls.shaped = "gh" + "p_" + "Q7" * 18  # shaped like a gh credential, built at run time
+        runs, fail = os.path.join(e.tmp, "gh-runs.json"), os.path.join(e.tmp, "gh-fail")
+        fixture.stub_bin("gh", (
+            "# synthetic gh: the forge listing, and `gh run list` from a canned file or a failure\n"
+            "if [ \"$1\" = repo ] && [ \"$2\" = list ]; then cat '%s'; exit 0; fi\n"
+            "if [ \"$1\" = run ] && [ \"$2\" = list ]; then\n"
+            "  if [ -e '%s' ]; then echo 'HTTP 401: Bad credentials %s' >&2; echo '%s'; exit 4; fi\n"
+            "  cat '%s'; exit 0\n"
+            "fi\n"
+            "exit 1") % (e.listing_gh, fail, cls.shaped, cls.shaped, runs), e.bin_dir)
+        test_e2e.cli(e.layer, "accept-vocab", "--write")
+        cls.offline = cls.step("build")
+        fixture.write_file(runs, json.dumps([GREEN]))
+        before = len(fixture.spawned())
+        cls.green = cls.step("build", "--reuse-census", "--forge")
+        cls.green_calls = [argv[1:] for argv in fixture.spawned()[before:] if os.path.basename(argv[0]) == "gh"]
+        fixture.write_file(runs, json.dumps([dict(GREEN, databaseId=43, conclusion="failure")]))
+        cls.red = cls.step("build", "--reuse-census", "--forge")
+        fixture.write_file(fail, "")
+        cls.failed = cls.step("build", "--reuse-census", "--forge")
+
+    @classmethod
+    def step(cls, *argv):
+        """One build and check --wires after it, with the run they read."""
+        built = test_e2e.cli(cls.layer, *argv)
+        checked = test_e2e.cli(cls.layer, "check", "--wires")
+        run_dir = os.path.realpath(os.path.join(cls.private, "current"))
+        return {"build": built, "check": checked, "dir": run_dir,
+                "run": test_e2e.read_json(os.path.join(run_dir, "run.json")),
+                "erase": next(r for r in test_e2e.read_json(os.path.join(run_dir, "run.json"))["wires"]["rows"]
+                              if r["name"] == "erase-to-ledger")}
+
+    def test_only_a_green_run_read_by_build_forge_demonstrates_a_wire(self):
+        for step in (self.offline, self.green, self.red, self.failed):
+            self.assertIn(step["build"][0], (0, 10), step["build"][1] + step["build"][2])
+            self.assertNotIn("failed validation", step["build"][1] + step["build"][2])
+        erase = self.offline["erase"]
+        self.assertEqual((erase["stage"], erase["verdict"], erase["run"]), ("unknown", "not-measured", None))
+        self.assertIn("was not read (build --forge reads it)", erase["stage_reason"])
+        self.assertEqual(self.offline["check"][0], 10)
+        erase = self.green["erase"]
+        self.assertEqual((erase["stage"], erase["verdict"], erase["run"]), ("demonstrated", "agrees", RUN))
+        code, out, err = self.green["check"]
+        self.assertEqual(code, 0, out + err)
+        self.assertIn("agrees 2", out)
+        erase = self.red["erase"]
+        self.assertEqual((erase["stage"], erase["verdict"], erase["run"]["conclusion"]), ("designed", "differs", "failure"))
+        self.assertEqual(self.red["check"][0], 10)
+        self.assertIn("differs      erase-to-ledger: claimed wired-unbuilt, demonstrated; measured wired-unbuilt, designed",
+                      self.red["check"][1])
+        records = test_e2e.jsonl(os.path.join(self.red["dir"], "records.jsonl"))[1:]
+        relation = next(r for r in records if r.get("name") == "erase-to-ledger")
+        self.assertEqual((relation["stage"], relation["run"]["id"]), ("designed", 43))
+        atlas = test_e2e.read_text(os.path.join(self.green["dir"], "ATLAS.md"))
+        self.assertIn("| demonstrated (run 42) | agrees |", atlas)
+
+    def test_one_allowlisted_call_and_a_failure_keeps_nothing_gh_printed(self):
+        runs = [argv for argv in self.green_calls if argv[:2] == ["run", "list"]]
+        self.assertEqual(runs, [["run", "list", "--repo", "cambridgetcg/fixture-domains", "--workflow", "wire-e2e.yml",
+                                 "--branch", "main", "--limit", "1", "--json",
+                                 "databaseId,status,conclusion,headSha,event,createdAt"]])
+        self.assertEqual([argv[:2] for argv in self.green_calls], [["repo", "list"], ["run", "list"]])
+        erase = self.failed["erase"]
+        self.assertEqual((erase["stage"], erase["verdict"]), ("unknown", "not-measured"))
+        self.assertIn("could not be read: gh exited 4", erase["stage_reason"])
+        reason = "workflow run %s|wire-e2e.yml via gh: error (gh exited 4)" % HOST
+        self.assertIn(reason, self.failed["run"]["degraded_reasons"])
+        self.assertEqual(self.failed["build"][0], 10)
+        for step in (self.green, self.red, self.failed):
+            self.assertNotIn(self.shaped, "".join(step["build"][1:]) + "".join(step["check"][1:]))
+        for base, _dirs, files in os.walk(self.private):
+            for name in files:
+                path = os.path.join(base, name)
+                if os.path.islink(path):
+                    continue
+                with open(path, "rb") as stream:
+                    self.assertNotIn(self.shaped.encode("utf-8"), stream.read(), path)
 
 
 if __name__ == "__main__":  # pragma: no cover
