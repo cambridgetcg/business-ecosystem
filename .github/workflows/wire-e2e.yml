@@ -17,6 +17,13 @@ on:
 permissions:
   contents: read
 
+# A new push to a pull request cancels that pull request's run in progress, so
+# only its latest head is checked. Every other run (pushes to main or develop,
+# manual runs) is a group of its own: none is cancelled or queued.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   wire-1:
     name: Wire 1 sale to ledger (Python ${{ matrix.python }})

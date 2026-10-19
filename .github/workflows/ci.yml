@@ -13,6 +13,13 @@ on:
 permissions:
   contents: read
 
+# A new push to a pull request cancels that pull request's run in progress, so
+# only its latest head is checked. Every other run (pushes to main or develop,
+# the schedule, manual runs) is a group of its own: none is cancelled or queued.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 # Package tasks listed in ci/quarantine.json are skipped by every turbo run
 # below; scripts/ci-quarantine.mjs prints the --filter=!<package> arguments.
 # Every job validates the list first: when it is invalid, $(...) prints no
