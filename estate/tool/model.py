@@ -396,9 +396,9 @@ def _private_rows(layer, out):
 
 def load_curated(layer_dir=None):
     """The committed curation (families, groups, estate.toml, decisions.toml, capabilities.toml with its
-    [[capability]] and [[host]] rows, wires.toml, motifs.toml) plus the private curation, with the owner decisions applied to its
-    questions and disputes (decisions.apply). Any file that is absent is recorded in status as missing;
-    nothing is invented."""
+    [[capability]] and [[host]] rows, wires.toml, motifs.toml) plus the private curation, with the owner
+    decisions applied to its questions and disputes (decisions.apply). Any file that is absent is
+    recorded in status as missing; nothing is invented."""
     layer = _layer(layer_dir)
     out = {"families": {}, "projects": {}, "groups": {}, "identity": [], "surfaces": [], "zones": [],
            "disputes": [], "questions": [], "upstream_notes": [], "spheres": [], "capabilities": [], "hosts": [],

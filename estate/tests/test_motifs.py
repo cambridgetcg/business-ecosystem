@@ -277,6 +277,8 @@ class CommandLineMotifTests(fixture.EstateTestCase):
         business = self.atlas[self.atlas.index("\n## Business (secondary)"):self.atlas.index("\n## Freshness")]
         self.assertIn("### Motifs", business)
         self.assertLess(business.index("### Wires"), business.index("### Motifs"))
+        self.assertIn("Curated motifs: 5 (5 not yet reviewed), by state adopted 1, reimplemented 1, unused 1, no-library 1, "
+                      "not-measured 1; 2 stale lines in QUEUE (motif-stale).", business)
         self.assertIn("| domain-events | adopted | shared/libs/messaging: imported by 1, declared only by 0; "
                       "shared/libs/events: imported by 0, declared only by 0 | operational/engine | — | — |", business)
         self.assertIn("| transactional-outbox | unused | shared/libs/outbox: imported by 0, declared only by 2 | — | "

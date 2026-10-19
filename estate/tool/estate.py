@@ -1630,9 +1630,9 @@ def cmd_capability(ctx, args):
     """The business capability map (capability.py) of the current run: projects by status and
     basis, each band's values with the projects holding them, the packages of the host repositories,
     the motifs (motifs.py), the unassigned projects in business scope, and the curated rows that wait
-    on a review or name no record. --import writes a
-    classification into curated/capabilities.toml (a printed diff; only with --write), keeping every
-    reviewed row unless --replace-reviewed names it, and the full evidence privately."""
+    on a review or name no record. --import writes a classification into curated/capabilities.toml (a
+    printed diff; only with --write), keeping every reviewed row unless --replace-reviewed names it,
+    and the full evidence privately."""
     if args.import_path:
         return _locked(ctx, args.write, import_capabilities, args)
     require(not args.write and not args.replace_reviewed, "--write and --replace-reviewed go with --import")

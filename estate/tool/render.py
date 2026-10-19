@@ -1411,9 +1411,11 @@ def _motifs(doc, v, level, full=False):
     doc.p("A motif is a design pattern the code repeats. Its users are measured: the packages whose non-test source "
           "imports a shared library that embodies it (adopted). With no importer, a curated anchor found as code "
           "elsewhere reads reimplemented and none reads unused; a pattern no library embodies reads no-library. A "
-          "package whose manifest only declares a library is not a user. Curated motifs: %d, by state %s%s." % (
-              len(rows), motifs.states_text(info.get("states")),
-              "; %d stale lines in QUEUE (motif-stale)" % info["stale"] if info.get("stale") else ""))
+          "package whose manifest only declares a library is not a user. Curated motifs: %d (%d not yet reviewed), "
+          "by state %s%s." % (
+              len(rows), sum(1 for m in rows if m.get("reviewed") is not True), motifs.states_text(info.get("states")),
+              "; %d stale line%s in QUEUE (motif-stale)" % (info["stale"], "" if info["stale"] == 1 else "s")
+              if info.get("stale") else ""))
     doc.table(("motif", "state", "libraries", "importers", "declared only", "by hand in (found as code)", "why"),
               [(m["name"], m["state"], "; ".join(motifs.library_text(lib, lambda i: _wire_end(v, i))
                                                  for lib in m.get("libraries") or []) or "none",
