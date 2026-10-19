@@ -78,6 +78,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Validate the quarantine list
         run: node scripts/ci-quarantine.mjs check
+      # CI's build check. A separate build job used to repeat this exact step,
+      # after the same install, once this job and lint-and-typecheck passed.
       - name: Build
         run: pnpm exec turbo run build $(node scripts/ci-quarantine.mjs build)
       - name: Test
@@ -85,26 +87,6 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
           REDIS_URL: redis://localhost:6379
-
-  build:
-    runs-on: ubuntu-latest
-    needs: [lint-and-typecheck, test]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - name: Validate the quarantine list
-        run: node scripts/ci-quarantine.mjs check
-      - name: Build All
-        run: pnpm exec turbo run build $(node scripts/ci-quarantine.mjs build)
 
   # Pull requests only: re-measure quarantined tasks in the packages the PR
   # touches. Fails when a count rises, an entry now passes (remove it), the
