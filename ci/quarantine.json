@@ -126,15 +126,6 @@
       "exit": "O1; build exits 0. Remove with the typecheck entry."
     },
     {
-      "package": "@ecosystem/compliance-aggregator",
-      "task": "test",
-      "reason": "vitest run finds no test files and exits 1.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: a first real test in this package passes."
-    },
-    {
       "package": "@ecosystem/contracts-legal",
       "task": "test",
       "reason": "vitest run finds no test files and exits 1.",
