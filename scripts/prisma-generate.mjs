@@ -16,7 +16,12 @@
  * into place), so a generate running at the same time can fail with ENOENT.
  *
  * The lock holds its owner's process id. A lock whose process has exited, such
- * as a generate that was killed, is taken over.
+ * as a generate that was killed, is taken over: one waiter at a time, under a
+ * second lock file, re-reads the lock and removes it only if that process is
+ * still its owner, so two waiters that saw the same exited owner cannot both
+ * take its place. A run killed in the middle of a takeover, or before it wrote
+ * its id, leaves a file that makes later runs wait; when their patience runs
+ * out they name both files.
  */
 
 import { spawnSync } from 'node:child_process';
@@ -27,6 +32,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const lock = join(root, 'node_modules', '.prisma-generate.lock');
+const takeover = `${lock}.takeover`;
 const patienceSeconds = 300;
 
 function fail(message) {
@@ -54,6 +60,27 @@ function exited(pid) {
   }
 }
 
+// Removes the lock of process pid, which has exited, unless another waiter is
+// taking a lock over. Without the takeover file, two waiters could both read
+// pid, and the second could remove the lock the first had just created in its
+// place. With it, a waiter that read pid before an earlier takeover finds the
+// lock gone or held by a live process, and leaves it. False when the takeover
+// file was already there.
+function takeOver(pid) {
+  try {
+    writeFileSync(takeover, String(process.pid), { flag: 'wx' });
+  } catch (error) {
+    if (error.code === 'EEXIST') return false;
+    fail(`cannot create ${takeover}: ${error.message}`);
+  }
+  try {
+    if (owner() === pid && exited(pid)) rmSync(lock, { force: true });
+  } finally {
+    rmSync(takeover, { force: true });
+  }
+  return true;
+}
+
 async function acquire() {
   const deadline = Date.now() + patienceSeconds * 1000;
   for (;;) {
@@ -65,12 +92,13 @@ async function acquire() {
     }
     const pid = owner();
     if (pid === null) continue;
-    if (pid > 0 && exited(pid)) {
-      if (owner() === pid) rmSync(lock, { force: true });
-      continue;
-    }
+    if (pid > 0 && exited(pid) && takeOver(pid)) continue;
     if (Date.now() > deadline) {
-      fail(`${lock} is still held by process ${pid} after ${patienceSeconds} s; remove it if no prisma generate is running`);
+      const holder = Number.isNaN(pid) ? 'a process that never wrote its id' : `process ${pid}`;
+      fail(
+        `${lock} is still held by ${holder} after ${patienceSeconds} s; ` +
+          `if no prisma generate is running, remove it and ${takeover}`
+      );
     }
     await sleep(100);
   }
