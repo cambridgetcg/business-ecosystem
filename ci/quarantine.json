@@ -99,15 +99,6 @@
       "exit": "F6; lint exits 0."
     },
     {
-      "package": "@ecosystem/workflow-engine",
-      "task": "lint",
-      "reason": "Linted for the first time now that ESLint reaches .orchestration: unused variables (8), require-await (3), no-unsafe-assignment (3), floating promises (2).",
-      "first_error": "src/engine.ts:7:10 'randomUUID' is defined but never used @typescript-eslint/no-unused-vars",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 19,
-      "exit": "F4; lint exits 0."
-    },
-    {
       "package": "@ecosystem/contracts-legal",
       "task": "typecheck",
       "reason": "Its Prisma client is never generated, so only the default stub exists: 82 TS2694 and 65 TS2305 missing Prisma types, and 30 implicit any that follow from them.",
@@ -153,15 +144,6 @@
       "exit": "O1 (outbox defects); typecheck exits 0. Remove with the build entry."
     },
     {
-      "package": "@ecosystem/workflow-engine",
-      "task": "typecheck",
-      "reason": "noUncheckedIndexedAccess (TS18048 x4) and an argument mismatch (TS2345) in src/parser.ts:165-212, exactOptionalPropertyTypes in src/domain-client.ts:95.",
-      "first_error": "src/domain-client.ts(95,70): error TS2379: Argument of type '{ method: string; headers: Record<string, string> | undefined; }' is not assignable to parameter of type 'RequestInit' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 6,
-      "exit": "F4; typecheck exits 0. Remove with the build entry."
-    },
-    {
       "package": "@ecosystem/contracts-legal",
       "task": "build",
       "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
@@ -205,15 +187,6 @@
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
       "errors": 4,
       "exit": "O1; build exits 0. Remove with the typecheck entry."
-    },
-    {
-      "package": "@ecosystem/workflow-engine",
-      "task": "build",
-      "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
-      "first_error": "src/domain-client.ts(95,70): error TS2379: Argument of type '{ method: string; headers: Record<string, string> | undefined; }' is not assignable to parameter of type 'RequestInit' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 6,
-      "exit": "F4; build exits 0. Remove with the typecheck entry."
     },
     {
       "package": "@ecosystem/compliance-aggregator",

@@ -59,7 +59,7 @@ export class HttpDomainClient implements DomainClient {
 
         return {
           success: false,
-          error: `HTTP \${response.status}: \${errorBody}`,
+          error: `HTTP ${response.status}: ${errorBody}`,
         };
       }
 
@@ -94,7 +94,7 @@ export class HttpDomainClient implements DomainClient {
     try {
       const response = await fetch(`\${this.config.baseUrl}/health`, {
         method: 'GET',
-        headers: this.config.headers,
+        headers: this.config.headers ?? {},
       });
 
       return response.ok;

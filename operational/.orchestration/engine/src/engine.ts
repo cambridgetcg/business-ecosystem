@@ -4,16 +4,13 @@
  */
 
 import { pino } from 'pino';
-import { randomUUID } from 'crypto';
 import type { DomainEvent, EventHandler } from '@ecosystem/messaging';
 import {
   type WorkflowDefinition,
   type WorkflowExecution,
-  type WorkflowEngineConfig,
-  type DomainClient,
 } from './types.js';
 import { loadWorkflowsFromDirectory } from './parser.js';
-import { WorkflowExecutor, type ExecutorConfig } from './executor.js';
+import { WorkflowExecutor } from './executor.js';
 import { createDomainClients, DEFAULT_DOMAIN_ENDPOINTS } from './domain-client.js';
 
 const logger = pino({ name: 'workflow-engine' });
@@ -55,16 +52,21 @@ export class WorkflowEngine {
   /**
    * Initialize the engine by loading workflow definitions
    */
-  async initialize(): Promise<void> {
-    logger.info({ workflowsDir: this.options.workflowsDir }, 'Initializing workflow engine');
+  initialize(): Promise<void> {
+    // Loading is synchronous. Inside a promise executor, a load error (such as
+    // a missing directory) still rejects the returned promise.
+    return new Promise((resolve) => {
+      logger.info({ workflowsDir: this.options.workflowsDir }, 'Initializing workflow engine');
 
-    this.workflows = loadWorkflowsFromDirectory(this.options.workflowsDir);
-    this.buildTriggerIndex();
+      this.workflows = loadWorkflowsFromDirectory(this.options.workflowsDir);
+      this.buildTriggerIndex();
 
-    logger.info({
-      workflowCount: this.workflows.size,
-      triggers: Array.from(this.triggerIndex.keys()),
-    }, 'Workflow engine initialized');
+      logger.info({
+        workflowCount: this.workflows.size,
+        triggers: Array.from(this.triggerIndex.keys()),
+      }, 'Workflow engine initialized');
+      resolve();
+    });
   }
 
   private buildTriggerIndex(): void {
@@ -100,13 +102,13 @@ export class WorkflowEngine {
   /**
    * Handle an incoming event
    */
-  async handleEvent(event: DomainEvent): Promise<void> {
+  handleEvent(event: DomainEvent): Promise<void> {
     const eventType = event.type;
     const workflows = this.triggerIndex.get(eventType) || [];
 
     if (workflows.length === 0) {
       logger.debug({ eventType }, 'No workflows triggered by event');
-      return;
+      return Promise.resolve();
     }
 
     logger.info({
@@ -133,6 +135,7 @@ export class WorkflowEngine {
       // Queue execution
       this.queueExecution(workflow, event, input);
     }
+    return Promise.resolve();
   }
 
   private matchesFilter(
@@ -185,10 +188,14 @@ export class WorkflowEngine {
     event: DomainEvent,
     input: Record<string, unknown>
   ): void {
+    // Runs in the background, so it must never reject: the executor records
+    // workflow failures itself, and anything else is logged here.
     const execute = async () => {
       this.runningCount++;
       try {
         await this.executor.execute(workflow, event, input);
+      } catch (error) {
+        logger.error({ workflowId: workflow.id, error }, 'Workflow execution crashed');
       } finally {
         this.runningCount--;
         this.processQueue();
@@ -196,7 +203,7 @@ export class WorkflowEngine {
     };
 
     if (this.runningCount < this.options.maxConcurrentWorkflows) {
-      execute();
+      void execute();
     } else {
       this.queue.push(execute);
       logger.debug({
@@ -213,7 +220,7 @@ export class WorkflowEngine {
     ) {
       const next = this.queue.shift();
       if (next) {
-        next();
+        void next();
       }
     }
   }
@@ -256,11 +263,15 @@ export class WorkflowEngine {
   /**
    * Reload workflow definitions from disk
    */
-  async reload(): Promise<void> {
-    logger.info('Reloading workflow definitions');
-    this.workflows = loadWorkflowsFromDirectory(this.options.workflowsDir);
-    this.buildTriggerIndex();
-    logger.info({ workflowCount: this.workflows.size }, 'Workflows reloaded');
+  reload(): Promise<void> {
+    // Synchronous, like initialize(); a load error still rejects.
+    return new Promise((resolve) => {
+      logger.info('Reloading workflow definitions');
+      this.workflows = loadWorkflowsFromDirectory(this.options.workflowsDir);
+      this.buildTriggerIndex();
+      logger.info({ workflowCount: this.workflows.size }, 'Workflows reloaded');
+      resolve();
+    });
   }
 
   /**
