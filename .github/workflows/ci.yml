@@ -108,9 +108,11 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-      # Run every dependency lifecycle script, even from a cached store: the
-      # Prisma packages' counts depend on the stub client @prisma/client's
-      # postinstall writes, which pnpm's side-effects cache does not restore.
+      # Run every dependency lifecycle script, even from a cached store, so the
+      # install matches the one ci/quarantine.json's counts were measured with.
+      # Before F7 this decided the Prisma packages' counts, through the stub
+      # client @prisma/client's postinstall writes. They now compile against
+      # their own generated clients (db:generate), and nothing imports the stub.
       - run: pnpm install --frozen-lockfile --config.side-effects-cache=false
       - name: Validate the quarantine list
         run: node scripts/ci-quarantine.mjs check
@@ -138,9 +140,11 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-      # Run every dependency lifecycle script, even from a cached store: the
-      # Prisma packages' counts depend on the stub client @prisma/client's
-      # postinstall writes, which pnpm's side-effects cache does not restore.
+      # Run every dependency lifecycle script, even from a cached store, so the
+      # install matches the one ci/quarantine.json's counts were measured with.
+      # Before F7 this decided the Prisma packages' counts, through the stub
+      # client @prisma/client's postinstall writes. They now compile against
+      # their own generated clients (db:generate), and nothing imports the stub.
       - run: pnpm install --frozen-lockfile --config.side-effects-cache=false
       - name: Validate the quarantine list
         run: node scripts/ci-quarantine.mjs check
