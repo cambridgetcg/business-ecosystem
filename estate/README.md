@@ -278,8 +278,8 @@ only forge ids, package ids, repository-relative anchors and short evidence that
 The first rows, all `reviewed = false`, are the plan's seed: the compliance-status route and the breach and
 entity events into the workflow engine (`wired`, since the quarantine follow-ups let both sides build), four
 calls or events the other side does not answer (`contradicted`), and the first wire, `sale-to-ledger`,
-`wired` and still `designed`: it becomes `demonstrated` once `build --forge` can read a green
-`wire-e2e.yml` run on main.
+`wired` and `demonstrated`: its row names `wire-e2e.yml`, which ran green on main on 2026-10-19, and
+`build --forge` reads that run.
 
 Motifs are a view, not a record kind (`tool/motifs.py`): the design patterns the code repeats, and whether
 that code reuses the shared library that embodies each one. A `[[motif]]` row of `curated/motifs.toml` names

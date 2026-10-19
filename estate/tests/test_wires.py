@@ -72,7 +72,7 @@ class VocabularyTests(fixture.EstateTestCase):
         relation = test_model.VOCAB["records"]["kind"]["relation"]["fields"]
         self.assertEqual((relation["from"]["ref"], relation["to"]["ref"]), ("project|group|package",) * 2)
 
-    def test_the_seed_rows_are_clean_unreviewed_and_the_first_wire_only_designed(self):
+    def test_the_seed_rows_are_clean_unreviewed_and_only_the_first_wire_demonstrated(self):
         path = os.path.join(fixture.LAYER_DIR, wires.FILE)
         with open(path, encoding="utf-8") as stream:
             text = stream.read()
@@ -82,12 +82,12 @@ class VocabularyTests(fixture.EstateTestCase):
         self.assertEqual((problems, len(rows)), ([], len(raw)))
         self.assertEqual({r["reviewed"] for r in raw}, {False})
         sale = rows["sale-to-ledger"]
-        self.assertEqual((sale["stage"], sale["code_state"], sale["flow"]), ("designed", "wired", "sale-to-ledger"))
-        # W5: it names, as build --forge reads it, the workflow whose green run on main will demonstrate it.
+        self.assertEqual((sale["stage"], sale["code_state"], sale["flow"]), ("demonstrated", "wired", "sale-to-ledger"))
+        # W5: it names, as build --forge reads it, the workflow whose green run on main demonstrates it.
         self.assertTrue(sources.WORKFLOW_FILE.fullmatch(sale["demonstrated_by"]))
         self.assertTrue(os.path.isfile(os.path.join(os.path.dirname(fixture.LAYER_DIR), ".github", "workflows",
                                                     sale["demonstrated_by"])))
-        self.assertEqual({r["stage"] for r in rows.values()}, {"designed"})
+        self.assertEqual({name: r["stage"] for name, r in rows.items() if r["stage"] != "designed"}, {"sale-to-ledger": "demonstrated"})
         for item in rows.values():
             for end in (item["from"], item["to"]):
                 self.assertTrue(end.startswith("pkg:github.com/cambridgetcg/business-ecosystem//"), end)
