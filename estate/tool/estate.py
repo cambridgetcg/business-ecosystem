@@ -66,6 +66,7 @@ import decisions  # noqa: E402
 import hygiene  # noqa: E402
 import kingdom  # noqa: E402
 import model  # noqa: E402
+import motifs  # noqa: E402
 import packages  # noqa: E402
 import proposals  # noqa: E402
 import render  # noqa: E402
@@ -630,10 +631,10 @@ def build(ctx, args, cfg, cfg_note, lock):
     forge_summary, forge_raws, forge_reasons = merge_gh_listing(srcs, cfg, args.forge, now)
     reasons += forge_reasons
     # The [[host]] rows name the repositories whose packages the canonical checkout reader also reads,
-    # and the [[wire]] rows the anchors it re-finds; the join reports the problems of both.
+    # and the [[wire]] and [[motif]] rows the anchors it re-finds; the join reports the problems of all.
     hosts = packages.host_rows(curated)[0]
     wire_rows = wires.rows(curated)[0]
-    anchors = wires.anchors_by_repo(wire_rows)
+    anchors = motifs.anchors_by_repo(motifs.rows(curated)[0], wires.anchors_by_repo(wire_rows))
     # --forge also reads the latest run on main of each workflow a demonstrated wire names: one
     # read-only gh call per workflow, for host repositories only. A read that fails degrades the run.
     runs = wires.read_runs(wire_rows, hosts, args.forge)
@@ -745,6 +746,7 @@ def run_document(run_id, state, code, started, finished, args, census_data, snap
         "hygiene": (snapshot.get("hygiene") or {}).get("counts"),
         "capability": {k: (snapshot.get("capability") or {}).get(k) for k in ("packages", "hosts")},
         "wires": snapshot.get("wires"),
+        "motifs": snapshot.get("motifs"),
         "lock_recovered": recovered,
         "forge_network": forge_summary,
         "previous": {"run_id": prev["run_id"], "problems": prev["problems"]},
@@ -781,6 +783,11 @@ def print_build_summary(ctx, run_doc, files, sums, links, kept):
             len(wired.get("rows") or []), ", ".join("%s %d" % kv for kv in (wired.get("verdicts") or {}).items()) or "none",
             ", ".join("%s %d" % kv for kv in (measured.get("measured-import") or {}).items()) or "none",
             sum((measured.get("measured-manifest") or {}).values())))
+    seen = run_doc.get("motifs")
+    if seen is not None:
+        say("  motifs: %d curated · %s%s (estate capability)" % (
+            len(seen.get("rows") or []), motifs.states_text(seen.get("states")),
+            " · stale %d" % seen["stale"] if seen.get("stale") else ""))
     tree_doc = run_doc["tree"]
     if tree_doc.get("enabled"):
         say("  tree: %d links, %d refused, self-check %s" % (tree_doc["links"], len(tree_doc["refused"]),
@@ -1621,8 +1628,9 @@ def import_spheres(ctx, args, write):
 
 def cmd_capability(ctx, args):
     """The business capability map (capability.py) of the current run: projects by status and
-    basis, each band's values with the projects holding them, the unassigned projects in business
-    scope, and the curated rows that wait on a review or name no record. --import writes a
+    basis, each band's values with the projects holding them, the packages of the host repositories,
+    the motifs (motifs.py), the unassigned projects in business scope, and the curated rows that wait
+    on a review or name no record. --import writes a
     classification into curated/capabilities.toml (a printed diff; only with --write), keeping every
     reviewed row unless --replace-reviewed names it, and the full evidence privately."""
     if args.import_path:
@@ -1653,11 +1661,14 @@ def cmd_capability(ctx, args):
                     for e in ((r.get("capability") or {}).get("by_value") or {}).values())
     if by_host:
         say("  package capabilities by impl: %s" % (", ".join("%s %d" % kv for kv in sorted(impls.items())) or "none"))
+    say_motifs(run)
     unassigned = sorted(pid for pid, f in fields.items() if f.get("status") == capability.UNASSIGNED)
     say("unassigned projects in business scope: %d" % len(unassigned))
     for pid in unassigned:
         say("  %s  [%s]" % (pid, "; ".join(fields[pid].get("scope") or [])))
-    rows, problems = capability.curated_index(model.load_curated(ctx.layer), facets)
+    curated = model.load_curated(ctx.layer)
+    rows, problems = capability.curated_index(curated, facets)
+    problems += motifs.rows(curated)[1]
     package_ids = [r["id"] for r in present(run["records"]) if r["kind"] == "package"]
     checks = capability.row_checks(projects, rows, safety.utc_now().date().isoformat(), package_ids)
     say("curated rows: %d · not yet reviewed %d · past review %d%s · naming no record of this run %d%s" % (
@@ -1667,6 +1678,24 @@ def cmd_capability(ctx, args):
     for item in problems:
         say("  problem: %s" % item)
     return 1 if problems else 0
+
+
+def say_motifs(run):
+    """The motifs view of a run (motifs.py): each pattern, its state, its libraries' users and how many of
+    its curated anchors code still holds."""
+    seen = (run["run"] or {}).get("motifs")
+    if seen is None:
+        say("  motifs: run %s holds no motif measurements (it predates them); rebuild" % run["id"])
+        return
+    say("  motifs (the packages importing the library that embodies each pattern): %d · %s%s" % (
+        len(seen.get("rows") or []), motifs.states_text(seen.get("states")),
+        " · stale %d (QUEUE motif-stale)" % seen["stale"] if seen.get("stale") else ""))
+    for row in seen.get("rows") or []:
+        anchors = row.get("anchors") or []
+        say("    %-22s %-13s %s%s" % (
+            row["name"], row["state"], "; ".join(motifs.library_text(lib) for lib in row.get("libraries") or [])
+            or "no library", " · by hand in %d of %d anchors" % (sum(1 for a in anchors if a.get("found") == "code"),
+                                                                len(anchors)) if anchors else ""))
 
 
 def import_capabilities(ctx, args, write):

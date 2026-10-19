@@ -25,6 +25,7 @@ import curate
 import decisions
 import hygiene
 import kingdom
+import motifs
 import packages
 import safety
 import sources
@@ -41,6 +42,7 @@ CURATED_ESTATE = "curated/estate.toml"
 DECISIONS = "curated/decisions.toml"
 CAPABILITIES = capability.COMMITTED_FILE
 WIRES = wires.FILE
+MOTIFS = motifs.FILE
 PRIVATE_PROJECTS = "private/curated/projects.toml"
 PRIVATE_ESTATE = "private/curated/estate.toml"
 # The owner's own words behind the owner decisions, verbatim; private, written by `estate decisions`.
@@ -394,13 +396,13 @@ def _private_rows(layer, out):
 
 def load_curated(layer_dir=None):
     """The committed curation (families, groups, estate.toml, decisions.toml, capabilities.toml with its
-    [[capability]] and [[host]] rows, wires.toml) plus the private curation, with the owner decisions applied to its
+    [[capability]] and [[host]] rows, wires.toml, motifs.toml) plus the private curation, with the owner decisions applied to its
     questions and disputes (decisions.apply). Any file that is absent is recorded in status as missing;
     nothing is invented."""
     layer = _layer(layer_dir)
     out = {"families": {}, "projects": {}, "groups": {}, "identity": [], "surfaces": [], "zones": [],
            "disputes": [], "questions": [], "upstream_notes": [], "spheres": [], "capabilities": [], "hosts": [],
-           "wires": [], "owners": {}, "legal": {}, "decisions": [],
+           "wires": [], "motifs": [], "owners": {}, "legal": {}, "decisions": [],
            "private": {"projects": {}, "estate": {}, "decisions": {}, "sphere": {}, "capability": {}, "hygiene": None},
            "status": {},
            "problems": []}
@@ -423,6 +425,9 @@ def load_curated(layer_dir=None):
     rows, reason = _read_toml(os.path.join(layer, WIRES))
     out["status"][WIRES] = reason or "ok"
     out["wires"] = list((rows or {}).get("wire") or [])
+    rows, reason = _read_toml(os.path.join(layer, MOTIFS))
+    out["status"][MOTIFS] = reason or "ok"
+    out["motifs"] = list((rows or {}).get("motif") or [])
     _private_rows(layer, out)
     return decisions.apply(_plain(out))
 
@@ -644,6 +649,8 @@ class _Join:
         self.repo, self.roster, self.fleet = {}, {}, {}
         self.sphere, self.hygiene, self.capability = {}, {}, {}
         self.packages, self.hosts, self.package_problems, self.wires = {}, [], [], {}
+        # The package import edges and the anchors found in each checkout, kept for the motifs view.
+        self.package_edges, self.anchors_found, self.motifs = [], {}, {}
         priv = (self.curated.get("private") or {}).get("estate") or {}
         self.private_estate = priv
         self.private_projects = (self.curated.get("private") or {}).get("projects") or {}
@@ -1875,7 +1882,7 @@ class _Join:
         contradicts."""
         rows, problems = wires.rows(self.curated)
         runs = self.srcs.get("workflow_runs")
-        edges = wires.measured_edges(self.packages)
+        edges = self.package_edges = wires.measured_edges(self.packages)
         for edge in edges:
             rid = self._relation(edge["from"], "depends_on", edge["to"], edge["basis"],
                                  "import" if edge["basis"] == wires.MEASURED_IMPORT else "manifest", None, "src:packages")
@@ -1888,6 +1895,7 @@ class _Join:
             read = (self.repo.get(cid) or {}).get("anchors") if cid else None
             if (read or {}).get("status") == "ok":
                 found_by_repo[pid] = {(a["path"], a["text"]): a for a in read["anchors"]}
+        self.anchors_found = found_by_repo
         decision_ids = {d["id"] for d in decisions.owner_decisions(self.curated.get("decisions"))}
         evaluated = []
         for name in sorted(rows):
@@ -1913,6 +1921,19 @@ class _Join:
                     row["code_state"], row["stage"], entry["code_state"], entry["stage"])})
         self._attach_relations()
         self.wires = wires.summary(evaluated, edges, problems, runs)
+        self.problems += problems
+
+    def build_motifs(self):
+        """The motifs view (motifs.py), after build_wires: every [[motif]] row of curated/motifs.toml with
+        the packages that import its libraries (the measured-import edges between package records) and its
+        also_in anchors re-found with the wire anchors. A view, never a record. QUEUE lists a library that
+        is no package of its host's checkout and an anchor no longer found as code (motif-stale)."""
+        rows, problems = motifs.rows(self.curated)
+        hosts = {h["id"]: h for h in self.hosts}
+        evaluated = [motifs.evaluate(rows[name], self.packages, self.package_edges, self.anchors_found, hosts)
+                     for name in sorted(rows)]
+        self.queue += motifs.queue_items(evaluated)
+        self.motifs = motifs.summary(evaluated, problems)
         self.problems += problems
 
     def _curation(self, pid, project):
@@ -2842,6 +2863,7 @@ def build_records(census_data, foundation, srcs, curated, vocab, prev=None, cfg=
     j.spheres()
     j.capabilities()
     j.build_wires()
+    j.build_motifs()
     j.risks()
     j.expectations()
     j.source_entries()
@@ -2868,7 +2890,8 @@ def build_records(census_data, foundation, srcs, curated, vocab, prev=None, cfg=
                                                     "runtime": e.get("runtime"), "repo": e.get("repo"),
                                                     "status": e.get("status")} for e in j.registry]},
         "foundation": foundation_summary(foundation),
-        "authority": j.authority, "sphere": j.sphere, "capability": j.capability, "wires": j.wires, "hygiene": j.hygiene,
+        "authority": j.authority, "sphere": j.sphere, "capability": j.capability, "wires": j.wires, "motifs": j.motifs,
+        "hygiene": j.hygiene,
         "decision_effects": j.decision_effects(),
         "problems": j.problems + list((curated or {}).get("problems") or []),
     }

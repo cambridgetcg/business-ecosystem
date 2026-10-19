@@ -508,6 +508,36 @@ def make_domain_monorepo(path, home=None, remote=None):
     return path, measured
 
 
+def make_motif_monorepo(path, home=None, remote=None):
+    """A small pnpm monorepo for the motifs view: a messaging library the engine imports and an events
+    library that imports it too (a sibling in one motif, not a user), an outbox library two packages only
+    declare and one test imports, a saga library nobody imports whose pattern the engine does by hand, and a
+    Python ledger whose compensating entry no library embodies, with one text only in its docstring."""
+    files = {
+        "package.json": _package_json("fixture-motifs"),
+        "pnpm-workspace.yaml": "packages:\n  - 'shared/libs/*'\n  - 'operational/*'\n",
+        "shared/libs/messaging/package.json": _package_json("@fixture/messaging"),
+        "shared/libs/messaging/src/index.ts": "export const publish = (x: string) => x\n",
+        "shared/libs/events/package.json": _package_json("@fixture/events", deps=("@fixture/messaging",)),
+        "shared/libs/events/src/index.ts": "import { publish } from '@fixture/messaging'\nexport const announce = publish\n",
+        "shared/libs/outbox/package.json": _package_json("@fixture/outbox"),
+        "shared/libs/outbox/src/index.ts": "export const relay = 1\n",
+        "shared/libs/saga/package.json": _package_json("@fixture/saga"),
+        "shared/libs/saga/src/index.ts": "export class SagaExecutor {}\n",
+        "operational/engine/package.json": _package_json("@fixture/engine", deps=("@fixture/messaging",),
+                                                         dev=("@fixture/outbox",)),
+        "operational/engine/src/index.ts": ("import { publish } from '@fixture/messaging'\n"
+                                            "export async function runCompensation() { return publish('undo') }\n"),
+        "operational/engine/tests/outbox.test.ts": "import { relay } from '@fixture/outbox'\n",
+        "operational/intake/package.json": _package_json("@fixture/intake", deps=("@fixture/outbox",)),
+        "operational/intake/src/index.ts": "export const intake = 1\n",
+        "operational/ledger/pyproject.toml": '[project]\nname = "fixture-ledger"\n',
+        "operational/ledger/src/ledger.py": ('def create_reversal(entry):\n'
+                                             '    """An offsetting entry: compensate by hand."""\n    return entry\n'),
+    }
+    return make_repo(path, files=files, home=home, remote=remote)
+
+
 def make_monorepo(path, home=None):
     """A small pnpm monorepo shaped like business-ecosystem, for the package reader: workspace globs
     (one of them empty), a package in a dot folder that operational/* must not reach, a deny-listed

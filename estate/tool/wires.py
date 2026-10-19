@@ -46,7 +46,8 @@ WIRED = ("wired", "wired-unbuilt")
 MEASURED_IMPORT, MEASURED_MANIFEST, CURATED = "measured-import", "measured-manifest", "curated"
 # The keys a row may carry beyond its claim; they are shown, never measured.
 META_KEYS = ("flow", "hop", "decision", "demonstrated_by", "evidence", "source", "reviewed", "as_of", "review_after")
-_NAME = re.compile(r"[a-z0-9][a-z0-9-]*")
+# A wire, flow or motif name.
+NAME = re.compile(r"[a-z0-9][a-z0-9-]*")
 
 
 def consumer_side(verb):
@@ -64,7 +65,7 @@ def repo_of(end):
 
 def _row_problems(row):
     problems = []
-    if not isinstance(row.get("name"), str) or not _NAME.fullmatch(row["name"]):
+    if not isinstance(row.get("name"), str) or not NAME.fullmatch(row["name"]):
         problems.append("needs a name of lowercase letters, digits and hyphens")
     for side in SIDES:
         if not isinstance(row.get(side), str) or not row[side]:
@@ -94,7 +95,7 @@ def _row_problems(row):
         problems.append("a demonstrated stage needs demonstrated_by, the workflow file whose runs on main show it")
     if stage in ("accepted", "active") and not isinstance(row.get("decision"), str):
         problems.append("an accepted or active stage needs the owner decision that gives it")
-    if row.get("flow") is not None and not (isinstance(row["flow"], str) and _NAME.fullmatch(row["flow"])):
+    if row.get("flow") is not None and not (isinstance(row["flow"], str) and NAME.fullmatch(row["flow"])):
         problems.append("flow must be a name of lowercase letters, digits and hyphens")
     if row.get("hop") is not None and not (type(row["hop"]) is int and row["hop"] >= 1):
         problems.append("hop must be a whole number from 1")
