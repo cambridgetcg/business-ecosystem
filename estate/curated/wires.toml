@@ -145,6 +145,9 @@ reviewed = false
 as_of = 2026-10-19
 review_after = 2027-01-17
 
+# W5: both sides are on main, and .github/workflows/wire-e2e.yml runs the wire end to end, so it is
+# wired. It stays designed until a run of that workflow on main is green: then set stage = "demonstrated"
+# (demonstrated_by already names it) and build with --forge, which reads that run to confirm it.
 [[wire]]
 name = "sale-to-ledger"
 from = "pkg:github.com/cambridgetcg/business-ecosystem//operational/commerce-intake"
@@ -155,11 +158,12 @@ anchors = [
   { side = "from", path = "operational/commerce-intake/src", text = "COMMERCE_SALE_RECORDED" },
   { side = "to", path = "foundational/accounting/src/commerce_posting/contract.py", text = "commerce.sale.recorded" },
 ]
-code_state = "declared"
+code_state = "wired"
 stage = "designed"
 flow = "sale-to-ledger"
 hop = 1
-evidence = "The first wire of the plan: a synthetic sale through commerce-intake into the accounting ledger. The consumer exists; the producer package is not on main yet. Synthetic data only until Yu answers the prerequisites."
+demonstrated_by = "wire-e2e.yml"
+evidence = "The first wire of the plan: synthetic sales through the commerce-intake CLI's events.ndjson into the accounting ledger, both on main, run end to end by tests/wires in wire-e2e.yml. Not demonstrated yet: no run of that workflow on main can be green while the account's GitHub Actions budget stops every job. Synthetic data only until Yu answers the prerequisites."
 source = "capability-2026-10-19"
 reviewed = false
 as_of = 2026-10-19
