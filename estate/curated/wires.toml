@@ -159,11 +159,11 @@ anchors = [
   { side = "to", path = "foundational/accounting/src/commerce_posting/contract.py", text = "commerce.sale.recorded" },
 ]
 code_state = "wired"
-stage = "designed"
+stage = "demonstrated"
 flow = "sale-to-ledger"
 hop = 1
 demonstrated_by = "wire-e2e.yml"
-evidence = "The first wire of the plan: synthetic sales through the commerce-intake CLI's events.ndjson into the accounting ledger, both on main, run end to end by tests/wires in wire-e2e.yml. Not demonstrated yet: no run of that workflow on main can be green while the account's GitHub Actions budget stops every job. Synthetic data only until Yu answers the prerequisites."
+evidence = "The first wire of the plan: synthetic sales through the commerce-intake CLI's events.ndjson into the accounting ledger, both on main, run end to end by tests/wires in wire-e2e.yml, whose run on main was green on 2026-10-19 (run 39214714972). Synthetic data only until Yu answers the prerequisites."
 source = "capability-2026-10-19"
 reviewed = false
 as_of = 2026-10-19
