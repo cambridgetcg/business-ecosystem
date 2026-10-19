@@ -45,15 +45,6 @@
       "exit": "F8: type pool.query<Row> results and adapter responses; lint exits 0."
     },
     {
-      "package": "@ecosystem/compliance-aggregator",
-      "task": "lint",
-      "reason": "Linted for the first time now that ESLint reaches .orchestration: require-await (9), no-unsafe-* (8), unused variables (5).",
-      "first_error": "src/aggregator.ts:14:3 'RegulationStatus' is defined but never used @typescript-eslint/no-unused-vars",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 22,
-      "exit": "F4; lint exits 0."
-    },
-    {
       "package": "@ecosystem/contracts-legal",
       "task": "lint",
       "reason": "Its Prisma client is never generated (no CI step, and both Prisma schemas write one shared @prisma/client copy). Only the default stub client exists, so model types are missing and almost every use is no-unsafe-*.",
@@ -117,15 +108,6 @@
       "exit": "F4; lint exits 0."
     },
     {
-      "package": "@ecosystem/compliance-aggregator",
-      "task": "typecheck",
-      "reason": "An overload mismatch (src/index.ts:170) and exactOptionalPropertyTypes (src/index.ts:259).",
-      "first_error": "src/index.ts(170,29): error TS2769: No overload matches this call.",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 2,
-      "exit": "F4; typecheck exits 0. Remove with the build entry."
-    },
-    {
       "package": "@ecosystem/contracts-legal",
       "task": "typecheck",
       "reason": "Its Prisma client is never generated, so only the default stub exists: 82 TS2694 and 65 TS2305 missing Prisma types, and 30 implicit any that follow from them.",
@@ -178,15 +160,6 @@
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
       "errors": 6,
       "exit": "F4; typecheck exits 0. Remove with the build entry."
-    },
-    {
-      "package": "@ecosystem/compliance-aggregator",
-      "task": "build",
-      "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
-      "first_error": "src/index.ts(170,29): error TS2769: No overload matches this call.",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 2,
-      "exit": "F4; build exits 0. Remove with the typecheck entry."
     },
     {
       "package": "@ecosystem/contracts-legal",

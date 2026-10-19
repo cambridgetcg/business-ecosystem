@@ -54,6 +54,8 @@ export interface RegulationStatus {
   lastAssessment?: Date;
   nextAssessmentDue?: Date;
   findings: ComplianceFinding[];
+  /** Issues a domain reports as text, without structured findings */
+  issues?: string[];
 }
 
 export interface EntityComplianceOverview {
