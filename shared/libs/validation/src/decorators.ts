@@ -3,7 +3,7 @@
  */
 
 import type { ZodSchema } from 'zod';
-import { validateOrThrow, ValidationException } from './validators.js';
+import { validateOrThrow } from './validators.js';
 
 // Method decorator for validating method arguments
 export function ValidateArgs(schemas: Record<number, ZodSchema>) {
@@ -39,7 +39,7 @@ export function ValidateReturn(schema: ZodSchema) {
 
     descriptor.value = async function (...args: unknown[]) {
       const result = await originalMethod.apply(this, args);
-      return validateOrThrow(schema, result);
+      return validateOrThrow<unknown>(schema, result);
     };
 
     return descriptor;

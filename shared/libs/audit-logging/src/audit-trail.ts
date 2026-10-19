@@ -32,6 +32,8 @@ export interface AuditTrailService {
   query(query: AuditQuery): Promise<AuditEntry[]>;
 }
 
+// Nothing here waits on I/O: the methods return settled promises to fit the
+// async AuditTrailService interface.
 export class InMemoryAuditTrailService implements AuditTrailService {
   private entries: AuditEntry[] = [];
   private logger: Logger;
@@ -40,7 +42,7 @@ export class InMemoryAuditTrailService implements AuditTrailService {
     this.logger = createLogger(config);
   }
 
-  async log(
+  log(
     action: AuditAction,
     resource: string,
     resourceId: string,
@@ -82,9 +84,10 @@ export class InMemoryAuditTrailService implements AuditTrailService {
       userId: context.userId,
       success: entry.success,
     });
+    return Promise.resolve();
   }
 
-  async query(query: AuditQuery): Promise<AuditEntry[]> {
+  query(query: AuditQuery): Promise<AuditEntry[]> {
     let results = [...this.entries];
 
     if (query.startDate) {
@@ -110,6 +113,6 @@ export class InMemoryAuditTrailService implements AuditTrailService {
 
     const offset = query.offset || 0;
     const limit = query.limit || 50;
-    return results.slice(offset, offset + limit);
+    return Promise.resolve(results.slice(offset, offset + limit));
   }
 }

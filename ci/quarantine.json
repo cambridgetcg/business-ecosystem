@@ -36,15 +36,6 @@
   },
   "entries": [
     {
-      "package": "@ecosystem/audit-logging",
-      "task": "lint",
-      "reason": "require-await: two async methods with no await (src/audit-trail.ts:43, :87).",
-      "first_error": "src/audit-trail.ts:43:3 Async method 'log' has no 'await' expression @typescript-eslint/require-await",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 2,
-      "exit": "F2: drop async or await in both methods; lint exits 0."
-    },
-    {
       "package": "@ecosystem/banking-treasury",
       "task": "lint",
       "reason": "no-unsafe-* on untyped pg query rows and provider adapter JSON (308), unused variables (45), require-await (43).",
@@ -90,24 +81,6 @@
       "exit": "F7 first, then F8 for what remains; lint exits 0."
     },
     {
-      "package": "@ecosystem/database",
-      "task": "lint",
-      "reason": "Three errors: an unused import, a declaration in a case block, restrict-plus-operands.",
-      "first_error": "src/drizzle/repository.ts:6:19 'or' is defined but never used @typescript-eslint/no-unused-vars",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 3,
-      "exit": "F2; lint exits 0."
-    },
-    {
-      "package": "@ecosystem/encryption",
-      "task": "lint",
-      "reason": "require-await: two async methods with no await (src/crypto.ts:25, :45).",
-      "first_error": "src/crypto.ts:25:3 Async method 'encrypt' has no 'await' expression @typescript-eslint/require-await",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 2,
-      "exit": "F2; lint exits 0."
-    },
-    {
       "package": "@ecosystem/entity-governance",
       "task": "lint",
       "reason": "no-explicit-any (22) and no-unsafe-* in the REST routes.",
@@ -135,15 +108,6 @@
       "exit": "F3; lint exits 0."
     },
     {
-      "package": "@ecosystem/messaging",
-      "task": "lint",
-      "reason": "Three errors: require-await, an unused import, no-misused-promises.",
-      "first_error": "src/rabbitmq-publisher.ts:96:3 Async method 'publishToTopic' has no 'await' expression @typescript-eslint/require-await",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 3,
-      "exit": "F2; lint exits 0."
-    },
-    {
       "package": "@ecosystem/operational-gateway",
       "task": "lint",
       "reason": "Linted for the first time now that its tsconfig extends the real base: unnecessary type assertions (3), no-unsafe-assignment (2), require-await.",
@@ -160,24 +124,6 @@
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
       "errors": 27,
       "exit": "F6; lint exits 0."
-    },
-    {
-      "package": "@ecosystem/repository",
-      "task": "lint",
-      "reason": "Three errors: an unused import, a floating promise, restrict-template-expressions.",
-      "first_error": "src/drizzle/drizzle-repository.ts:7:12 'or' is defined but never used @typescript-eslint/no-unused-vars",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 3,
-      "exit": "F2; lint exits 0."
-    },
-    {
-      "package": "@ecosystem/validation",
-      "task": "lint",
-      "reason": "Two errors: an unused import and no-unsafe-return.",
-      "first_error": "src/decorators.ts:6:27 'ValidationException' is defined but never used @typescript-eslint/no-unused-vars",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 2,
-      "exit": "F2; lint exits 0."
     },
     {
       "package": "@ecosystem/workflow-engine",
