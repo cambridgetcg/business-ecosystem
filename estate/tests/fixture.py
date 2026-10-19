@@ -438,13 +438,72 @@ def make_repo(path, files=None, remote=None, remotes=None, card=None, card_track
     return path
 
 
-def _package_json(name, deps=(), dev=()):
+def _package_json(name, deps=(), dev=(), scripts=()):
     data = {"name": name, "private": True}
     if deps:
         data["dependencies"] = {d: "workspace:*" for d in deps}
     if dev:
         data["devDependencies"] = {d: "workspace:*" for d in dev}
+    if scripts:
+        data["scripts"] = {s: "true" for s in scripts}
     return json.dumps(data, indent=1) + "\n"
+
+
+DOMAIN_LIST = "ci/quarantine.json"
+
+
+def domain_quarantine(measured_at):
+    """A quarantine list shaped like business-ecosystem's ci/quarantine.json, measured at one commit:
+    data-privacy's build and typecheck (code-unbuilt), lint and test counts, an entry naming no
+    package of the workspace, and one entry of the wrong shape."""
+    def entry(package, task, errors):
+        return {"package": package, "task": task, "reason": "fixture reason", "first_error": "src/index.ts:1:1 x",
+                "measured_at": measured_at, "errors": errors, "exit": "fixture exit criterion"}
+    return json.dumps({"about": ["fixture"], "entries": [
+        entry("@fixture/data-privacy", "build", 7), entry("@fixture/data-privacy", "typecheck", 7),
+        entry("@fixture/data-privacy", "lint", 30), entry("@fixture/accounting", "test", 0),
+        entry("@fixture/messaging", "lint", 2), entry("@fixture/gone", "test", 0),
+        {"package": "@fixture/insurance", "task": "deploy", "errors": "many"}]}, indent=1) + "\n"
+
+
+def make_domain_monorepo(path, home=None, remote=None):
+    """A pnpm monorepo whose domain packages are named after framework domains, as business-ecosystem's
+    are, for package records and the capability join: accounting (TypeScript and Python, a test),
+    data-privacy (build and typecheck quarantined), insurance (one health-only file), an
+    intellectual-property package whose only source file is deny-listed, a documents-only
+    corporate-security folder with no manifest, and a messaging library the accounting package imports.
+    The quarantine list lands one commit after the commit it measured, and one more commit follows,
+    so HEAD is two commits past its measured_at. Returns (path, measured commit)."""
+    secret_name = "trade-" + "secret.entity.ts"  # deny-listed by name; never opened
+    files = {
+        "package.json": _package_json("fixture-domains"),
+        "pnpm-workspace.yaml": "packages:\n  - 'foundational/*'\n  - 'operational/*'\n  - 'shared/libs/*'\n",
+        "foundational/accounting/package.json": _package_json("@fixture/accounting", deps=("@fixture/messaging",),
+                                                              scripts=("build", "typecheck", "test")),
+        "foundational/accounting/src/index.ts": "import { publish } from '@fixture/messaging'\nexport const post = publish\n",
+        "foundational/accounting/src/ledger.py": "def post(entry):\n    return entry\n",
+        "foundational/accounting/tests/test_ledger.py": "def test_post():\n    assert True\n",
+        "foundational/corporate-security/README.md": "# corporate security\n\nPlanned only.\n",
+        "operational/data-privacy/package.json": _package_json("@fixture/data-privacy",
+                                                               scripts=("build", "typecheck", "lint", "test")),
+        "operational/data-privacy/src/index.ts": "export const erase = (id: string) => id\n",
+        "operational/insurance/package.json": _package_json("@fixture/insurance", scripts=("build", "typecheck", "lint")),
+        "operational/insurance/src/index.ts": "export const health = () => 'ok'\n",
+        "operational/intellectual-property/package.json": _package_json("@fixture/intellectual-property"),
+        "operational/intellectual-property/src/" + secret_name: "export const fixtureNeverRead = 1\n",
+        "shared/libs/messaging/package.json": _package_json("@fixture/messaging", scripts=("build", "lint")),
+        "shared/libs/messaging/src/index.ts": "export const publish = (x: string) => x\n",
+    }
+    now = time.time()
+    make_repo(path, files=files, home=home, remote=remote, age_days=3)
+    measured = git(path, "rev-parse", "HEAD", home=home).strip()
+    write_file(os.path.join(path, DOMAIN_LIST), domain_quarantine(measured))
+    git(path, "add", "--", DOMAIN_LIST, home=home)
+    git(path, "commit", "-q", "-m", "quarantine list", home=home, when=now - 2 * 86400)
+    write_file(os.path.join(path, "README.md"), "# fixture domains\n")
+    git(path, "add", "--", "README.md", home=home)
+    git(path, "commit", "-q", "-m", "readme", home=home, when=now - 86400)
+    return path, measured
 
 
 def make_monorepo(path, home=None):

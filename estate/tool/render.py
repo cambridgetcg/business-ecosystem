@@ -1205,6 +1205,42 @@ def _designers(v):
     return out
 
 
+def _package_holders(v):
+    """{value: [package records holding it]} over the present package records."""
+    out = {}
+    for record in v.kind("package"):
+        for value in (record.get("capability") or {}).get("values") or []:
+            out.setdefault(value, []).append(record)
+    return out
+
+
+def _measured(records):
+    """The measured cell of a value: how many packages hold it, their non-blank source lines (a lower
+    bound when files were unread), test files, the packages importing them and the files unread; and
+    how many of them have no measured build state, whose impl code then says nothing about compiling."""
+    if not records:
+        return "—"
+    measures = [r.get("measures") or {} for r in records]
+    importers = {name for r in records for name in r.get("imported_by") or []}
+    lines, tests = sum(m.get("loc") or 0 for m in measures), sum(m.get("test_files") or 0 for m in measures)
+    unmeasured = sum(1 for r in records if (r.get("build") or {}).get("unbuilt") is None)
+    return "%d package%s: %s%d line%s, %d test file%s, imported by %d, %d unread%s" % (
+        len(records), "" if len(records) == 1 else "s", "≥" if any(m.get("loc_partial") for m in measures) else "",
+        lines, "" if lines == 1 else "s", tests, "" if tests == 1 else "s", len(importers),
+        sum(m.get("unread_files") or 0 for m in measures),
+        "; build state not measured for %d" % unmeasured if unmeasured else "")
+
+
+def _build_text(record):
+    """A package's quarantined tasks with their dated counts, or why its build state is unmeasured."""
+    build = record.get("build") or {}
+    if build.get("unbuilt") is None:
+        return "not measured"
+    listed = ["%s %s at %s" % (q["task"], q.get("errors") if q.get("errors") is not None else "?",
+                               (q.get("measured_at") or "?")[:12]) for q in build.get("quarantined") or []]
+    return "quarantined: " + "; ".join(listed) if listed else "none quarantined"
+
+
 def _capability_lead(doc, v):
     info = v.snapshot.get("capability")
     if info is None:
@@ -1225,6 +1261,14 @@ def _capability_lead(doc, v):
               ", ".join("%s %d" % kv for kv in sorted(Counter(f.get("basis") or "missing" for f in fields).items()))
               or "none", info.get("rows", 0), len(info.get("unreviewed") or []), len(info.get("overdue") or []),
               len(info.get("unmatched") or [])))
+    package = info.get("packages") or {}
+    if info.get("hosts") or package.get("records"):
+        doc.p("Packages, measured from tracked files: %d records, %d holding a capability (by impl: %s). A package's "
+              "build state is its membership in the host's quarantine list at the checkout's HEAD; the error counts "
+              "are dated evidence from the commit each was measured at." % (
+                  package.get("records") or 0, package.get("holding") or 0,
+                  ", ".join("%s %d" % kv for kv in (package.get("by_impl") or {}).items()) or "none"))
+        doc.ul(capability.host_text(h) for h in info.get("hosts") or [])
     return True
 
 
@@ -1233,7 +1277,7 @@ def _capability_bands(doc, v, level, full=False):
     claims counted, who it serves, the projects where it is designed only, and the projects whose
     be.framework_domain names it (relevance). full: one table per value, with each row's evidence."""
     bands, definitions = _capability_vocab(v)
-    holders, designers = _holders(v), _designers(v)
+    holders, designers, by_package = _holders(v), _designers(v), _package_holders(v)
     relevant = {}
     for project in v.projects:
         for value in (project.get("display") or {}).get("be.framework_domain") or []:
@@ -1250,9 +1294,10 @@ def _capability_bands(doc, v, level, full=False):
                              ", ".join("%s %d" % kv for kv in sorted(claims.items())) or "—",
                              ", ".join("%s %d" % kv for kv in sorted(serves.items())) or "—",
                              ", ".join(v.name(p["id"]) for p in designers.get(value) or []) or "—",
-                             ", ".join(v.name(p["id"]) for p in relevant.get(value) or []) or "—"))
+                             ", ".join(v.name(p["id"]) for p in relevant.get(value) or []) or "—",
+                             _measured(by_package.get(value))))
             doc.table(("capability", "records [operating]", "operating claims", "serves", "designed only",
-                       "relevant by be.framework_domain"), rows)
+                       "relevant by be.framework_domain", "measured (packages)"), rows)
             continue
         for value in members:
             held = holders.get(value) or []
@@ -1265,6 +1310,16 @@ def _capability_bands(doc, v, level, full=False):
                        for p, e in held])
             if designers.get(value):
                 doc.p("Designed only: %s." % ", ".join(v.name(p["id"]) for p in designers[value]))
+            if by_package.get(value):
+                doc.table(("package", "impl", "basis", "lines", "test files", "imported by", "unread", "build state",
+                           "at commit"),
+                          [(r["id"], ((r.get("capability") or {}).get("by_value") or {}).get(value, {}).get("impl"),
+                            (r.get("capability") or {}).get("basis"),
+                            "%s%s" % ("≥" if (r.get("measures") or {}).get("loc_partial") else "",
+                                      (r.get("measures") or {}).get("loc")),
+                            (r.get("measures") or {}).get("test_files"), ", ".join(r.get("imported_by") or []) or "—",
+                            (r.get("measures") or {}).get("unread_files"), _build_text(r), (r.get("at_commit") or "?")[:12])
+                           for r in by_package[value]])
 
 
 def _capability_gaps(doc, v, level):

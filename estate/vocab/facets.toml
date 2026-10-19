@@ -380,8 +380,8 @@ basis = "curated"
 multi = true
 statuses = ["unassigned", "none"]
 companion = "capability_extra"
-bases = ["curated:project", "derived:packages", "mirror", "none"]
-rule = "The business capabilities a project has code for, or does by hand (a dated manual claim). It is a display field of the Business view, not a navigation facet: only an owner decision makes it one. A project takes, in order: its curated row (curated/capabilities.toml, under its id or an alias); else the union of its packages that have code (derived:packages, once package records exist); else the values of the one project it is a mirror_of or copy_of; else status unassigned when it is in business scope and none otherwise. A curated row with no values says the project has no business capability (status none). Business scope is one population for the whole Business view: a KINGDOM layer commerce or economy, a purpose group business_operations, payments_finance or commerce_marketplaces, a family commerce-tcg, commerce-ventures, economy-ventures or business-ecosystem, the role revenue, or the KINGDOM kind venture. Each value names its impl, operating claim, serves and reviewed flag in capability_extra.by_value. A capability that is only documented or designed is listed under designed and is never a value; an idea is never a value. be.framework_domain is relevance only: a run-band value it names that no row holds waits in QUEUE (capability-candidate)."
+bases = ["curated:project", "derived:packages", "mirror", "curated:package", "rule:package-path", "none"]
+rule = "The business capabilities a project has code for, or does by hand (a dated manual claim). It is a display field of the Business view, not a navigation facet: only an owner decision makes it one. A project takes, in order: its curated row (curated/capabilities.toml, under its id or an alias); else the union of its packages that have code (derived:packages: the package records of a host repository, which a [[host]] row names); else the values of the one project it is a mirror_of or copy_of; else status unassigned when it is in business scope and none otherwise. A curated row with no values says the project has no business capability (status none). Business scope is one population for the whole Business view: a KINGDOM layer commerce or economy, a purpose group business_operations, payments_finance or commerce_marketplaces, a family commerce-tcg, commerce-ventures, economy-ventures or business-ecosystem, the role revenue, or the KINGDOM kind venture. Each value names its impl, operating claim, serves and reviewed flag in capability_extra.by_value. A capability that is only documented or designed is listed under designed and is never a value; an idea is never a value. be.framework_domain is relevance only: a run-band value it names that no row holds waits in QUEUE (capability-candidate). A package takes its curated row (curated:package, a [[capability]] row keyed by its package id), else the run-band value its directory names (rule:package-path: business-ecosystem's domain packages are named after their framework domain), else none; its impl is measured (code, code-unbuilt or unread) unless its curated row states stub or manual, and a package with no source holds no value: one with documents lists it as designed."
 
 [business.capability.values]
 goods-sales = "selling own stock to buyers: storefront, cart and checkout, wholesale quotes, orders"
@@ -550,11 +550,11 @@ candidate_only = "a candidate without current evidence, or competing sources"
 unresolved = "no source known"
 
 [vocab.capability_impl]
-rule = "How a capability exists in one record. Measured for packages once package records exist; curated for whole projects. A capability that is only documented or designed has no impl: it is listed under designed."
+rule = "How a capability exists in one record. Measured for packages (tool/packages.py), and a host project that takes its packages' values takes the first of their impls in this order; curated for whole projects. A capability that is only documented or designed has no impl: it is listed under designed."
 
 [vocab.capability_impl.values]
 code = "tracked source implements it at the measured commit (for a whole repository, a curated reading of its code)"
-code-unbuilt = "source exists, but its package is on the build or typecheck quarantine list at the same commit"
+code-unbuilt = "source exists, but its package is on the build or typecheck quarantine list at the same commit (the list read at the checkout's HEAD)"
 stub = "tracked source exists, but a curated row marks it a placeholder (for example a server that only answers health and info)"
 manual = "a dated, curated claim that the business does this by hand, with no code (for example app store listing work)"
 unread = "the files exist but the reader may not open them (deny list) or could not: unknown, never absent"
@@ -576,6 +576,34 @@ rule = "Who the capability serves; self unless a row says otherwise."
 self = "the business itself"
 customers = "sold or offered to customers as a product (for example loyalty offered to merchants)"
 both = "used by the business and offered to customers"
+
+# ── packages (record kind package, tool/packages.py) ────────────────────────────────────────
+
+[vocab.package_manifest.values]
+package-json = "a tracked package.json"
+pyproject = "a tracked pyproject.toml"
+both = "both manifests (a hybrid package)"
+module-folder = "no manifest; the host row names the folder"
+
+[vocab.package_static]
+rule = "Static problems the package reader finds in tracked files; a package record lists the codes about it, the host summary counts them all."
+
+[vocab.package_static.values]
+workspace-glob-empty = "a workspace glob matches no tracked package"
+extends-unresolved = "a tracked tsconfig extends a relative path that is not a tracked file"
+duplicate-name = "two packages of one workspace declare the same name"
+declared-not-imported = "a manifest declares an internal package that no non-test source imports"
+imported-not-declared = "non-test source imports an internal package its manifest does not declare"
+untracked-package = "a directory a workspace glob matches holds a manifest git does not track"
+
+[vocab.package_build]
+rule = "A package task (build, typecheck, lint, test) against the host's tracked quarantine list, read at the checkout's HEAD: the list is the contract its CI enforces there. An entry's error count and measured_at are dated evidence from an earlier commit, never compared with HEAD. The estate runs no build: gated is CI's contract, not an observed run."
+
+[vocab.package_build.values]
+gated = "not on the list: CI runs the task for this workspace package and fails when it fails"
+quarantined = "on the list: CI skips the task until it is fixed"
+not-run = "CI runs no such task for it: its package.json defines no script of that name, or no workspace glob includes it"
+not-measured = "the list was not read as HEAD's: the host names none, it is missing, untracked or invalid, or census did not measure the checkout clean"
 
 [vocab.surface_health.values]
 up = "pulse observed it up"

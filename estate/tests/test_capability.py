@@ -3,9 +3,10 @@
 Unit cases cover the vocabulary (23 values in four bands, the run band equal to the framework
 domains, no collision with navigation values or topics, the companion vocabularies), the one
 business population (business_scope), which the Business section and the map share, the curated
-index, the resolution order (curated row, packages, mirror, else unassigned or none), the QUEUE
-lines, and the classification import: merged by id, reviewed rows kept, local ids private, a
-re-import byte for byte the same. One synthetic estate is then classified and built through the
+index, the resolution order (curated row, packages, mirror, else unassigned or none), the package
+resolution (curated package row, else the run-band value a directory names; impl measured), the QUEUE
+lines, and the classification import: merged by id, reviewed rows kept, local ids private, [[host]]
+rows kept, a re-import byte for byte the same. One synthetic estate is then classified and built through the
 command line, and its records, queue and the capability verb checked."""
 import datetime as dt
 import json
@@ -19,6 +20,7 @@ from . import test_model
 import capability
 import curate
 import model
+import packages
 import safety
 
 G = "github.com/cambridgetcg/"
@@ -244,6 +246,85 @@ class ResolutionTests(fixture.EstateTestCase):
                                     % (G, G, G, G)])
 
 
+def package(subpath, src=1, unread=0, md=0, unbuilt=False, host=G + "mono"):
+    """A package record shaped as packages.records leaves it, before the capability step."""
+    return {"kind": "package", "id": packages.package_id(host, subpath), "host": host, "subpath": subpath,
+            "commit_date": "2026-10-18T00:00:00Z",
+            "measures": {"src_files": src, "unread_files": unread, "md_files": md, "loc": src * 10},
+            "build": {"unbuilt": unbuilt}}
+
+
+class PackageResolutionTests(fixture.EstateTestCase):
+
+    def test_a_package_takes_its_row_else_the_run_band_value_its_directory_names(self):
+        records = {r["id"]: r for r in (
+            package("foundational/accounting"), package("operational/.orchestration/accounting", unbuilt=True),
+            package("operational/data-privacy", unbuilt=True), package("operational/insurance"),
+            package("operational/intellectual-property", src=0, unread=2), package("foundational/corporate-security", src=0, md=4),
+            package("foundational/tax", src=0), package("shared/libs/messaging"), package("operational/claims-desk"),
+            package("foundational/entity-governance", host=G + "other"))}
+        insurance, desk = packages.package_id(G + "mono", "operational/insurance"), packages.package_id(G + "mono", "operational/claims-desk")
+        rows, _ = index({"id": insurance, "values": ["insurance"], "impl": {"insurance": "stub"},
+                         "serves": {"insurance": "customers"}, "reviewed": False, "evidence": "Health routes only."},
+                        {"id": desk, "values": ["insurance", "compliance"], "impl": {"insurance": "manual",
+                                                                                     "compliance": "code-unbuilt"}})
+        derived, designed, problems = capability.resolve_packages(records, rows, FACETS)
+        got = {r["subpath"]: (r["capability"]["values"], r["capability"]["basis"]) for r in records.values()}
+        self.assertEqual(got, {
+            "foundational/accounting": (["accounting"], capability.PACKAGE_PATH),
+            "operational/.orchestration/accounting": (["accounting"], capability.PACKAGE_PATH),
+            "operational/data-privacy": (["data-privacy"], capability.PACKAGE_PATH),
+            "operational/insurance": (["insurance"], capability.CURATED_PACKAGE),
+            "operational/intellectual-property": (["intellectual-property"], capability.PACKAGE_PATH),
+            "foundational/corporate-security": ([], capability.NONE),  # documents only: designed
+            "foundational/tax": ([], capability.NONE),  # no source and no documents: nothing
+            "shared/libs/messaging": ([], capability.NONE),
+            "operational/claims-desk": (["compliance", "insurance"], capability.CURATED_PACKAGE),  # vocabulary order
+            "foundational/entity-governance": (["entity-governance"], capability.PACKAGE_PATH)})
+        mono = derived[G + "mono"]
+        # One package with compiled code is enough: accounting reads code through both of its packages.
+        self.assertEqual(mono["accounting"], {"impl": "code", "via": sorted(
+            packages.package_id(G + "mono", s) for s in ("foundational/accounting", "operational/.orchestration/accounting"))})
+        self.assertEqual({v: e["impl"] for v, e in mono.items()}, {
+            "accounting": "code", "data-privacy": "code-unbuilt", "insurance": "stub", "intellectual-property": "unread",
+            "compliance": "code"})  # a stated code-unbuilt is not used: the package's impl is measured
+        self.assertEqual(problems, ["capability: %s states impl code-unbuilt for compliance; a package's impl is "
+                                    "measured, so it is not used" % desk])
+        self.assertEqual(designed, {G + "mono": ["corporate-security"]})
+        self.assertEqual(set(derived), {G + "mono", G + "other"})
+        stub = records[insurance]["capability"]
+        self.assertEqual((stub["by_value"]["insurance"], stub["reviewed"], stub["evidence"]),
+                         ({"impl": "stub", "operating": "unknown", "serves": "customers"}, False, "Health routes only."))
+        self.assertEqual(records[packages.package_id(G + "mono", "foundational/corporate-security")]["capability"]["designed"],
+                         ["corporate-security"])
+        self.assertEqual(records[packages.package_id(G + "mono", "foundational/tax")]["capability"]["reason"],
+                         "it has neither source nor documents")
+
+    def test_packages_place_their_host_and_its_framework_domain_candidates_go(self):
+        projects = {G + "mono": project(G + "mono", family="business-ecosystem",
+                                        domains=("accounting", "corporate-security", "insurance")),
+                    G + "mirror": project(G + "mirror")}
+        records = {r["id"]: r for r in (package("foundational/accounting", unbuilt=True),
+                                        package("foundational/corporate-security", src=0, md=1))}
+        derived, designed, _ = capability.resolve_packages(records, {}, FACETS)
+        capability.resolve_projects(projects, {}, {G + "mirror": [G + "mono"]}, derived, designed)
+        mono = field(projects, G + "mono")
+        self.assertEqual((mono["values"], mono["basis"], mono["designed"]),
+                         (["accounting"], capability.DERIVED_PACKAGES, ["corporate-security"]))
+        self.assertEqual(mono["by_value"]["accounting"]["impl"], "code-unbuilt")
+        self.assertEqual(mono["candidates"], ["insurance"])  # held and designed values are no longer candidates
+        self.assertEqual((field(projects, G + "mirror")["values"], field(projects, G + "mirror")["basis"]),
+                         (["accounting"], capability.MIRROR))
+        checks = capability.row_checks(projects, {records["pkg:%smono//foundational/accounting" % G]["id"]: {}},
+                                       "2026-10-19", records)
+        self.assertEqual(checks["unmatched"], [])  # a row keyed by a package id names a record of the run
+        summary = capability.summary(projects, FACETS, packages=records, hosts=[{"id": G + "mono"}])
+        self.assertEqual(summary["packages"], {"records": 2, "holding": 1,
+                                               "by_basis": {capability.NONE: 1, capability.PACKAGE_PATH: 1},
+                                               "by_impl": {"code-unbuilt": 1}})
+        self.assertEqual(summary["hosts"], [{"id": G + "mono"}])
+
+
 class QueueTests(fixture.EstateTestCase):
 
     def test_the_four_queue_reasons(self):
@@ -285,6 +366,17 @@ class CommittedRowsTests(fixture.EstateTestCase):
             for key in ("source", "as_of", "review_after", "evidence"):
                 self.assertIn(key, entry, ident)
             self.assertLessEqual(len(entry["evidence"]), capability.SHORT_MAX, ident)
+        hosts, problems = packages.host_rows({"hosts": tomllib.loads(text)["host"]})
+        self.assertEqual(problems, [])
+        self.assertIn("github.com/cambridgetcg/business-ecosystem", hosts)
+
+    def test_the_committed_file_is_exactly_what_the_import_renders(self):
+        layer = self.case_dir()
+        with open(os.path.join(fixture.LAYER_DIR, capability.COMMITTED_FILE), encoding="utf-8") as stream:
+            text = stream.read()
+        fixture.write_file(os.path.join(layer, capability.COMMITTED_FILE), text)
+        plan = capability.plan_import({"meta": {"source": "none"}, "rows": []}, FACETS, layer)
+        self.assertEqual(plan["committed"][capability.COMMITTED_FILE], text)
 
 
 # ── the classification import ───────────────────────────────────────────────────────────────
@@ -367,6 +459,17 @@ class ImportTests(fixture.EstateTestCase):
         self.assertEqual((rows[G + "shop"]["values"], rows[G + "shop"]["reviewed"]), (["goods-sales"], False))
         with self.assertRaises(safety.GuardError):
             self.plan(layer, changed, replace=(G + "door",))  # not a reviewed row
+
+    def test_host_rows_are_kept_as_they_are(self):
+        layer = self.case_dir()
+        host = ('[[host]]\nid = "%smono"\nextra_folders = ["docs/plans"]\nbuild_list = "ci/quarantine.json"\n'
+                'source = "hand"\nas_of = 2026-10-19\n' % G)
+        fixture.write_file(os.path.join(layer, capability.COMMITTED_FILE), capability.COMMITTED_HEADER + host)
+        first = self.plan(layer)
+        text = first["committed"][capability.COMMITTED_FILE]
+        self.assertTrue(text.startswith(capability.COMMITTED_HEADER + host + "\n[[capability]]\n"))
+        self.apply(layer, first)
+        self.assertEqual(self.plan(layer)["committed"], first["committed"])
 
     def test_a_bad_classification_is_refused_before_anything_is_planned(self):
         layer = self.case_dir()

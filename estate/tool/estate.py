@@ -49,6 +49,7 @@ if TOOL_DIR not in sys.path:
 
 import argparse  # noqa: E402  (stdlib; after the trust check on purpose)
 import datetime as dt  # noqa: E402
+import functools  # noqa: E402
 import hashlib  # noqa: E402
 import json  # noqa: E402
 import re  # noqa: E402
@@ -65,6 +66,7 @@ import decisions  # noqa: E402
 import hygiene  # noqa: E402
 import kingdom  # noqa: E402
 import model  # noqa: E402
+import packages  # noqa: E402
 import proposals  # noqa: E402
 import render  # noqa: E402
 import safety  # noqa: E402
@@ -625,8 +627,11 @@ def build(ctx, args, cfg, cfg_note, lock):
     now = safety.utc_now()
     forge_summary, forge_raws, forge_reasons = merge_gh_listing(srcs, cfg, args.forge, now)
     reasons += forge_reasons
+    # The [[host]] rows name the repositories whose packages the canonical checkout reader also reads;
+    # the join reports their problems.
+    hosts = packages.host_rows(curated)[0]
     snapshot = model.build_records(census_data, foundation, srcs, curated, vocab, prev["snapshot"], cfg, now=now,
-                                   home=ctx.home, repo_reader=model.read_canonical)
+                                   home=ctx.home, repo_reader=functools.partial(model.read_canonical, hosts=hosts))
 
     # 9: proposals, against the integrity lock.
     lock_doc, lock_read = kingdom.read_lock(ctx.layer)
@@ -726,6 +731,7 @@ def run_document(run_id, state, code, started, finished, args, census_data, snap
         "validation": {"ok": True, "problems_n": 0},
         "proposals": proposals.summary(props),
         "hygiene": (snapshot.get("hygiene") or {}).get("counts"),
+        "capability": {k: (snapshot.get("capability") or {}).get(k) for k in ("packages", "hosts")},
         "lock_recovered": recovered,
         "forge_network": forge_summary,
         "previous": {"run_id": prev["run_id"], "problems": prev["problems"]},
@@ -1579,7 +1585,7 @@ def cmd_capability(ctx, args):
     if args.import_path:
         return _locked(ctx, args.write, import_capabilities, args)
     require(not args.write and not args.replace_reviewed, "--write and --replace-reviewed go with --import")
-    run = require_current(ctx, ("records",))
+    run = require_current(ctx, ("run", "records"))
     projects = {r["id"]: r for r in present(run["records"]) if r["kind"] == "project"}
     facets = model.load_vocab(ctx.layer)["facets"]
     fields = {pid: (r.get("display") or {}).get("capability") or {} for pid, r in projects.items()}
@@ -1594,12 +1600,23 @@ def cmd_capability(ctx, args):
     for band, members in capability.bands(facets).items():
         say("  %s: %s" % (band, " · ".join("%s %d" % (v, sum(1 for f in own if v in (f.get("values") or [])))
                                           for v in members)))
+    hosts = ((run["run"] or {}).get("capability") or {}).get("hosts") or []
+    by_host = Counter(r.get("host") for r in present(run["records"]) if r["kind"] == "package")
+    for summary in hosts:
+        say("  packages: %s" % capability.host_text(summary))
+    for host in sorted(set(by_host) - {h.get("id") for h in hosts}):
+        say("  packages: %s: %d package records" % (host, by_host[host]))
+    impls = Counter(e.get("impl") for r in present(run["records"]) if r["kind"] == "package"
+                    for e in ((r.get("capability") or {}).get("by_value") or {}).values())
+    if by_host:
+        say("  package capabilities by impl: %s" % (", ".join("%s %d" % kv for kv in sorted(impls.items())) or "none"))
     unassigned = sorted(pid for pid, f in fields.items() if f.get("status") == capability.UNASSIGNED)
     say("unassigned projects in business scope: %d" % len(unassigned))
     for pid in unassigned:
         say("  %s  [%s]" % (pid, "; ".join(fields[pid].get("scope") or [])))
     rows, problems = capability.curated_index(model.load_curated(ctx.layer), facets)
-    checks = capability.row_checks(projects, rows, safety.utc_now().date().isoformat())
+    package_ids = [r["id"] for r in present(run["records"]) if r["kind"] == "package"]
+    checks = capability.row_checks(projects, rows, safety.utc_now().date().isoformat(), package_ids)
     say("curated rows: %d · not yet reviewed %d · past review %d%s · naming no record of this run %d%s" % (
         len(rows), len(checks["unreviewed"]), len(checks["overdue"]),
         (" (" + ", ".join(rid for rid, _ in checks["overdue"]) + ")") if checks["overdue"] else "",
