@@ -12,7 +12,7 @@ export class RedisCache implements CacheClient {
   private keyPrefix: string;
   private defaultTtl: number;
   private serializer: CacheSerializer;
-  private stats = { hits: 0, misses: 0 };
+  private counters = { hits: 0, misses: 0 };
 
   constructor(config: CacheConfig, serializer: CacheSerializer = jsonSerializer) {
     this.keyPrefix = config.keyPrefix || 'cache:';
@@ -31,10 +31,10 @@ export class RedisCache implements CacheClient {
       this.client = new Redis({
         host: config.host || 'localhost',
         port: config.port || 6379,
-        password: config.password,
+        ...(config.password !== undefined ? { password: config.password } : {}),
         db: config.db || 0,
         keyPrefix: this.keyPrefix,
-        tls: config.tls ? {} : undefined,
+        ...(config.tls ? { tls: {} } : {}),
         retryStrategy: (times) => Math.min(times * 50, 2000),
         maxRetriesPerRequest: 3,
         enableReadyCheck: true,
@@ -55,10 +55,10 @@ export class RedisCache implements CacheClient {
   async get<T>(key: string): Promise<T | null> {
     const data = await this.client.get(this.fullKey(key));
     if (!data) {
-      this.stats.misses++;
+      this.counters.misses++;
       return null;
     }
-    this.stats.hits++;
+    this.counters.hits++;
     try {
       return this.serializer.deserialize<T>(data);
     } catch {
@@ -122,14 +122,14 @@ export class RedisCache implements CacheClient {
     keys.forEach((key, index) => {
       const data = values[index];
       if (data) {
-        this.stats.hits++;
+        this.counters.hits++;
         try {
           result.set(key, this.serializer.deserialize<T>(data));
         } catch {
           result.set(key, null);
         }
       } else {
-        this.stats.misses++;
+        this.counters.misses++;
         result.set(key, null);
       }
     });
@@ -137,7 +137,7 @@ export class RedisCache implements CacheClient {
     return result;
   }
 
-  async setMany<T>(entries: Array<{ key: string; value: T; options?: CacheOptions }>): Promise<void> {
+  async setMany<T>(entries: Array<{ key: string; value: T; options?: CacheOptions | undefined }>): Promise<void> {
     if (entries.length === 0) return;
 
     const pipeline = this.client.pipeline();
@@ -213,16 +213,16 @@ export class RedisCache implements CacheClient {
   }
 
   async stats(): Promise<CacheStats> {
-    const total = this.stats.hits + this.stats.misses;
+    const total = this.counters.hits + this.counters.misses;
     const info = await this.client.info('memory');
-    const memoryMatch = info.match(/used_memory:(\d+)/);
+    const usedMemory = info.match(/used_memory:(\d+)/)?.[1];
 
     return {
-      hits: this.stats.hits,
-      misses: this.stats.misses,
-      hitRate: total > 0 ? this.stats.hits / total : 0,
+      hits: this.counters.hits,
+      misses: this.counters.misses,
+      hitRate: total > 0 ? this.counters.hits / total : 0,
       keyCount: await this.client.dbsize(),
-      memoryUsage: memoryMatch ? parseInt(memoryMatch[1], 10) : undefined,
+      memoryUsage: usedMemory !== undefined ? parseInt(usedMemory, 10) : undefined,
     };
   }
 

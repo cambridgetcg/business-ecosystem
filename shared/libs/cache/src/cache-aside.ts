@@ -149,7 +149,7 @@ export async function batchGetWithCache<T>(
     const fetched = await fetchMissing(missingIds);
     
     // Cache and add to result
-    const toCache: Array<{ key: string; value: T; options?: CacheOptions }> = [];
+    const toCache: Array<{ key: string; value: T; options?: CacheOptions | undefined }> = [];
     for (const [id, value] of fetched) {
       result.set(id, value);
       toCache.push({ key: keyFn(id), value, options });

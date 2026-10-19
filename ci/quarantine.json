@@ -45,15 +45,6 @@
       "exit": "F8: type pool.query<Row> results and adapter responses; lint exits 0."
     },
     {
-      "package": "@ecosystem/cache",
-      "task": "lint",
-      "reason": "no-unsafe-* around the Redis client and serializer, left after the tsconfig and ioredis fixes.",
-      "first_error": "src/index.ts:45:3 Unsafe return of an `any` typed value @typescript-eslint/no-unsafe-return",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 13,
-      "exit": "F4, with its type errors; lint exits 0."
-    },
-    {
       "package": "@ecosystem/compliance-aggregator",
       "task": "lint",
       "reason": "Linted for the first time now that ESLint reaches .orchestration: require-await (9), no-unsafe-* (8), unused variables (5).",
@@ -126,15 +117,6 @@
       "exit": "F4; lint exits 0."
     },
     {
-      "package": "@ecosystem/cache",
-      "task": "typecheck",
-      "reason": "The strict base applies now that the extends path is fixed: exactOptionalPropertyTypes (4), a stats field that duplicates its getter (TS2300 x2), incompatible overrides (TS2416 x2), overload mismatches.",
-      "first_error": "src/cache-aside.ts(102,54): error TS2379: Argument of type '{ ttl: number | undefined; tags: string[] | undefined; }' is not assignable to parameter of type 'CacheAsideOptions<TResult>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 10,
-      "exit": "F4; typecheck exits 0. Remove with the build entry."
-    },
-    {
       "package": "@ecosystem/compliance-aggregator",
       "task": "typecheck",
       "reason": "An overload mismatch (src/index.ts:170) and exactOptionalPropertyTypes (src/index.ts:259).",
@@ -196,15 +178,6 @@
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
       "errors": 6,
       "exit": "F4; typecheck exits 0. Remove with the build entry."
-    },
-    {
-      "package": "@ecosystem/cache",
-      "task": "build",
-      "reason": "tsc build with the same diagnostics as its typecheck entry. No other package depends on it.",
-      "first_error": "src/cache-aside.ts(102,54): error TS2379: Argument of type '{ ttl: number | undefined; tags: string[] | undefined; }' is not assignable to parameter of type 'CacheAsideOptions<TResult>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 10,
-      "exit": "F4; build exits 0. Remove with the typecheck entry."
     },
     {
       "package": "@ecosystem/compliance-aggregator",

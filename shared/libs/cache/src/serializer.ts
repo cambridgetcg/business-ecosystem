@@ -10,7 +10,7 @@ import type { CacheSerializer, CacheEntry } from './types.js';
  */
 export const jsonSerializer: CacheSerializer = {
   serialize<T>(value: T): string {
-    return JSON.stringify(value, (_, v) => {
+    return JSON.stringify(value, (_, v: unknown) => {
       // Handle Date objects
       if (v instanceof Date) {
         return { __type: 'Date', value: v.toISOString() };
@@ -28,15 +28,17 @@ export const jsonSerializer: CacheSerializer = {
   },
 
   deserialize<T>(data: string): T {
-    return JSON.parse(data, (_, v) => {
+    return JSON.parse(data, (_, v: unknown) => {
       if (v && typeof v === 'object' && '__type' in v) {
-        switch (v.__type) {
+        // A value serialize() tagged above.
+        const tagged = v as { __type: unknown; value: unknown };
+        switch (tagged.__type) {
           case 'Date':
-            return new Date(v.value);
+            return new Date(tagged.value as string);
           case 'Map':
-            return new Map(v.value);
+            return new Map(tagged.value as [unknown, unknown][]);
           case 'Set':
-            return new Set(v.value);
+            return new Set(tagged.value as unknown[]);
         }
       }
       return v;
