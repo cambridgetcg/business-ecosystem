@@ -24,7 +24,7 @@
         "file": "operational/contracts-legal/STATUS.md",
         "lines": "14",
         "claim": "Blockers: None",
-        "measured": "Its lint (127 errors) and test (no test files) are quarantined below. Its build and typecheck pass since F7."
+        "measured": "Its lint (127 errors) is quarantined below. Its build and typecheck pass since F7, and its tests since F9."
       },
       {
         "file": "foundational/banking-treasury/STATUS.md",
@@ -97,132 +97,6 @@
       "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
       "errors": 4,
       "exit": "O1; build exits 0. Remove with the typecheck entry."
-    },
-    {
-      "package": "@ecosystem/compliance-aggregator",
-      "task": "test",
-      "reason": "vitest run finds no test files and exits 1.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: a first real test in this package passes."
-    },
-    {
-      "package": "@ecosystem/contracts-legal",
-      "task": "test",
-      "reason": "vitest run finds no test files and exits 1.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: a first real test in this package passes."
-    },
-    {
-      "package": "@ecosystem/data-privacy",
-      "task": "test",
-      "reason": "vitest run finds no test files and exits 1.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: a first real test in this package passes."
-    },
-    {
-      "package": "@ecosystem/entity-governance",
-      "task": "test",
-      "reason": "vitest run finds no test files and exits 1.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: a first real test in this package passes."
-    },
-    {
-      "package": "@ecosystem/insurance",
-      "task": "test",
-      "reason": "vitest run finds no test files and exits 1.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: a first real test in this package passes."
-    },
-    {
-      "package": "@ecosystem/intellectual-property",
-      "task": "test",
-      "reason": "vitest run finds no test files and exits 1.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: a first real test in this package passes."
-    },
-    {
-      "package": "@ecosystem/kyc-identity",
-      "task": "test",
-      "reason": "vitest run finds no test files and exits 1.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: a first real test in this package passes."
-    },
-    {
-      "package": "@ecosystem/operational-gateway",
-      "task": "test",
-      "reason": "vitest run finds no test files and exits 1.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: a first real test in this package passes."
-    },
-    {
-      "package": "@ecosystem/operational-reporting",
-      "task": "test",
-      "reason": "vitest run finds no test files and exits 1.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: a first real test in this package passes."
-    },
-    {
-      "package": "@ecosystem/repository",
-      "task": "test",
-      "reason": "vitest run finds no test files and exits 1.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: a first real test in this package passes."
-    },
-    {
-      "package": "@ecosystem/workflow-engine",
-      "task": "test",
-      "reason": "vitest run finds no test files and exits 1.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: a first real test in this package passes."
-    },
-    {
-      "package": "@foundational/accounting",
-      "task": "test",
-      "reason": "vitest run finds no TypeScript tests. The package's real tests are Python and run in offline-evidence.yml.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: the test script runs real tests (TypeScript, or the Python suite offline-evidence.yml runs)."
-    },
-    {
-      "package": "@foundational/compliance",
-      "task": "test",
-      "reason": "vitest run finds no test files and exits 1.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: a first real test in this package passes."
-    },
-    {
-      "package": "@foundational/tax",
-      "task": "test",
-      "reason": "vitest run finds no test files and exits 1.",
-      "first_error": "No test files found, exiting with code 1",
-      "measured_at": "a40144fa99da2a9630eb1a14b279e3762af9a9bf",
-      "errors": 0,
-      "exit": "F9: a first real test in this package passes."
     }
   ]
 }

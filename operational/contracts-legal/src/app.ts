@@ -26,8 +26,8 @@ export function createApp(config: AppConfig): Hono {
     credentials: true,
   }));
   app.use('*', requestLogger);
-  app.use('*', errorHandler);
   app.use('*', auditTrail);
+  app.onError(errorHandler);
 
   // Health check endpoint
   app.get('/health', async (c) => {

@@ -2,7 +2,8 @@
  * Error Handling Middleware
  */
 
-import { Context, MiddlewareHandler } from 'hono';
+import { Context, ErrorHandler } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import { ContentfulStatusCode } from 'hono/utils/http-status';
 import { ZodError } from 'zod';
 import { AppError, isAppError, isOperationalError, ValidationError } from '../lib/errors.js';
@@ -46,40 +47,41 @@ function handlePrismaError(error: Error): AppError {
   return new AppError('Database error', 500, 'DATABASE_ERROR', false);
 }
 
-export const errorHandler: MiddlewareHandler = async (c, next) => {
-  try {
-    await next();
-    return;
-  } catch (error) {
-    const requestId = c.get('requestId') as string | undefined;
-    let appError: AppError;
-
-    if (isAppError(error)) {
-      appError = error;
-    } else if (error instanceof ZodError) {
-      appError = handleZodError(error);
-    } else if (error instanceof Error && error.name === 'PrismaClientKnownRequestError') {
-      appError = handlePrismaError(error);
-    } else if (error instanceof Error) {
-      appError = new AppError(
-        process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : error.message,
-        500, 'INTERNAL_ERROR', false
-      );
-    } else {
-      appError = new AppError('An unexpected error occurred', 500, 'INTERNAL_ERROR', false);
-    }
-
-    if (!isOperationalError(appError)) {
-      logError(error, { requestId, errorCode: appError.code });
-    } else {
-      const logLevel = appError.statusCode >= 500 ? 'error' : 'warn';
-      logger[logLevel]({ requestId, errorCode: appError.code, statusCode: appError.statusCode, message: appError.message }, 'Request error: ' + appError.message);
-    }
-
-    const response = buildErrorResponse(appError, requestId);
-    const status = appError.statusCode as ContentfulStatusCode;
-    return c.json(response, status);
+// Registered with app.onError. Hono catches an error thrown by a handler or a
+// middleware itself and passes it to onError, so a middleware's try/catch
+// around next() never sees it: as middleware, this mapped nothing.
+export const errorHandler: ErrorHandler = (error, c) => {
+  // Hono's own client errors (malformed JSON for a validator) keep their response.
+  if (error instanceof HTTPException) {
+    return error.getResponse();
   }
+
+  const requestId = c.get('requestId') as string | undefined;
+  let appError: AppError;
+
+  if (isAppError(error)) {
+    appError = error;
+  } else if (error instanceof ZodError) {
+    appError = handleZodError(error);
+  } else if (error.name === 'PrismaClientKnownRequestError') {
+    appError = handlePrismaError(error);
+  } else {
+    appError = new AppError(
+      process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : error.message,
+      500, 'INTERNAL_ERROR', false
+    );
+  }
+
+  if (!isOperationalError(appError)) {
+    logError(error, { requestId, errorCode: appError.code });
+  } else {
+    const logLevel = appError.statusCode >= 500 ? 'error' : 'warn';
+    logger[logLevel]({ requestId, errorCode: appError.code, statusCode: appError.statusCode, message: appError.message }, 'Request error: ' + appError.message);
+  }
+
+  const response = buildErrorResponse(appError, requestId);
+  const status = appError.statusCode as ContentfulStatusCode;
+  return c.json(response, status);
 };
 
 export const notFoundHandler = (c: Context) => {
