@@ -23,6 +23,7 @@ import curate
 import decisions
 import hygiene
 import model
+import motifs
 import proposals as proposal_rules
 import safety
 import sphere
@@ -51,7 +52,7 @@ LEGAL_QUESTION = "q:legal-entities"
 QUEUE_ORDER = ("uncurated", "family-unassigned", "role-unknown", "unmapped-tag", "topic-below-threshold",
                "orphaned-curation", "local-forge-migration", "local-alias", "review-overdue",
                "family-unreviewed", "what-heavy", "capability-unassigned", "capability-candidate",
-               "capability-review-overdue", "capability-orphan-row", "wire-unevidenced", "wire-differs")
+               "capability-review-overdue", "capability-orphan-row", "wire-unevidenced", "wire-differs", "motif-stale")
 # ATTENTION order of spec 7; risks not named there follow alphabetically.
 ATTENTION_ORDER = tuple(curate.RISKS[key] for key in (
     "unsaved", "unpushed", "single", "partial", "lender", "borrower", "prunable", "secret-path",
@@ -1398,6 +1399,57 @@ def _wires(doc, v, level, full=False):
                        for a in r.get("anchors") or []])
 
 
+def _motifs(doc, v, level, full=False):
+    """The motifs view (motifs.py): each pattern with its state, the packages importing the libraries that
+    embody it and where code does it by hand; full adds each library and anchor with what was found where."""
+    info = v.snapshot.get("motifs")
+    doc.h(level, "Motifs")
+    if info is None:
+        doc.p("Motifs: not provided to the renderer.")
+        return
+    rows = info.get("rows") or []
+    doc.p("A motif is a design pattern the code repeats. Its users are measured: the packages whose non-test source "
+          "imports a shared library that embodies it (adopted). With no importer, a curated anchor found as code "
+          "elsewhere reads reimplemented and none reads unused; a pattern no library embodies reads no-library. A "
+          "package whose manifest only declares a library is not a user. Source the reader may not open in a package "
+          "that could import a library makes its count a lower bound (≥) and, with no importer found, the motif "
+          "not-measured. Curated motifs: %d (%d not yet reviewed), "
+          "by state %s%s." % (
+              len(rows), sum(1 for m in rows if m.get("reviewed") is not True), motifs.states_text(info.get("states")),
+              "; %d stale line%s in QUEUE (motif-stale)" % (info["stale"], "" if info["stale"] == 1 else "s")
+              if info.get("stale") else ""))
+    doc.table(("motif", "state", "libraries", "importers", "declared only", "by hand in (found as code)", "why"),
+              [(m["name"], m["state"], "; ".join(motifs.library_text(lib, lambda i: _wire_end(v, i))
+                                                 for lib in m.get("libraries") or []) or "none",
+                ", ".join(_wire_end(v, u) for u in m.get("users") or []) or "—",
+                ", ".join(_wire_end(v, d) for d in sorted({d for lib in m.get("libraries") or []
+                                                            for d in lib.get("declared") or []})) or "—",
+                ", ".join(sorted({_wire_end(v, a["in"]) for a in m.get("anchors") or [] if a.get("found") == "code"}))
+                or "—", m.get("reason") or "—")
+               for m in rows])
+    if info.get("problems"):
+        doc.p("Motif problems:", "warn")
+        doc.ul(info["problems"])
+    if full:
+        for m in rows:
+            doc.h(level + 1, "%s (%s)" % (m["name"], m["state"]))
+            doc.p("%s Measured: %s.%s" % (m.get("pattern") or "—", m.get("reason") or "—", " Evidence: %s" % clip(
+                m["evidence"], 400) if m.get("evidence") else ""))
+            if m.get("libraries"):
+                doc.table(("library", "name", "importers", "of them quarantined", "declared only",
+                           "unread source in (files)", "not measured"),
+                          [(lib["id"], lib.get("name") or "—", ", ".join(lib.get("users") or []) or "—",
+                            lib.get("unbuilt_users") or 0, ", ".join(lib.get("declared") or []) or "—",
+                            ", ".join("%s (%d)" % (p["id"], p["files"]) for p in lib.get("unread_in") or []) or "—",
+                            lib.get("reason") or "—") for lib in m["libraries"]])
+            if m.get("anchors"):
+                doc.table(("in", "path", "text", "found", "files"),
+                          [(a["in"], a["path"], a["text"], a.get("found") or "not searched",
+                            ", ".join(a.get("files") or []) or "—") for a in m["anchors"]])
+            if m.get("stale"):
+                doc.p("Stale (QUEUE motif-stale): %s." % "; ".join(m["stale"]))
+
+
 def _capability_scope(doc, v, level):
     """Every present project in business scope, with its capabilities, why it is in scope, and the
     other business fields, so the one population is visible as a whole."""
@@ -1450,13 +1502,15 @@ def _business(doc, v):
     _capability_bands(doc, v, 3)
     _capability_gaps(doc, v, 3)
     _wires(doc, v, 3)
+    _motifs(doc, v, 3)
     _capability_scope(doc, v, 3)
     _capability_waiting(doc, v)
 
 
 def capability_doc(v):
     """CAPABILITIES.md: the whole capability map, value by value with each holder's reading and
-    evidence, the gaps, the business population and what waits on curation or review."""
+    evidence, the gaps, the wires and motifs, the business population and what waits on curation or
+    review."""
     doc = Doc()
     doc.h(1, "Capabilities — run %s" % v.run_id)
     doc.p("Private view: the evidence column holds the private text of each curated row; never commit or publish "
@@ -1473,6 +1527,7 @@ def capability_doc(v):
     _capability_bands(doc, v, 2, full=True)
     _capability_gaps(doc, v, 2)
     _wires(doc, v, 2, full=True)
+    _motifs(doc, v, 2, full=True)
     _capability_scope(doc, v, 2)
     doc.h(2, "Waiting on curation or review")
     info = v.snapshot.get("capability") or {}

@@ -471,7 +471,8 @@ def make_domain_monorepo(path, home=None, remote=None):
     are, for package records and the capability join: accounting (TypeScript and Python, a test),
     data-privacy (build and typecheck quarantined), insurance (one health-only file), an
     intellectual-property package whose only source file is deny-listed, a documents-only
-    corporate-security folder with no manifest, and a messaging library the accounting package imports.
+    corporate-security folder with no manifest, a messaging library the accounting package imports, and a
+    package outside the workspace globs whose scripts define build and test (CI runs neither for it).
     The quarantine list lands one commit after the commit it measured, and one more commit follows,
     so HEAD is two commits past its measured_at. Returns (path, measured commit)."""
     secret_name = "trade-" + "secret.entity.ts"  # deny-listed by name; never opened
@@ -493,6 +494,7 @@ def make_domain_monorepo(path, home=None, remote=None):
         "operational/intellectual-property/src/" + secret_name: "export const fixtureNeverRead = 1\n",
         "shared/libs/messaging/package.json": _package_json("@fixture/messaging", scripts=("build", "lint")),
         "shared/libs/messaging/src/index.ts": "export const publish = (x: string) => x\n",
+        "infrastructure/lambda/package.json": _package_json("fixture-lambda", scripts=("build", "test")),
     }
     now = time.time()
     make_repo(path, files=files, home=home, remote=remote, age_days=3)
@@ -504,6 +506,40 @@ def make_domain_monorepo(path, home=None, remote=None):
     git(path, "add", "--", "README.md", home=home)
     git(path, "commit", "-q", "-m", "readme", home=home, when=now - 86400)
     return path, measured
+
+
+def make_motif_monorepo(path, home=None, remote=None, unread_importer=False):
+    """A small pnpm monorepo for the motifs view: a messaging library the engine imports and an events
+    library that imports it too (a sibling in one motif, not a user), an outbox library two packages only
+    declare and one test imports, a saga library nobody imports whose pattern the engine does by hand, and a
+    Python ledger whose compensating entry no library embodies, with one text only in its docstring.
+    unread_importer adds a deny-listed source file to the intake package that imports the outbox library:
+    the reader never opens it, so the import is never seen."""
+    files = {
+        "package.json": _package_json("fixture-motifs"),
+        "pnpm-workspace.yaml": "packages:\n  - 'shared/libs/*'\n  - 'operational/*'\n",
+        "shared/libs/messaging/package.json": _package_json("@fixture/messaging"),
+        "shared/libs/messaging/src/index.ts": "export const publish = (x: string) => x\n",
+        "shared/libs/events/package.json": _package_json("@fixture/events", deps=("@fixture/messaging",)),
+        "shared/libs/events/src/index.ts": "import { publish } from '@fixture/messaging'\nexport const announce = publish\n",
+        "shared/libs/outbox/package.json": _package_json("@fixture/outbox"),
+        "shared/libs/outbox/src/index.ts": "export const relay = 1\n",
+        "shared/libs/saga/package.json": _package_json("@fixture/saga"),
+        "shared/libs/saga/src/index.ts": "export class SagaExecutor {}\n",
+        "operational/engine/package.json": _package_json("@fixture/engine", deps=("@fixture/messaging",),
+                                                         dev=("@fixture/outbox",)),
+        "operational/engine/src/index.ts": ("import { publish } from '@fixture/messaging'\n"
+                                            "export async function runCompensation() { return publish('undo') }\n"),
+        "operational/engine/tests/outbox.test.ts": "import { relay } from '@fixture/outbox'\n",
+        "operational/intake/package.json": _package_json("@fixture/intake", deps=("@fixture/outbox",)),
+        "operational/intake/src/index.ts": "export const intake = 1\n",
+        "operational/ledger/pyproject.toml": '[project]\nname = "fixture-ledger"\n',
+        "operational/ledger/src/ledger.py": ('def create_reversal(entry):\n'
+                                             '    """An offsetting entry: compensate by hand."""\n    return entry\n'),
+    }
+    if unread_importer:
+        files["operational/intake/src/tokens.ts"] = "import { relay } from '@fixture/outbox'\nexport const ID = relay\n"
+    return make_repo(path, files=files, home=home, remote=remote)
 
 
 def make_monorepo(path, home=None):

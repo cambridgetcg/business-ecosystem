@@ -22,9 +22,9 @@ gated. A gated task is a contract of CI, not an observed run: the estate runs no
 """
 from collections import Counter
 
+import capability
 import sources
 
-FILE = "curated/capabilities.toml"
 TASKS = sources.CI_TASKS
 # A package whose build or typecheck is quarantined has source that does not compile in CI: its
 # capability reads code-unbuilt (vocab/facets.toml capability_impl).
@@ -37,10 +37,6 @@ def package_id(host, subpath):
     return "pkg:%s//%s" % (host, subpath)
 
 
-def _relative(path):
-    return isinstance(path, str) and bool(path.strip("/")) and not path.startswith("/") and ".." not in path.split("/")
-
-
 def host_rows(curated):
     """({host project id: {id, extra_folders, build_list}}, problems) from the [[host]] rows of
     curated/capabilities.toml. A path that is not repository-relative is named and left out."""
@@ -48,19 +44,20 @@ def host_rows(curated):
     for row in (curated or {}).get("hosts") or []:
         ident = row.get("id") if isinstance(row, dict) else None
         if not isinstance(ident, str) or not ident:
-            problems.append("packages: a [[host]] row in %s has no id or is not a table" % FILE)
+            problems.append("packages: a [[host]] row in %s has no id or is not a table" % capability.COMMITTED_FILE)
             continue
         if ident in rows:
-            problems.append("packages: %s has two [[host]] rows in %s; the first is kept" % (ident, FILE))
+            problems.append("packages: %s has two [[host]] rows in %s; the first is kept" % (ident, capability.COMMITTED_FILE))
             continue
         folders = row.get("extra_folders") or []
         folders = folders if isinstance(folders, list) else [folders]
         rel = row.get("build_list")
-        bad = [str(f) for f in folders if not _relative(f)] + ([str(rel)] if rel is not None and not _relative(rel) else [])
+        bad = [str(f) for f in folders if not sources.repo_relative(f)] + (
+            [str(rel)] if rel is not None and not sources.repo_relative(rel) else [])
         if bad:
             problems.append("packages: host %s names %s, not repository-relative paths" % (ident, ", ".join(bad)))
-        rows[ident] = {"id": ident, "extra_folders": [f.strip("/") for f in folders if _relative(f)],
-                       "build_list": rel.strip("/") if _relative(rel) else None}
+        rows[ident] = {"id": ident, "extra_folders": [f.strip("/") for f in folders if sources.repo_relative(f)],
+                       "build_list": rel.strip("/") if sources.repo_relative(rel) else None}
     return rows, problems
 
 

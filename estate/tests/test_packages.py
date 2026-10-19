@@ -41,6 +41,7 @@ def clean(root, modified=0):
     return {"path": root, "head": "f" * 40, "last_commit_at": "2026-10-18T00:00:00Z",
             "dirty": {"mode": "normal", "modified": modified, "untracked": 0}}
 
+
 LEDGER, PATENTS, ENGINE = "foundational/ledger", "operational/patents", "operational/.orchestration/engine"
 
 
@@ -149,7 +150,6 @@ class PackageHelperTests(fixture.EstateTestCase):
                              [], rel)
 
 
-
 class BuildListReaderTests(fixture.EstateTestCase):
 
     @classmethod
@@ -212,8 +212,9 @@ class PackageRecordTests(fixture.EstateTestCase):
 
     def test_the_canonical_reader_reads_packages_only_for_a_host(self):
         self.assertEqual(sorted(self.records), [pkg(s) for s in (
-            "foundational/accounting", "foundational/corporate-security", "operational/data-privacy",
-            "operational/insurance", "operational/intellectual-property", "shared/libs/messaging")])
+            "foundational/accounting", "foundational/corporate-security", "infrastructure/lambda",
+            "operational/data-privacy", "operational/insurance", "operational/intellectual-property",
+            "shared/libs/messaging")])
         self.assertEqual(self.read["packages"]["packages"]["operational/insurance"]["scripts"], ["build", "typecheck", "lint"])
         other = model.read_canonical(clean(self.root), "github.com/cambridgetcg/another", {HOST: HOST_ROW})
         self.assertNotIn("packages", other)
@@ -228,6 +229,11 @@ class PackageRecordTests(fixture.EstateTestCase):
         self.assertEqual(self.tasks("shared/libs/messaging"), {"build": "gated", "typecheck": "not-run",
                                                                "lint": "quarantined", "test": "not-run"})
         self.assertEqual(set(self.tasks("foundational/corporate-security").values()), {"not-run"})  # no manifest
+        # Outside the workspace globs CI runs no task, even one its package.json defines.
+        lambda_ = self.records[pkg("infrastructure/lambda")]
+        self.assertEqual((lambda_["workspace"], lambda_["scripts"]), (False, ["build", "test"]))
+        self.assertEqual(set(self.tasks("infrastructure/lambda").values()), {"not-run"})
+        self.assertIs(lambda_["build"]["unbuilt"], False)
         privacy = self.records[pkg("operational/data-privacy")]["build"]
         self.assertEqual((privacy["status"], privacy["list"], privacy["reason"], privacy["unbuilt"]),
                          ("ok", fixture.DOMAIN_LIST, None, True))
@@ -245,7 +251,7 @@ class PackageRecordTests(fixture.EstateTestCase):
         self.assertEqual(summary["build_list"]["unmatched"], ["@fixture/gone"])
         text = capability.host_text(summary)
         # The workspace count is the host tooling's own: packages with a manifest, not the named folders.
-        self.assertIn(": 6 packages: 5 in its workspace, 1 folder its host row names, 0 outside the workspace;", text)
+        self.assertIn(": 7 packages: 5 in its workspace, 1 folder its host row names, 1 outside the workspace;", text)
         self.assertIn("build state from %s at HEAD, 6 entries, error counts measured at %s (" % (
             fixture.DOMAIN_LIST, self.measured[:12]), text)
         self.assertIn("; 2 commits before HEAD)", text)
@@ -318,11 +324,11 @@ class PackageJoinTests(fixture.EstateTestCase):
     def test_package_records_validate_and_hang_on_their_host(self):
         self.assertEqual(model.validate(self.first, test_model.VOCAB["records"], facets=test_model.VOCAB["facets"])["problems"], [])
         found = self.records(self.first, "package")
-        self.assertEqual(len(found), 6)
+        self.assertEqual(len(found), 7)
         project = self.records(self.first, "project")[HOST]
         self.assertEqual(project["packages"], sorted(found))
         self.assertEqual(self.first["capability"]["hosts"][0]["status"], "read")
-        self.assertEqual(self.first["capability"]["packages"]["records"], 6)
+        self.assertEqual(self.first["capability"]["packages"]["records"], 7)
 
     def test_the_host_project_takes_the_values_of_its_packages_that_have_code(self):
         field = self.records(self.first, "project")[HOST]["display"]["capability"]
@@ -337,6 +343,7 @@ class PackageJoinTests(fixture.EstateTestCase):
         bases = {r["subpath"]: r["capability"]["basis"] for r in found.values()}
         self.assertEqual(bases, {"foundational/accounting": capability.PACKAGE_PATH,
                                  "foundational/corporate-security": capability.NONE,
+                                 "infrastructure/lambda": capability.NONE,
                                  "operational/data-privacy": capability.PACKAGE_PATH,
                                  "operational/insurance": capability.CURATED_PACKAGE,
                                  "operational/intellectual-property": capability.PACKAGE_PATH,
@@ -403,7 +410,7 @@ class CommandLinePackageTests(fixture.EstateTestCase):
         code, out, err = self.built
         self.assertIn(code, (0, 10), out + err)
         self.assertNotIn("failed validation", out + err)
-        self.assertIn("package 6", out)  # records by kind
+        self.assertIn("package 7", out)  # records by kind
         field = self.by_id[HOST]["display"]["capability"]
         self.assertEqual((field["basis"], field["values"]), (capability.DERIVED_PACKAGES,
                                                              ["accounting", "data-privacy", "insurance", "intellectual-property"]))
@@ -412,7 +419,7 @@ class CommandLinePackageTests(fixture.EstateTestCase):
     def test_ls_show_and_the_verb_reach_the_packages(self):
         code, out, _err = self.listed
         self.assertEqual(code, 0)
-        self.assertIn("6 records", out)
+        self.assertIn("7 records", out)
         code, out, _err = self.shown
         self.assertEqual(code, 0)
         shown = json.loads(out)["record"]
@@ -427,7 +434,7 @@ class CommandLinePackageTests(fixture.EstateTestCase):
     def test_the_map_shows_the_measured_columns(self):
         business = self.atlas[self.atlas.index("\n## Business (secondary)"):self.atlas.index("\n## Freshness")]
         self.assertIn("measured (packages)", business)
-        self.assertIn("Packages, measured from tracked files: 6 records, 4 holding a capability", business)
+        self.assertIn("Packages, measured from tracked files: 7 records, 4 holding a capability", business)
         self.assertIn("1 package: 1 line, 0 test files, imported by 0, 0 unread", business)  # data-privacy
         self.assertIn("1 package: 4 lines, 1 test file, imported by 0, 0 unread", business)  # accounting
         self.assertIn("1 package: ≥0 lines, 0 test files, imported by 0, 1 unread", business)  # intellectual-property

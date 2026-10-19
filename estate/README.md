@@ -40,7 +40,8 @@ repository, after claiming the paths through agenttool-collab.
   `tool/decisions.py` reads the owner decisions a build applies; `tool/sphere.py` holds the KINGDOM OS
   sphere facet; `tool/hygiene.py` holds the D8 hygiene plan and its join with a run; `tool/capability.py`
   holds the business capability map and the one business scope the Business view uses; `tool/packages.py`
-  holds the package records of the host repositories the map reads.
+  holds the package records of the host repositories the map reads; `tool/wires.py` the wires between
+  them and `tool/motifs.py` the motifs view.
 - `vocab/`: the record contract ([`vocab/records.toml`](vocab/records.toml), the single source for
   every record's fields and privacy class), the facet registry, the raw-tag map and the KINGDOM
   integrity lock.
@@ -76,7 +77,7 @@ estate/bin/estate decisions --private-from ABS_PATH --write   # private refineme
 estate/bin/estate accept-vocab --reviewed-harvest SHA256 --write   # record a hand review of harvest.ts
 estate/bin/estate sphere                  # the sphere facet of the current run: counts and the undecided list
 estate/bin/estate sphere --import ABS_PATH --write   # write a sphere classification into the curation
-estate/bin/estate capability              # the business capability map: counts by band, unassigned, rows to review
+estate/bin/estate capability              # the business capability map: counts by band, motifs, unassigned, rows to review
 estate/bin/estate capability --import ABS_PATH --write   # merge a classification into curated/capabilities.toml
 estate/bin/estate ls --kind package       # the packages of the host repositories ([[host]] rows)
 estate/bin/estate hygiene                 # the hygiene plan (D8), joined with the current run
@@ -239,7 +240,9 @@ relation of basis `measured-import`, and a manifest declaration no code imports 
 Yu reviews them: one end `feeds` the other over an event, an HTTP route or a file (or `depends_on` it), each
 end a package or project id, with anchors: a repository-relative path (a file, or a directory and everything
 under it) and a text that every build re-finds in the tracked files of that side's canonical checkout,
-through the deny list and with comments stripped; a hit in a test or a document is not code. A row may name
+through the deny list and with comments and Python docstrings stripped; a hit in a test or a document is not
+code, and a hit in a manifest, workflow or configuration file (JSON, YAML, TOML) is a declaration: it counts
+beside code on its side, never alone, so a workflow trigger with no subscribing code declares a wire. A row may name
 its `flow` and `hop`, and an end that is not built yet (it is measured and shown, but gives no relation
 record). Each wire has two independent fields. `code_state` is what the code shows: `wired` (both sides have
 non-test code for it and no end package is on the build or typecheck quarantine list), `wired-unbuilt` (an
@@ -271,6 +274,24 @@ entity events into the workflow engine (`wired`, since the quarantine follow-ups
 calls or events the other side does not answer (`contradicted`), and the first wire, `sale-to-ledger`,
 `wired` and still `designed`: it becomes `demonstrated` once `build --forge` can read a green
 `wire-e2e.yml` run on main.
+
+Motifs are a view, not a record kind (`tool/motifs.py`): the design patterns the code repeats, and whether
+that code reuses the shared library that embodies each one. A `[[motif]]` row of `curated/motifs.toml` names
+the pattern, its libraries (package ids; none for a pattern no library carries) and `also_in` anchors, a
+package or project id with a repository-relative path and a text, re-found on every build as wire anchors
+are: where code does the same by hand. Nothing in a row is a claim of state. Each build measures the users,
+the packages whose non-test source imports one of its libraries (the `measured-import` edges; a package whose
+manifest only declares one is listed apart), and reads `adopted` when there is one, `reimplemented` when there
+is none and a curated anchor is found as code, `unused` when neither, `no-library` for a pattern with no
+library and `not-measured` when what would decide it could not be read; positive evidence decides first. A
+source file the reader may not or could not open, in any package of the host that is not already a user,
+could hide an importer: the count is then a lower bound (`≥`), and with no importer found the motif reads
+`not-measured`, naming those packages, never `unused` or `reimplemented`. A
+library that is no package of its host's checkout, or an anchor code no longer holds, is listed in QUEUE
+(`motif-stale`). The map shows a Motifs table after the wires, `CAPABILITIES.md` each library and anchor,
+and `estate capability` one line per motif. The first rows, all `reviewed = false`, are the plan's: domain
+events (messaging and the events packages), the transactional outbox, saga compensation, the append-only
+audit trail and the compensating entry, which no library embodies.
 
 ## Hygiene: the plan of owner decision D8
 

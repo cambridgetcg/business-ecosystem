@@ -12,6 +12,7 @@ import datetime as dt
 import errno
 import glob
 import hashlib
+import io
 import json
 import os
 import plistlib
@@ -20,6 +21,7 @@ import shutil
 import signal
 import stat
 import subprocess
+import tokenize
 import tomllib
 
 import safety
@@ -422,6 +424,12 @@ def _clean(checkout):
     """True only when census measured zero modified tracked files; unknown is not clean."""
     dirty = checkout.get("dirty") or {}
     return dirty.get("mode") == "normal" and dirty.get("modified") == 0
+
+
+def repo_relative(path):
+    """True for a repository-relative path as curated rows name one (a [[host]] folder or quarantine
+    list, a wire anchor): non-empty, not absolute and with no .. segment."""
+    return isinstance(path, str) and bool(path.strip("/")) and not path.startswith("/") and ".." not in path.split("/")
 
 
 def _tracked(runner, rel):
@@ -944,13 +952,16 @@ def read_build_list(checkout, rel, git=None):
 
 # ── wire anchors (curated/wires.toml) ───────────────────────────────────────────────────────
 
-# Files an anchor is searched in. Documents declare; tests exercise; anything else tracked and read
-# here (source, workflow and configuration files) is code a running system loads.
+# Files an anchor is searched in. Documents describe and tests exercise. Manifests, workflow and trigger
+# files and other configuration (JSON, YAML, TOML) declare: they name a wire, and only the code that loads
+# them consumes it, as a manifest dependency no source imports is a declared edge (measured-manifest).
+# Anything else tracked and read here (source, SQL, Prisma and GraphQL schemas) is code.
 DOC_SUFFIXES = (".md", ".markdown", ".rst", ".txt")
+DECLARATION_SUFFIXES = (".json", ".yaml", ".yml", ".toml")
 HASH_COMMENT_SUFFIXES = (".py", ".yaml", ".yml", ".toml", ".sh", ".bash")
 ANCHOR_SUFFIXES = tuple(SOURCE_LANG) + HASH_COMMENT_SUFFIXES + DOC_SUFFIXES + (".json", ".sql", ".prisma", ".graphql")
 ANCHOR_FILES_SHOWN = 5
-ANCHOR_FOUND = ("code", "test", "doc", "none", "absent", "unread")
+ANCHOR_FOUND = ("code", "declaration", "test", "doc", "none", "absent", "unread")
 
 
 def strip_hash_comments(text):
@@ -977,10 +988,43 @@ def strip_hash_comments(text):
     return "\n".join(out)
 
 
+def strip_python_strings(text):
+    """Python source without its statement-level string literals: docstrings and any other string that
+    stands alone as a statement, which does nothing at run time (documentation, as a comment is). A string
+    inside an expression (an argument, an assignment) is kept. Each character removed becomes a space, so
+    lines keep their place; source tokenize cannot read is returned as it is."""
+    lines = io.StringIO(text).readlines()
+    starts = [0]
+    for line in lines:
+        starts.append(starts[-1] + len(line))
+    try:
+        tokens = list(tokenize.generate_tokens(io.StringIO(text).readline))
+    except (tokenize.TokenError, SyntaxError):
+        return text
+    spans, statement = [], []
+    skip = (tokenize.NL, tokenize.COMMENT, tokenize.INDENT, tokenize.DEDENT)
+    for token in tokens:
+        if token.type in (tokenize.NEWLINE, tokenize.ENDMARKER) or (token.type == tokenize.OP and token.string == ";"):
+            if statement and all(t.type == tokenize.STRING for t in statement):
+                spans += [(starts[t.start[0] - 1] + t.start[1], starts[t.end[0] - 1] + t.end[1]) for t in statement]
+            statement = []
+        elif token.type not in skip:
+            statement.append(token)
+    out = list(text)
+    for begin, end in spans:
+        for index in range(begin, end):
+            if out[index] != "\n":
+                out[index] = " "
+    return "".join(out)
+
+
 def _anchor_kind(rel):
     if TEST_PATH.search(rel):
         return "test"
-    return "doc" if os.path.splitext(rel)[1].lower() in DOC_SUFFIXES else "code"
+    ext = os.path.splitext(rel)[1].lower()
+    if ext in DOC_SUFFIXES:
+        return "doc"
+    return "declaration" if ext in DECLARATION_SUFFIXES else "code"
 
 
 def _anchor_text(rel, raw):
@@ -988,6 +1032,8 @@ def _anchor_text(rel, raw):
     ext = os.path.splitext(rel)[1].lower()
     if ext in SOURCE_LANG and SOURCE_LANG[ext] != "python":
         return strip_comments(text)
+    if ext == ".py":
+        text = strip_python_strings(text)
     return strip_hash_comments(text) if ext in HASH_COMMENT_SUFFIXES else text
 
 
@@ -995,11 +1041,13 @@ def find_anchors(checkout, anchors, git=None):
     """Curated wire anchors re-found in one checkout. Each anchor is a repository-relative path (a file,
     or a directory and everything under it) and a text; the text is searched in the tracked files there
     with comments stripped (JavaScript and TypeScript comments; # comments in Python, YAML, TOML and
-    shell), each file read through the deny list, build output skipped. found is code (in a file that is
-    neither a test nor a document), test (only in tests), doc (only in documents), none (the path holds
-    tracked files and none has the text), absent (no tracked file at or under the path) or unread (not
-    found, and a file there could not be read). {status, reason, anchors [{path, text, found, files}]},
-    files naming at most ANCHOR_FILES_SHOWN of the files that hold the text."""
+    shell; Python docstrings and other statement-level strings), each file read through the deny list,
+    build output skipped. found is code (in a file that is neither a test, a document nor a declaration),
+    declaration (in a manifest, workflow or configuration file and no code), test (only in tests), doc
+    (only in documents), none (the path holds tracked files and none has the text), absent (no tracked
+    file at or under the path) or unread (not found, and a file there could not be read). {status,
+    reason, anchors [{path, text, found, files}]}, files naming at most ANCHOR_FILES_SHOWN of the files
+    that hold the text."""
     root = checkout["path"]
     runner = git or GitRunner(root)
     out = {"status": "ok", "reason": None, "anchors": []}
@@ -1031,7 +1079,7 @@ def find_anchors(checkout, anchors, git=None):
             elif text in cache[rel]:
                 kinds.add(_anchor_kind(rel))
                 hits.append(rel)
-        found = next((k for k in ("code", "test", "doc") if k in kinds), None) or (
+        found = next((k for k in ("code", "declaration", "test", "doc") if k in kinds), None) or (
             "unread" if unread else ("none" if under else "absent"))
         out["anchors"].append({"path": path, "text": text, "found": found, "files": hits[:ANCHOR_FILES_SHOWN]})
     return out
