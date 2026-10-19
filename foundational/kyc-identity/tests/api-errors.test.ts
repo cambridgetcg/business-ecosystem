@@ -54,13 +54,16 @@ describe('kyc-identity REST errors', () => {
     expect(lookup).toHaveBeenCalledWith({ identityId: IDENTITY, tenantId: TENANT['x-tenant-id'] });
   });
 
-  it('rejects an identity id that is not a uuid with 400', async () => {
+  it('rejects an identity id that is not a uuid with 400, in the API error shape', async () => {
     const response = await app.inject({
       method: 'GET',
       url: '/api/v1/identities/not-a-uuid',
       headers: TENANT,
     });
     expect(response.statusCode).toBe(400);
+    // Fastify's schema message, in { error } like the API's other errors
+    // rather than Fastify's default { statusCode, code, error, message }.
+    expect(response.json()).toEqual({ error: 'params/id must match format "uuid"' });
   });
 
   it('returns 400 when the x-tenant-id header is missing', async () => {
