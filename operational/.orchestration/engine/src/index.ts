@@ -106,7 +106,7 @@ async function main() {
   // Manually trigger workflow
   app.post('/workflows/:id/trigger', async (c) => {
     const workflowId = c.req.param('id');
-    const input = await c.req.json();
+    const input = await c.req.json<Record<string, unknown>>();
 
     const execution = await engine.triggerWorkflow(workflowId, input);
     if (!execution) {
@@ -184,13 +184,20 @@ async function main() {
     process.exit(0);
   };
 
-  process.on('SIGTERM', shutdown);
-  process.on('SIGINT', shutdown);
+  const onSignal = () => {
+    shutdown().catch((error: unknown) => {
+      logger.error({ error }, 'Failed to shut down cleanly');
+      process.exit(1);
+    });
+  };
+
+  process.on('SIGTERM', onSignal);
+  process.on('SIGINT', onSignal);
 }
 
 // Only run if this is the main module
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
+  main().catch((error: unknown) => {
     logger.error({ error }, 'Failed to start workflow engine');
     process.exit(1);
   });

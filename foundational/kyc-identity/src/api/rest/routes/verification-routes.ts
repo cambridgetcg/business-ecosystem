@@ -2,7 +2,7 @@
  * Verification Request REST API Routes
  */
 
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance, FastifyPluginOptions, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { VerificationRequestCommandHandler } from '../../../application/handlers/command-handlers.js';
 import { VerificationRequestQueryHandler, AmlScreeningQueryHandler, AuditLogQueryHandler } from '../../../application/handlers/query-handlers.js';
@@ -49,7 +49,11 @@ const auditLogQuerySchema = z.object({
   offset: z.coerce.number().min(0).default(0),
 });
 
-export async function verificationRoutes(fastify: FastifyInstance) {
+export function verificationRoutes(
+  fastify: FastifyInstance,
+  _opts: FastifyPluginOptions,
+  done: (err?: Error) => void
+): void {
   // Get tenant ID from header
   const getTenantId = (request: FastifyRequest): string => {
     const tenantId = request.headers['x-tenant-id'] as string;
@@ -83,7 +87,7 @@ export async function verificationRoutes(fastify: FastifyInstance) {
       tenantId,
     });
 
-    reply.status(201).send({ id });
+    return reply.status(201).send({ id });
   });
 
   // Get verification request by ID
@@ -108,11 +112,10 @@ export async function verificationRoutes(fastify: FastifyInstance) {
     });
 
     if (!verificationRequest) {
-      reply.status(404).send({ error: 'Verification request not found' });
-      return;
+      return reply.status(404).send({ error: 'Verification request not found' });
     }
 
-    reply.send(verificationRequest);
+    return reply.send(verificationRequest);
   });
 
   // List verification requests
@@ -130,7 +133,7 @@ export async function verificationRoutes(fastify: FastifyInstance) {
       tenantId,
     });
 
-    reply.send(result);
+    return reply.send(result);
   });
 
   // Get pending reviews
@@ -148,7 +151,7 @@ export async function verificationRoutes(fastify: FastifyInstance) {
       ...query,
     });
 
-    reply.send(result);
+    return reply.send(result);
   });
 
   // Get verification statistics
@@ -166,7 +169,7 @@ export async function verificationRoutes(fastify: FastifyInstance) {
       ...query,
     });
 
-    reply.send(result);
+    return reply.send(result);
   });
 
   // Start verification review
@@ -194,7 +197,7 @@ export async function verificationRoutes(fastify: FastifyInstance) {
       ...body,
     });
 
-    reply.status(204).send();
+    return reply.status(204).send();
   });
 
   // Complete verification request
@@ -224,7 +227,7 @@ export async function verificationRoutes(fastify: FastifyInstance) {
       ...body,
     });
 
-    reply.status(204).send();
+    return reply.status(204).send();
   });
 
   // Get AML screening results for an identity
@@ -250,7 +253,7 @@ export async function verificationRoutes(fastify: FastifyInstance) {
       ...query,
     });
 
-    reply.send(result);
+    return reply.send(result);
   });
 
   // Get audit log for an identity
@@ -276,6 +279,8 @@ export async function verificationRoutes(fastify: FastifyInstance) {
       ...query,
     });
 
-    reply.send(result);
+    return reply.send(result);
   });
+
+  done();
 }

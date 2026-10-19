@@ -3,7 +3,7 @@
  * Implements the Repository pattern with Drizzle ORM
  */
 
-import { eq, and, or, gt, gte, lt, lte, inArray, like, between, sql, SQL } from 'drizzle-orm';
+import { eq, and, gt, gte, lt, lte, inArray, like, between, sql, SQL } from 'drizzle-orm';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import type { PgTable, PgColumn } from 'drizzle-orm/pg-core';
 import { BaseRepository } from '../repository.js';
@@ -182,11 +182,13 @@ export abstract class DrizzleRepository<T extends Entity> extends BaseRepository
           return inArray(column, filter.value as unknown[]);
         case 'like':
           return like(column, filter.value as string);
-        case 'between':
+        case 'between': {
           const [min, max] = filter.value as [unknown, unknown];
           return between(column, min, max);
+        }
         default:
-          throw new Error('Unsupported operator: ' + filter.operator);
+          // Unreachable for typed callers; filters can still arrive untyped.
+          throw new Error('Unsupported operator: ' + String(filter.operator));
       }
     });
   }

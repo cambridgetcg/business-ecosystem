@@ -22,9 +22,9 @@ import type { OperationalDomain } from './types.js';
 
 const logger = pino({ name: 'operational-gateway' });
 
-async function main() {
+function main(): void {
   // Create domain clients with environment overrides
-  const domainEndpoints: Partial<Record<OperationalDomain, string>> = {
+  const domainEndpoints: Partial<Record<OperationalDomain, string | undefined>> = {
     'contracts-legal': process.env.CONTRACTS_LEGAL_URL,
     'insurance': process.env.INSURANCE_URL,
     'intellectual-property': process.env.IP_URL,
@@ -302,7 +302,7 @@ async function main() {
   app.post('/operational/workflows/:workflowId/trigger', async (c) => {
     const workflowId = c.req.param('workflowId');
     const workflowEngineUrl = process.env.WORKFLOW_ENGINE_URL || 'http://localhost:3020';
-    const body = await c.req.json();
+    const body = await c.req.json<unknown>();
 
     try {
       const response = await fetch(`${workflowEngineUrl}/workflows/${workflowId}/trigger`, {
@@ -354,8 +354,10 @@ async function main() {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
+  try {
+    main();
+  } catch (error) {
     logger.error({ error }, 'Failed to start operational gateway');
     process.exit(1);
-  });
+  }
 }

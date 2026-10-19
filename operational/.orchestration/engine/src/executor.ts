@@ -11,8 +11,6 @@ import {
   type StepExecution,
   type DomainClient,
   type DomainActionRequest,
-  type WorkflowStatus,
-  type StepStatus,
 } from './types.js';
 import {
   buildExecutionOrder,
@@ -188,7 +186,7 @@ export class WorkflowExecutor {
       try {
         const client = this.config.domainClients.get(step.domain);
         if (!client) {
-          throw new Error(`No client configured for domain: \${step.domain}`);
+          throw new Error(`No client configured for domain: ${step.domain}`);
         }
 
         // Resolve input variables

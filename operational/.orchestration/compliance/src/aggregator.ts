@@ -11,7 +11,6 @@ import type {
   ComplianceStatus,
   OperationalDomain,
   RegulatoryMapping,
-  RegulationStatus,
 } from './types.js';
 
 const logger = pino({ name: 'compliance-aggregator' });
@@ -218,9 +217,9 @@ export class ComplianceAggregator {
   async getFindings(
     entityId: string,
     options?: {
-      domain?: OperationalDomain;
-      status?: 'open' | 'resolved' | 'all';
-      severity?: 'critical' | 'high' | 'medium' | 'low';
+      domain?: OperationalDomain | undefined;
+      status?: 'open' | 'resolved' | 'all' | undefined;
+      severity?: 'critical' | 'high' | 'medium' | 'low' | undefined;
     }
   ): Promise<ComplianceFinding[]> {
     let findings = await this.store.getFindings(entityId, options?.domain);

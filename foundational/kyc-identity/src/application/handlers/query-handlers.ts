@@ -2,7 +2,7 @@
  * KYC Query Handlers
  */
 
-import { eq, and, or, ilike, desc, asc, lt, count, sql } from 'drizzle-orm';
+import { eq, and, or, ilike, desc, asc, count, sql } from 'drizzle-orm';
 import { getDb, identities, documents, verificationRequests, amlScreeningResults, kycAuditLog } from '../../infrastructure/persistence/index.js';
 import type {
   GetIdentityQuery,

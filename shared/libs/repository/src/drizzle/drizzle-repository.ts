@@ -4,7 +4,7 @@
  */
 
 import {
-  eq, and, or, gt, gte, lt, lte, ne,
+  eq, and, gt, gte, lt, lte, ne,
   inArray, notInArray, like, ilike, between,
   isNull, isNotNull, sql, SQL, asc, desc
 } from 'drizzle-orm';
@@ -101,12 +101,12 @@ export class DrizzleRepository<T extends Entity> extends BaseRepository<T> {
     const conditions = this.buildBaseConditions(options);
 
     // Get total count
-    const countQuery = this.db
+    let countQuery = this.db
       .select({ count: sql<number>`count(*)::int` })
       .from(this.config.table);
 
     if (conditions.length > 0) {
-      countQuery.where(and(...conditions));
+      countQuery = countQuery.where(and(...conditions)) as typeof countQuery;
     }
 
     const countResult = await countQuery;
@@ -311,8 +311,9 @@ export class DrizzleRepository<T extends Entity> extends BaseRepository<T> {
       case 'isNotNull':
         return isNotNull(column);
       default:
+        // Unreachable for typed callers; filters can still arrive untyped.
         throw new RepositoryError(
-          `Unsupported operator: ${operator}`,
+          `Unsupported operator: ${String(operator)}`,
           'UNSUPPORTED_OPERATOR'
         );
     }

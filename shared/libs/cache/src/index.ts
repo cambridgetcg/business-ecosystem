@@ -18,6 +18,9 @@
  * ```
  */
 
+import { RedisCache } from './redis-client.js';
+import type { CacheClient, CacheConfig } from './types.js';
+
 // Types
 export type {
   CacheConfig,
@@ -41,6 +44,6 @@ export { cacheAside, memoize, batchGetWithCache, type CacheAsideOptions } from '
 export { CacheKeyBuilder, createKeyBuilder, KeyBuilders, type KeyBuilderConfig } from './key-builder.js';
 
 // Factory function for quick setup
-export function createCache(config: import('./types.js').CacheConfig): import('./types.js').CacheClient {
-  return new (require('./redis-client.js').RedisCache)(config);
+export function createCache(config: CacheConfig): CacheClient {
+  return new RedisCache(config);
 }

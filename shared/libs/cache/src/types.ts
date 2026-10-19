@@ -22,18 +22,18 @@ export interface CacheConfig {
 
 export interface CacheOptions {
   /** Time to live in seconds */
-  ttl?: number;
+  ttl?: number | undefined;
   /** Tags for cache invalidation */
-  tags?: string[];
+  tags?: string[] | undefined;
   /** Skip cache and force fresh data */
-  skipCache?: boolean;
+  skipCache?: boolean | undefined;
 }
 
 export interface CacheEntry<T> {
   value: T;
   createdAt: number;
-  expiresAt?: number;
-  tags?: string[];
+  expiresAt?: number | undefined;
+  tags?: string[] | undefined;
 }
 
 export interface CacheStats {
@@ -41,7 +41,7 @@ export interface CacheStats {
   misses: number;
   hitRate: number;
   keyCount: number;
-  memoryUsage?: number;
+  memoryUsage?: number | undefined;
 }
 
 export interface CacheClient {
@@ -70,7 +70,7 @@ export interface CacheClient {
   getMany<T>(keys: string[]): Promise<Map<string, T | null>>;
   
   /** Set multiple values */
-  setMany<T>(entries: Array<{ key: string; value: T; options?: CacheOptions }>): Promise<void>;
+  setMany<T>(entries: Array<{ key: string; value: T; options?: CacheOptions | undefined }>): Promise<void>;
   
   /** Clear all keys with prefix */
   clear(): Promise<void>;

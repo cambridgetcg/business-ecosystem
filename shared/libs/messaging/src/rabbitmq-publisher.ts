@@ -3,7 +3,7 @@
  * Concrete implementation for publishing events to RabbitMQ
  */
 
-import type { Channel, ChannelModel } from 'amqplib';
+import type { Channel, ChannelModel, ConfirmChannel } from 'amqplib';
 import amqplib from 'amqplib';
 import type { DomainEvent, MessageBrokerConfig } from './types.js';
 import { BaseEventPublisher } from './publisher.js';
@@ -121,6 +121,12 @@ export class RabbitMQPublisher extends BaseEventPublisher {
 
     if (!published) {
       throw new Error('Failed to publish message - channel buffer full');
+    }
+
+    // In confirmMode connect() opened a confirm channel: wait for the broker's
+    // ack, so a nacked message or a closed channel rejects the publish.
+    if (this.confirmMode) {
+      await (this.channel as ConfirmChannel).waitForConfirms();
     }
 
     console.log(`[RabbitMQPublisher] Published event: ${event.type}`, {

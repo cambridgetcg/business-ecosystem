@@ -15,46 +15,56 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger as honoLogger } from 'hono/logger';
 import { pino } from 'pino';
-import { ComplianceAggregator, type DomainComplianceClient } from './aggregator.js';
-import type { EntityComplianceOverview, ComplianceFinding, OperationalDomain } from './types.js';
+import { ComplianceAggregator, type ComplianceStore, type DomainComplianceClient } from './aggregator.js';
+import type {
+  EntityComplianceOverview,
+  ComplianceFinding,
+  ComplianceStatus,
+  OperationalDomain,
+  RegulationStatus,
+} from './types.js';
 
 const logger = pino({ name: 'compliance-service' });
 
-// In-memory store for demo (replace with database in production)
-class InMemoryComplianceStore {
+// In-memory store for demo (replace with database in production). Nothing
+// here waits on I/O, so the methods return settled promises.
+class InMemoryComplianceStore implements ComplianceStore {
   private entities = new Map<string, EntityComplianceOverview>();
   private findings = new Map<string, ComplianceFinding[]>();
 
-  async getEntityCompliance(entityId: string) {
-    return this.entities.get(entityId);
+  getEntityCompliance(entityId: string) {
+    return Promise.resolve(this.entities.get(entityId));
   }
 
-  async saveEntityCompliance(overview: EntityComplianceOverview) {
+  saveEntityCompliance(overview: EntityComplianceOverview) {
     this.entities.set(overview.entityId, overview);
+    return Promise.resolve();
   }
 
-  async getFindings(entityId: string, domain?: OperationalDomain) {
+  getFindings(entityId: string, domain?: OperationalDomain) {
     const findings = this.findings.get(entityId) || [];
     if (domain) {
-      return findings.filter(f => f.domain === domain);
+      return Promise.resolve(findings.filter(f => f.domain === domain));
     }
-    return findings;
+    return Promise.resolve(findings);
   }
 
-  async saveFinding(finding: ComplianceFinding) {
+  saveFinding(finding: ComplianceFinding) {
     const existing = this.findings.get(finding.entityId) || [];
     existing.push(finding);
     this.findings.set(finding.entityId, existing);
+    return Promise.resolve();
   }
 
-  async updateFinding(findingId: string, updates: Partial<ComplianceFinding>) {
-    for (const [entityId, findings] of this.findings) {
+  updateFinding(findingId: string, updates: Partial<ComplianceFinding>) {
+    for (const findings of this.findings.values()) {
       const finding = findings.find(f => f.id === findingId);
       if (finding) {
         Object.assign(finding, updates);
-        return;
+        break;
       }
     }
+    return Promise.resolve();
   }
 }
 
@@ -62,17 +72,17 @@ class InMemoryComplianceStore {
 class MockDomainClient {
   constructor(private domain: OperationalDomain) {}
 
-  async getComplianceStatus(entityId: string) {
-    return {
+  getComplianceStatus(_entityId: string) {
+    return Promise.resolve({
       domain: this.domain,
       status: 'compliant' as const,
       regulations: new Map(),
       openFindings: 0,
-    };
+    });
   }
 
-  async getFindings(entityId: string): Promise<ComplianceFinding[]> {
-    return [];
+  getFindings(_entityId: string): Promise<ComplianceFinding[]> {
+    return Promise.resolve([]);
   }
 }
 
@@ -117,14 +127,16 @@ class HttpDomainClient {
         status = 'pending'; // 'at_risk' maps to 'pending'
       }
 
-      // Build regulation status from issues
-      const regulations = new Map<string, { regulation: string; status: typeof status; lastAssessment: Date; findings: string[] }>();
+      // Build regulation status from issues. The domain reports issues as
+      // text, not as structured findings.
+      const regulations = new Map<string, RegulationStatus>();
       if (this.domain === 'data-privacy') {
         regulations.set('GDPR', {
           regulation: 'GDPR',
           status,
           lastAssessment: new Date(),
-          findings: data.issues,
+          findings: [],
+          issues: data.issues,
         });
       }
 
@@ -155,13 +167,13 @@ class HttpDomainClient {
     };
   }
 
-  async getFindings(entityId: string): Promise<ComplianceFinding[]> {
+  getFindings(_entityId: string): Promise<ComplianceFinding[]> {
     // TODO: Implement findings endpoint in data-privacy service
-    return [];
+    return Promise.resolve([]);
   }
 }
 
-async function main() {
+function main(): void {
   const store = new InMemoryComplianceStore();
 
   // Domain service URLs from environment or defaults
@@ -262,14 +274,19 @@ async function main() {
 
   // Handle compliance status change event
   app.post('/events/status-change', async (c) => {
-    const { entityId, domain, regulation, newStatus } = await c.req.json();
+    const { entityId, domain, regulation, newStatus } = await c.req.json<{
+      entityId: string;
+      domain: OperationalDomain;
+      regulation: string;
+      newStatus: ComplianceStatus;
+    }>();
     await aggregator.handleStatusChange(entityId, domain, regulation, newStatus);
     return c.json({ success: true });
   });
 
   // Handle new finding event
   app.post('/events/finding', async (c) => {
-    const finding = await c.req.json();
+    const finding = await c.req.json<ComplianceFinding>();
     await aggregator.handleFinding(finding);
     return c.json({ success: true });
   });
@@ -282,8 +299,10 @@ async function main() {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch((error) => {
+  try {
+    main();
+  } catch (error) {
     logger.error({ error }, 'Failed to start compliance aggregator');
     process.exit(1);
-  });
+  }
 }

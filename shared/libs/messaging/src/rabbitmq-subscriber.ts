@@ -5,7 +5,7 @@
 
 import type { Channel, ChannelModel, ConsumeMessage } from 'amqplib';
 import amqplib from 'amqplib';
-import type { DomainEvent, EventHandler, MessageBrokerConfig } from './types.js';
+import type { EventHandler, MessageBrokerConfig } from './types.js';
 import { BaseEventSubscriber } from './subscriber.js';
 
 export interface RabbitMQSubscriberConfig extends MessageBrokerConfig {
@@ -148,35 +148,41 @@ export class RabbitMQSubscriber extends BaseEventSubscriber {
 
     await channel.consume(
       this.queueName,
-      async (msg: ConsumeMessage | null) => {
-        if (!msg) {
-          return;
-        }
-
-        try {
-          const event = this.deserializeEvent(msg.content.toString());
-          const eventType = event.type;
-
-          console.log(`[RabbitMQSubscriber] Received event: ${eventType}`, {
-            id: event.id,
-            aggregateId: event.aggregateId,
-          });
-
-          await this.dispatchToHandlers(eventType, event);
-
-          // Acknowledge the message
-          channel.ack(msg);
-        } catch (error) {
-          console.error('[RabbitMQSubscriber] Error processing message:', error);
-
-          // Reject and don't requeue (will go to DLX)
-          channel.nack(msg, false, false);
-        }
+      (msg: ConsumeMessage | null) => {
+        // amqplib ignores the callback's result; handleMessage acks or nacks
+        // every message itself.
+        void this.handleMessage(channel, msg);
       },
       { noAck: false }
     );
 
     console.log(`[RabbitMQSubscriber] Started consuming from queue: ${this.queueName}`);
+  }
+
+  private async handleMessage(channel: Channel, msg: ConsumeMessage | null): Promise<void> {
+    if (!msg) {
+      return;
+    }
+
+    try {
+      const event = this.deserializeEvent(msg.content.toString());
+      const eventType = event.type;
+
+      console.log(`[RabbitMQSubscriber] Received event: ${eventType}`, {
+        id: event.id,
+        aggregateId: event.aggregateId,
+      });
+
+      await this.dispatchToHandlers(eventType, event);
+
+      // Acknowledge the message
+      channel.ack(msg);
+    } catch (error) {
+      console.error('[RabbitMQSubscriber] Error processing message:', error);
+
+      // Reject and don't requeue (will go to DLX)
+      channel.nack(msg, false, false);
+    }
   }
 }
 

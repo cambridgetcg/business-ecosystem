@@ -17,7 +17,7 @@ export class WorkflowParseError extends Error {
     public readonly filePath: string,
     public readonly cause?: unknown
   ) {
-    super(`Failed to parse workflow at \${filePath}: \${message}`);
+    super(`Failed to parse workflow at ${filePath}: ${message}`);
     this.name = 'WorkflowParseError';
   }
 }
@@ -28,13 +28,13 @@ export class WorkflowParseError extends Error {
 export function parseWorkflowFile(filePath: string): WorkflowDefinition {
   try {
     const content = readFileSync(filePath, 'utf-8');
-    const raw = parseYaml(content);
+    const raw: unknown = parseYaml(content);
 
     const result = workflowDefinitionSchema.safeParse(raw);
 
     if (!result.success) {
       const errors = result.error.errors
-        .map(e => `\${e.path.join('.')}: \${e.message}`)
+        .map(e => `${e.path.join('.')}: ${e.message}`)
         .join('; ');
       throw new WorkflowParseError(errors, filePath);
     }
@@ -153,18 +153,15 @@ export function evaluateCondition(
   }
 ): boolean {
   try {
-    const match = condition.match(/^\\\${(.+)}$/);
-    if (!match) {
+    const expression = condition.match(/^\\\${(.+)}$/)?.[1];
+    if (expression === undefined) {
       logger.warn({ condition }, 'Invalid condition format');
       return true;
     }
 
-    const expression = match[1];
-
     // Handle "X in [...]" pattern
-    const inMatch = expression.match(/^(.+?)\\s+in\\s+\\[(.+)\\]$/);
-    if (inMatch) {
-      const [, varPath, arrayStr] = inMatch;
+    const [, varPath, arrayStr] = expression.match(/^(.+?)\\s+in\\s+\\[(.+)\\]$/) ?? [];
+    if (varPath !== undefined && arrayStr !== undefined) {
       const varValue = resolveVariable(varPath.trim(), context);
       const arrayValues = arrayStr.split(',').map(s =>
         s.trim().replace(/^['"]|['"]$/g, '')
@@ -203,19 +200,18 @@ function resolveVariable(
  * Parse timeout string to milliseconds
  */
 export function parseTimeout(timeout: string): number {
-  const match = timeout.match(/^(\\d+)(s|m|h)$/);
-  if (!match) {
-    throw new Error(`Invalid timeout format: \${timeout}`);
+  const [, value, unit] = timeout.match(/^(\\d+)(s|m|h)$/) ?? [];
+  if (value === undefined) {
+    throw new Error(`Invalid timeout format: ${timeout}`);
   }
 
-  const [, value, unit] = match;
   const num = parseInt(value, 10);
 
   switch (unit) {
     case 's': return num * 1000;
     case 'm': return num * 60 * 1000;
     case 'h': return num * 60 * 60 * 1000;
-    default: throw new Error(`Unknown time unit: \${unit}`);
+    default: throw new Error(`Unknown time unit: ${unit}`);
   }
 }
 
@@ -243,7 +239,7 @@ export function buildExecutionOrder(
 
     if (batch.length === 0 && pending.size > 0) {
       const remaining = Array.from(pending.keys()).join(', ');
-      throw new Error(`Circular dependency detected. Remaining: \${remaining}`);
+      throw new Error(`Circular dependency detected. Remaining: ${remaining}`);
     }
 
     for (const id of batch) {
