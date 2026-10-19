@@ -13,6 +13,13 @@ on:
 permissions:
   contents: read
 
+# A new push to a pull request cancels that pull request's run in progress, so
+# only its latest head is checked. Every other run (pushes to main or develop,
+# the schedule, manual runs) is a group of its own: none is cancelled or queued.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 # Package tasks listed in ci/quarantine.json are skipped by every turbo run
 # below; scripts/ci-quarantine.mjs prints the --filter=!<package> arguments.
 # Every job validates the list first: when it is invalid, $(...) prints no
@@ -71,6 +78,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Validate the quarantine list
         run: node scripts/ci-quarantine.mjs check
+      # CI's build check. A separate build job used to repeat this exact step,
+      # after the same install, once this job and lint-and-typecheck passed.
       - name: Build
         run: pnpm exec turbo run build $(node scripts/ci-quarantine.mjs build)
       - name: Test
@@ -78,26 +87,6 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test
           REDIS_URL: redis://localhost:6379
-
-  build:
-    runs-on: ubuntu-latest
-    needs: [lint-and-typecheck, test]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - name: Validate the quarantine list
-        run: node scripts/ci-quarantine.mjs check
-      - name: Build All
-        run: pnpm exec turbo run build $(node scripts/ci-quarantine.mjs build)
 
   # Pull requests only: re-measure quarantined tasks in the packages the PR
   # touches. Fails when a count rises, an entry now passes (remove it), the
@@ -119,9 +108,11 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-      # Run every dependency lifecycle script, even from a cached store: the
-      # Prisma packages' counts depend on the stub client @prisma/client's
-      # postinstall writes, which pnpm's side-effects cache does not restore.
+      # Run every dependency lifecycle script, even from a cached store, so the
+      # install matches the one ci/quarantine.json's counts were measured with.
+      # Before F7 this decided the Prisma packages' counts, through the stub
+      # client @prisma/client's postinstall writes. They now compile against
+      # their own generated clients (db:generate), and nothing imports the stub.
       - run: pnpm install --frozen-lockfile --config.side-effects-cache=false
       - name: Validate the quarantine list
         run: node scripts/ci-quarantine.mjs check
@@ -149,9 +140,11 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-      # Run every dependency lifecycle script, even from a cached store: the
-      # Prisma packages' counts depend on the stub client @prisma/client's
-      # postinstall writes, which pnpm's side-effects cache does not restore.
+      # Run every dependency lifecycle script, even from a cached store, so the
+      # install matches the one ci/quarantine.json's counts were measured with.
+      # Before F7 this decided the Prisma packages' counts, through the stub
+      # client @prisma/client's postinstall writes. They now compile against
+      # their own generated clients (db:generate), and nothing imports the stub.
       - run: pnpm install --frozen-lockfile --config.side-effects-cache=false
       - name: Validate the quarantine list
         run: node scripts/ci-quarantine.mjs check

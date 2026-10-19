@@ -11,7 +11,11 @@ on:
       - 'turbo.json'
       - 'shared/**/package.json'
       - 'operational/gateway/package.json'
+  # Pushes to main and develop only, as in the other workflows: a pull
+  # request's branch is checked through pull_request, and a push to it used to
+  # run the same job a second time.
   push:
+    branches: [main, develop]
     paths:
       - '.github/workflows/workspace-wiring.yml'
       - 'gateway/**'
@@ -24,6 +28,13 @@ on:
 
 permissions:
   contents: read
+
+# A new push to a pull request cancels that pull request's run in progress, so
+# only its latest head is checked. Every other run (a push to main or develop)
+# is a group of its own: none is cancelled or queued.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   gateway-workspace:
