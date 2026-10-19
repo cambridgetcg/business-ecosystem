@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Skill(hierarchy-tools:territory)",
-      "Skill(hierarchy-tools:verify)"
-    ]
-  }
-}
