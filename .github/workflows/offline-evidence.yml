@@ -8,6 +8,9 @@ on:
       - 'scripts/portfolio.py'
       - 'tests/portfolio/**'
       - 'foundational/accounting/**'
+      # The commerce event contract the accounting consumer mirrors.
+      - 'shared/events/financial-events/schema/**'
+      - 'shared/events/financial-events/conformance/**'
   push:
     branches: [main, develop]
     paths:
@@ -15,6 +18,9 @@ on:
       - 'scripts/portfolio.py'
       - 'tests/portfolio/**'
       - 'foundational/accounting/**'
+      # The commerce event contract the accounting consumer mirrors.
+      - 'shared/events/financial-events/schema/**'
+      - 'shared/events/financial-events/conformance/**'
   workflow_dispatch:
 
 permissions:
