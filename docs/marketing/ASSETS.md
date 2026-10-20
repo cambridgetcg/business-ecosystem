@@ -1,0 +1,531 @@
+# Asset catalogue: brand image, promotion, messages, proof
+
+Written 2026-10-20 by Claude Code agents for Yu. It is an agents' proposal, not Yu's decision. The
+design is in [README.md](README.md) and the sources are in [RESEARCH.md](RESEARCH.md).
+
+Specs are as of 2026-10-20. A spec marked **read** was read on the platform's own page today by a
+researcher or a fact-checker (RESEARCH tags [O], [D] or [V]); **fact-checked** means [V]. **Tested**
+means an agent ran it on this Mac today. **Third-party** means only secondary sources say so.
+**Unverified** means no one checked it. Platforms change their rules without notice, so the gate G4 data carries a
+`review_after` date for each spec.
+
+Each entry gives:
+- **Why:** what the asset does.
+- **First:** which brand needs it first.
+- **Make:** which tool makes it.
+- **Spec:** format and exact sizes.
+- **Gate:** which check it must pass.
+
+## How assets get made
+
+- **The `artcraft-brand` skill is the asset layer.** It lives at `~/.kingdom/tools/artcraft-brand`
+  and is owned by the artcraft-brand lane (the skill names its current owner). It turns one
+  `brand.json` into:
+  - the mark as an SVG master, and lockups;
+  - a favicon set and app icons;
+  - a web manifest and head snippet;
+  - share cards;
+  - a colour kit (tokens, CSS variables, contrast matrix; it exits 1 if a colour pair fails).
+
+  It was still being written on 2026-10-20, so its current contract and outputs are in the skill
+  itself; read it, not this summary. Nothing in this catalogue duplicates it: entries it covers say
+  "artcraft-brand".
+- **Craft CLIs installed on this Mac** (`~/.local/share/artcraft/INSTALLED.tsv`, 2026-10-20):
+
+  | App | Version |
+  |---|---|
+  | vectorcraft | 0.13.1 |
+  | photocraft | 0.10.0 |
+  | designcraft | 0.9.0 |
+  | figcraft | 0.7.0 |
+  | effectcraft | 0.11.1 |
+  | lightcraft | 0.9.1 |
+
+  FilmCraft, DeckCraft, PdfCraft and SoundCraft are **not installed**. Installs belong to the
+  artcraft-brand lane (`scripts/install.sh` pins versions and checksums).
+- **Guardrails for every run:** follow `~/.kingdom/tools/artcraft-brand/references/guardrails.md`,
+  which is re-checked per installed version. Two rules this design adds: record each tool's version
+  in the asset's sidecar (D3), and rebuild exports from masters, never hand-editing an export.
+- **File names:** `<brand>_<campaign>_<asset>_<variant>_<WxH>_<yyyymmdd>_v<NN>.<ext>`. Every asset
+  gets a `<name>.meta.json` sidecar (see D3).
+
+## Rules that apply to every asset
+
+1. **Real product only (trading cards and sealed product).** A product image shows the exact item
+   sold: a real photo or scan. Only crop, exposure and colour correction are allowed.
+   - Never use AI to improve condition, centring or surface, or to add holo or glow.
+   - Never AI-render a real product as a photo.
+   - A centring overlay is a separate image, never on the main one.
+
+   Why: eBay bans pictures that don't represent the item, and stock photos for used items (picture
+   policy). The EU Article 50 guidelines (20 July 2026) count an AI image that makes a product look
+   better than it is as a deepfake. CAP 3.1 bans misleading ads. TikTok Shop UK says "always base AI
+   output on real product images".
+2. **No third-party IP as brand art.** Don't generate or reuse Pokémon, One Piece, Magic or other
+   licensed characters, card art or logos. In particular:
+   - Wizards' Fan Content Policy (version dated 2017, seen via search) bars use of its logos and marks.
+   - Keep nen-artifacts (derived from Hunter × Hunter) out of commercial assets.
+   - The AI-looking anime banners in the old Cambridge TCG storefront evoke franchises; review them
+     before any reuse.
+
+   Public-domain art with full credit is fine, as on cambridgetcg.com's Met Open Access Sharaku panel;
+   `kingdom_commons` finds sources. YOUSPEAK material is CC BY-SA and stays in R3.
+3. **Generative AI.** Deterministic templates are the default.
+   - Generation is allowed for backgrounds, textures and scenes that show no real product, person or
+     licensed character, and for R3 illustration.
+   - Text is composited, never generated inside an image.
+   - Where an audience could be misled, add a visible "AI-generated" label. Also use the platform's
+     own AI label: TikTok rejects undisclosed AI ads, and Google Ads has had a label setting since
+     July 2026.
+   - Merchant Center requires metadata marking AI images as AI-generated (for example IPTC
+     `DigitalSourceType` TrainedAlgorithmicMedia), and it must not be stripped.
+   - No Craft app writes C2PA content credentials yet, so the sidecar is the record.
+   - **ArtCraft's cloud app stays off for brand material.** In its source code on main, uploads and outputs
+     default to Public (deployed behaviour not verified), and the only operator terms found (storyteller.ai, 2022) grant a perpetual,
+     sublicensable licence over uploads.
+4. **The ArtCraft name and logos never appear** in our marketing. They are trademarks, not open
+   source.
+5. **No personal data or test data** in any image: screenshots come from a dev store with
+   `@example.com` customers.
+6. **Accessibility** (WCAG 2.2 AA):
+   - text contrast at least 4.5:1, or 3:1 for large text and UI parts (logotypes are exempt);
+   - alt text on every image, and `og:image:alt`;
+   - captions on every video.
+
+## A. Brand identity
+
+**A1. Mark and lockups**
+- **Why:** one recognisable mark per brand, and the source of every icon.
+- **First:**
+  - RewardsPro: redraw the App Store "R" (navy `#1a3e5c`, teal `#17bebb`) as an SVG master if no
+    source file exists. Today it has four looks and two spellings.
+  - Cambridge TCG, later: two marks and four palettes; the logo's navy and cyan appear nowhere on the
+    site.
+- **Make:** artcraft-brand (VectorCraft).
+- **Spec:**
+  - outlined SVG master;
+  - lockups: horizontal, stacked, mark only and wordmark, each in colour, mono-dark and mono-light;
+  - PDF for print;
+  - clear space tied to a unit of the mark;
+  - minimum size of about 20 px tall on screen (a common brand-guide convention, **unverified** as a
+    standard).
+- **Gate:** G5 (colours within tokens, single artboard). Yu approves the look in a review pack.
+
+**A2. Web favicon set**
+- **Why:** the browser tab, bookmarks and home screen. RewardsPro serves only a data-URI icon and
+  `/favicon.ico` returns 404. TaxSorted shows the Vercel default. Cambridge TCG's ICO is 285 KB.
+- **First:** RewardsPro, TaxSorted, Cambridge TCG.
+- **Make:** artcraft-brand (it packs a multi-size ICO itself; VectorCraft has no ICO writer).
+- **Spec** (Evil Martians' six-file set, page dated 2026-01-21, third-party):
+  - `favicon.ico` as the skill writes it (16, 32 and 48 px frames);
+  - `icon.svg`, which may carry a dark-mode style;
+  - `apple-touch-icon.png` 180×180, **opaque** (check that it is RGB, not RGBA);
+  - `icon-192.png` and `icon-512.png`;
+  - maskable `icon-mask.png` 512 with the art inside a 409×409 safe zone;
+  - a manifest only for installable web apps;
+  - `sizes="32x32"` on the ICO link.
+- **Gate:** G5.
+
+**A3. Shopify App Store app icon**
+- **Why:** what merchants see in search, in Sidekick cards and in their admin.
+- **First:** RewardsPro. Keep the current icon; it already fits the spec.
+- **Make:** artcraft-brand, from A1.
+- **Spec (read and fact-checked, shopify.dev best practices):** 1200×1200 JPEG or PNG, square with padding
+  (Shopify rounds the corners), no text, no screenshots, no Shopify trademarks.
+- **Gate:** G4, G5.
+
+**A4. Colour kit**
+- **Why:** one machine-readable answer to "what is RewardsPro blue?" for sites, cards, decks and
+  emails.
+- **First:** RewardsPro, then each maintain-tier brand.
+- **Make:** artcraft-brand `colour.py`. VectorCraft can also save `.ase` and `.css` swatch files
+  (tested). Name swatches explicitly, or exports include 53 default swatches.
+- **Spec:**
+  - DTCG tokens (format 2025.10, a stable W3C Community Group report, not a W3C standard);
+  - CSS custom properties;
+  - a contrast table checked against WCAG 2.x. Don't build on APCA, since WCAG 3 contrast is not
+    settled.
+- **Gate:** G5. A failing pair blocks.
+
+**A5. Type**
+- **Why:** consistent text across sites and assets.
+- **First:** RewardsPro. Its landing page uses Inter; keep it unless Yu wants a change.
+- **Make:** a choice, not a render. Set the skill's `wordmark.font` and `style` explicitly (Inter):
+  its default is Avenir Next, an Apple system font whose licence for a commercial logo was not
+  checked.
+  - The Craft apps bundle OFL 1.1 fonts (Inter, Source Sans 3, Source Serif 4, JetBrains Mono, and
+    others). OFL allows commercial artwork.
+  - craft-fonts has CJK and Arabic faces but no Latin display face.
+- **Spec:** one sans for R1 commerce. R2 and R3 keep their system serif stacks. Outline type in logos.
+- **Gate:** G5 (font resolved, no missing glyphs).
+
+**A6. Web manifest and head snippet**
+- **Why:** wires the icons, share card and colour into each site.
+- **First:** RewardsPro landing, TaxSorted, Cambridge TCG.
+- **Make:** artcraft-brand.
+- **Spec:** the icon links above, `theme-color`, and the share-card tags (B1).
+- **Gate:** G5.
+- **Ship:** as a PR to each site's own lane. Merging a deploy of public pages is Yu's word.
+
+**A7. Docs logo**
+- **Why:** docs.rewardspro.io shows GitBook's default blue "R".
+- **First:** RewardsPro.
+- **Make:** a PNG or SVG from A1.
+- **Spec:** GitBook's own upload rules (**unverified**).
+- **Gate:** G5. Uploading it is Yu's hand (a GitBook login).
+
+## B. Promotion
+
+**B1. Share card (Open Graph, the image shown when a link is shared)**
+- **Why:** every shared link gets a picture.
+- **First:**
+  - RewardsPro: rewardspro.io has no `og:image`.
+  - TaxSorted: none.
+  - Cambridge TCG: its tag declares 1200×630 but the file is 1702×630, and its Twitter image is
+    1500×500.
+- **Make:** artcraft-brand. VectorCraft made 1200×630 PNG, JPG and WebP today (tested; WebP is
+  lossless only).
+- **Spec** (Meta's developer docs on sharing images, and ogp.me, per research note marketing-workflow):
+  - 1200×630 recommended; at least 200×200; at most 8 MB;
+  - declare `og:image:width` and `og:image:height`, and set `og:image:alt`;
+  - Meta caches by URL, so a changed image needs a new file name;
+  - use the same image for X's large card. X's own size rules were **not checked**.
+- **Gate:** G1–G3 for any words on the card; G5.
+
+**B2. App Store screenshots (RewardsPro)**
+- **Why:** the main visual proof on the listing. Today there are 3 letterboxed crops, one showing a
+  real-looking test Gmail address. Competitors carry 5–6 desktop screenshots and often mobile ones.
+- **First:** RewardsPro, after the dev-store test.
+- **Make:**
+  - Yu captures the screens from the shot list.
+  - A VectorCraft template with CSV captions adds a short headline; real UI fills most of the frame.
+  - Placing a screenshot into a VectorCraft template is **unverified**, so smoke-test it first.
+    PhotoCraft finishing is the fallback.
+- **Spec (read and fact-checked, shopify.dev):**
+  - 1600×900 (16:9), 3–6 desktop, at least one showing the app's UI;
+  - mobile or POS screenshots only if the app supports them;
+  - alt text required;
+  - no pricing, reviews, outcome guarantees or personal data;
+  - each image unique (4.4.5), showing real UI with no desktop backgrounds or browser windows (4.4.4);
+  - no Shopify trademarks (4.4.3);
+  - don't use the Sidekick icon or Shopify's "magic purple" to mark AI features (BFS 4.3.5).
+- **Gate:** G1, G4, G5, G6 (privacy).
+
+**B3. App Store feature image, or promo video**
+- **Why:** the top slot on the listing. Today it holds a 16-second video with 4 views.
+- **First:** RewardsPro.
+- **Make:** VectorCraft for the image. FilmCraft for a video, which needs installing first.
+- **Spec (read and fact-checked, shopify.dev):**
+  - a 2–3 minute promotional video is *recommended*, not required, with screencast at most 25% of it;
+  - otherwise a static 1600×900 feature image: one focal point, contrast 4.5:1 or better, alt text,
+    no Shopify logos.
+
+  Start with the image. A video comes later, when a design partner agrees in writing to a real story.
+- **Gate:** G1–G5.
+
+**B4. Walkthrough video (60–90 s, captioned, readable with the sound off)**
+- **Why:** to show setup in messages, docs and the listing.
+- **First:** RewardsPro, from about week 6, recorded on the dev store.
+- **Make:** FilmCraft.
+  - Its local presets include "Social Vertical 1080×1920" (H.264) and YouTube 1080p and 4K.
+  - Captions come from a typed transcript: Whisper is not in release builds.
+  - FilmCraft has no folder confinement, so run the CLI on explicit paths.
+- **Spec:**
+  - YouTube thumbnails: 3840×2160 (video) or 2160×3840 (Shorts), JPG or PNG (read, YouTube help).
+  - Vertical 9:16 1080×1920 (third-party sources agree).
+- **Gate:** G1–G3 on the script and captions; G6.
+
+**B5. Social cards and stories**
+- **Why:** organic posts, but only once a brand has a channel. RewardsPro doesn't need one now.
+  Cambridge TCG waits on its earning channel.
+- **First:** none yet.
+- **Make:**
+  - VectorCraft data sets: one card per CSV row (tested today).
+  - PhotoCraft Variables, including image replacement, for price tiles (documented).
+  - EffectCraft templates for animated tiles.
+- **Spec:**
+  - VectorCraft presets (observed): 1080×1080, 1080×1350, 1080×1920 story, 1500×500 cover,
+    1640×624 page cover, 2560×1440 banner.
+  - Instagram feed 1080×1350 or 1080×1440 (third-party; sources conflict).
+  - Keep text out of roughly the top 14% and bottom 20% of a 9:16 frame (third-party).
+  - TikTok in-feed ads: 9:16, at least 540×960, mp4 or mov, 500 MB or less (read, TikTok ads
+    help).
+- **Gate:** G1–G6. TikTok Shop UK surprise products only: no "win", "chance" or "investment" wording,
+  no value claims, and probabilities shown.
+
+**B6. Motion: logo sting and web micro-animation**
+- **Why:** a small moving mark for videos and the landing page.
+- **First:** optional, R3 first. ai-love.cc already has a Lottie reveal.
+- **Make:** EffectCraft.
+  - Lottie export was proven in the ai-love run.
+  - For WebM, use `--video-quality`, since `--bitrate` is ignored.
+- **Spec:** Lottie JSON (the ai-love one was 10.7 KB), plus MP4 or WebM.
+- **Gate:** G5, G6.
+
+**B7. One-pager (A4 PDF, plus the same content as a web page)**
+- **Why:** something to link to from messages. It covers:
+  - what the app does for a card shop;
+  - how store-credit cashback works;
+  - what it costs (nothing);
+  - what it doesn't do;
+  - how to leave.
+- **First:** RewardsPro (a `/tcg` page and a PDF).
+- **Make:** VectorCraft PDF export (tested). DesignCraft only if a QR code is needed; it is
+  pre-alpha and its QR is documented, not tested.
+- **Spec:** A4 PDF. VectorCraft writes PDF/A-2b and PDF/X-1a, X-3 and X-4. Check anything for a
+  commercial printer with an independent preflight tool.
+- **Gate:** G1–G5.
+
+**B8. Event print: table banner, price cards, QR to a page**
+- **Why:** card shows and prereleases, only if Yu goes.
+- **First:** Cambridge TCG or RewardsPro, by Yu's choice.
+- **Make:** DesignCraft data merge and `object.qrCode` (documented), or VectorCraft presets.
+  DesignCraft's PDF/X-4 output is not validated.
+- **Spec:** the venue's and printer's sizes (**unverified**, ask them).
+- **Gate:** G1–G5. Printing orders spend money and need Yu's word.
+
+**B9. Product photos (Cambridge TCG, only once its earning channel is named)**
+- **Why:** on a marketplace the photo is the product truth. eBay's free price guide shows buyers up
+  to two years of sold prices, so condition, photos and trust are what compete.
+- **First:** Cambridge TCG.
+- **Make:**
+  - Shoot once at high resolution.
+  - LightCraft develops raw files and batch-exports every channel size.
+  - PhotoCraft's classical background removal is for the shop's own site only, never marketplace
+    main images.
+  - No watermarks on marketplace images.
+- **House standard (proposal):**
+  - **Raw singles worth over about £20:** front and back on a neutral matte background, one
+    raking-light angle for scratches and print lines, and corner and edge close-ups.
+  - **Graded slabs:** front, back, and a close-up of the certificate number.
+  - **Sealed product:** front, back, a seal close-up, and a barcode shot that is not the main image.
+- **Spec:**
+  - **eBay UK (read, help pages):**
+    - up to 24 pictures, at least 500 px (about 1600×1600 recommended), 12 MB at most;
+    - 1:1 or 16:9 look best;
+    - no borders, added text, logos or watermarks;
+    - no stock photo for a used item;
+    - use your own photos and text.
+  - **Google Merchant Center (read and fact-checked):**
+    - at least 500×500 for all products from 31 January 2027; 1500×1500 or larger recommended;
+    - 64 MP and 16 MB at most;
+    - no promotional text, watermarks, borders, logos or QR overlays;
+    - no upscaling;
+    - AI images must carry metadata marking them as AI-generated (for example IPTC
+      `DigitalSourceType` TrainedAlgorithmicMedia), and it must not be stripped;
+    - the product should fill 75–90% of the frame (a research note, from the same page).
+- **Gate:** rule 1, G4, G6.
+
+**Ads (not now).** Shopify App Store ads are pay-per-click with no published creative spec. Ads
+spend money, and agency advice is to wait for 5–10 genuine reviews and a listing conversion rate
+above 10% (third-party). TikTok and
+Google AI labels apply if generated media is ever used.
+
+## C. Messaging
+
+**C1. Entity card (one consistent description)**
+- **Why:** people, search engines, AI assistants and Sidekick should all read the same sentence.
+  Evidence favours specific, extractable, dated facts (the GEO survey) and brand mentions (Ahrefs,
+  correlation only). One consistent description is our inference: it keeps those facts from
+  contradicting each other.
+- **First:** RewardsPro.
+- **Make:** text in `kernel.toml [entity]`, from verified claims only.
+- **Spec:**
+  - one sentence, reused in the meta description, Organization and SoftwareApplication JSON-LD, the
+    listing intro and any bio;
+  - an as-of date.
+
+  Draft, unverified until the dev-store test: "RewardsPro is a free Shopify app that pays your
+  customers cashback as Shopify store credit and moves them through VIP tiers."
+- **Gate:** G1–G4.
+
+**C2. App Store listing text (RewardsPro)**
+- **Why:** the listing is both the shop window and the input Sidekick reads.
+- **Make:** the Maker drafts from claims. Yu edits the Partner Dashboard.
+- **Spec (read and fact-checked, shopify.dev):**
+  - app name 30 characters at most; app introduction 100; app details 500; each feature 80;
+  - up to 5 search terms;
+  - no statistics or data, no "first, best or only" (4.3.3, 4.3.4);
+  - no reviews or testimonials (4.3.6, 4.3.7);
+  - pricing only in the Pricing section (4.2.2, 4.2.3);
+  - one consistent name across surfaces (4.1).
+
+  The app card subtitle limit is **unverified** (third-party: about 80). The English listing is
+  auto-translated into 8 languages (research capture, 2026-10-18).
+- **Content:**
+  - Drop "Raffles & Mystery Box": the chance mechanics are paused (`CHANCE_MECHANICS_PAUSED = true`).
+  - Name only features the dev-store test shows working.
+  - Price wording: the Pricing field says Free. Elsewhere, prefer "Free. There is no paid plan."
+    "Forever" is a promise, and RhetorLint marks it. Use it only once Yu writes a notice commitment
+    and the order cap is settled.
+- **Gate:** G1–G4. The G4 anchor rule blocks raffle or mystery-box words.
+
+**C3. Landing page and "How cashback and tiers work" page (rewardspro.io)**
+- **Why:** the "retired" copy contradicts the agents' call for a free-only relaunch
+  (`rp-commercial-shape`, made under Yu's 2026-10-20 delegation). The monorepo's own
+  transparency audit records that tier rules "aren't documented anywhere users can read".
+- **Make:** a PR to `apps/rewardspro/landing/` that removes the retirement copy and adds the page,
+  with B1, A2 and A6 included.
+- **Spec:**
+  - canonical tag;
+  - meta description equal to C1;
+  - JSON-LD;
+  - true statistics may appear here, with evidence (the listing forbids them).
+- **Gate:** G1–G5. Merging and the Pages deploy (wrangler; whether the project is git-connected was
+  not checked) publish public copy, so Yu says yes to the exact words.
+
+**C4. Design-partner message and terms**
+- **Why:** first merchants come from personal contact.
+- **Make:** the Maker drafts. Yu edits and sends, from Yu's own account.
+- **Spec, the message:** about 90 words. It includes:
+  - who we are, and one true observation about the shop;
+  - the company name and registered office;
+  - a plain opt-out;
+  - "I won't write again".
+- **Spec, the terms (one page):**
+  - free, as for everyone;
+  - setup on a call;
+  - feedback calls at weeks 2 and 6;
+  - **reviews are not part of it, and help never depends on one**;
+  - uninstall any time, and what happens to their data.
+- **Lawful contact (UK, not legal advice):**
+  - limited companies only;
+  - sole traders count as individuals under PECR, so no cold email to them;
+  - record a short legitimate-interest note;
+  - no bought lists and no follow-ups.
+- **Gate:** G1–G3, and a G4 PECR rule.
+
+**C5. Review request**
+- **Why:** reviews drive App Store ranking and the Built for Shopify badge (5 needed).
+- **Make:** a lane PR for an in-app prompt (App Bridge Reviews API, or the `#modal-show=WriteReviewModal`
+  deep link), plus one neutral sentence Yu says at the week-6 call.
+- **Spec:**
+  - shown once, after a real value moment (the first cashback credited to a real shopper, or 14 days
+    of active tiers), with "don't ask again";
+  - never during onboarding or install;
+  - no unsolicited review emails;
+  - no incentive, and no features withheld (Shopify 1.3.1);
+  - ask everyone, not only happy merchants (UK law bans "review gating", per CMA guidance CMA208);
+  - unresearched: whether a design partner's review needs a note that the developer set the app up by
+    hand (CAP 3.46 treats leaving out relevant circumstances of a review as misleading). Settle it
+    before asking;
+  - admin, Sidekick and checkout extensions can't be used to ask for reviews;
+  - Yu replies to every review.
+- **Gate:** G1–G4.
+
+**C6. Switch-interview guide (internal)**
+- **Why:** turns calls into evidence for positioning and copy. The four forces are: push of the
+  problem, pull of the new, anxiety about it, and habit.
+- **Make:** text.
+- **Spec:** seven questions, from what the shop used before to what happened in week one. Record
+  quotes only with consent; personal data stays in `private/`.
+- **Gate:** none (internal).
+
+**C7. Community answers**
+- **Why:** useful presence where merchants ask questions.
+- **Make:** agents draft and Yu posts.
+- **Spec:** Shopify's community FAQ (seen only via search) treats self-promotion outside its
+  designated board as spam. Answer the question, with no link unless asked.
+- **Gate:** G1–G3.
+
+**C8. Marketing email (gated)**
+- **Why:** not now. It stays off until the first real merchant (`rp-marketing-email-gate`).
+- **Spec:**
+  - consent defaults to off, and only Shopify `SUBSCRIBED` counts as consent;
+  - one-click List-Unsubscribe;
+  - SPF, DKIM and DMARC aligned (keep one of the two `_dmarc` records first; Yu picks which);
+  - a postal address.
+- **Gate:** G1–G4.
+
+**C9. Sidekick extension text (later, after real merchants)**
+- **Why:** loyalty data inside the merchant's assistant. Smile shipped one on 2026-06-18.
+- **Spec:** the extension description reportedly has a 256-token limit and may not promote, cross-sell
+  or ask for reviews (third-party).
+- **Gate:** G1–G4.
+
+## D. Proof and trust
+
+**D1. Claims ledger (`claims.toml`)**
+- **Why:** the only thing that stops a false sentence; both of the estate's scanners refuse to judge
+  truth.
+- **First:** RewardsPro.
+- **Make:** the Clerk. Rows use Truth Release's input fields plus `status`, `kind`, `channels` and
+  `review_after`.
+- **Gate:** it *is* G1's source.
+
+**D2. Review pack and approvals log**
+- **Why:** Yu approves exact bytes, and the record shows who said what.
+- **Make:** the Checker. The pack is a local page; the log is append-only `approvals.jsonl`.
+- **Spec:** asset hashes, channel, account, labels, Yu's verbatim words, and the reasons for
+  rejections.
+
+**D3. Provenance sidecar (`<asset>.meta.json`)**
+- **Why:** pipelines strip metadata, and no Craft app writes C2PA.
+- **Spec:**
+  - brief id, kernel version, template and tool versions;
+  - inputs with sha256 and licence;
+  - `ai_involvement` (none, assistive or generative);
+  - jurisdictions and channel;
+  - claims used, labels and alt text;
+  - the gate-report digest;
+  - later, the approval id and publish URL.
+- **Gate:** G6.
+
+**D4. Corrections log and correction door**
+- **Why:** XENIA right 9: append a correction, never rewrite history silently.
+- **Make:** reuse RhetorLint's Claim Feedback example.
+- **Spec:** every public claim page links to a way to dispute it.
+
+**D5. "How we know" page and `claims.json` (test before wide use)**
+- **Why:** shows the work behind every claim on a surface: receipt, date, gate results and
+  corrections. It also shows its own lapses ("1 claim overdue for re-check").
+- **Make:** generated from the ledger, using Truth Release's page output.
+- **Spec:** a plain link in the brand's own colours. **Never a shield, tick or seal** (CAP 3.52 bans
+  displaying trust marks without authorisation). Show it only where every claim passes G1–G3.
+- **Status:** no evidence yet that merchants value it. Ask design partners first.
+
+**D6. Proof bank (consented quotes)**
+- **Why:** real merchant words for the website and future copy.
+- **Spec:**
+  - each quote has a consent record id, and the personal data stays out of git;
+  - never AI-written, and never paraphrased into a better quote;
+  - not on the App Store listing (4.3.6, 4.3.7);
+  - on our own site only if genuine and permitted (CAP 3.47, 3.50).
+
+**D7. Genuine reviews**
+- See C5. Never use an insider or the developer's own store as a reviewer.
+
+**D8. Receipt cards (later)**
+- **Why:** one verified claim, its source and its date, as a social image.
+- **Make:** a VectorCraft template fed by ledger rows.
+- **Gate:** G1–G6.
+
+## E. Machine-facing (what AI assistants and agents read)
+
+Evidence for special AI files and tricks is weak (RESEARCH §2.1), so these are small and follow the
+entity card (C1). Demand, not doors, is the constraint.
+
+**E1. Structured data and page plumbing**
+- **Why:** search engines and AI assistants read the page's own description of itself.
+- **First:** RewardsPro landing, Cambridge TCG, TaxSorted (with A6).
+- **Make:** text from C1; Organization and SoftwareApplication JSON-LD rendered on the server; a
+  canonical tag; a sitemap without retired pages.
+- **Gate:** G1–G4.
+
+**E2. Agent doors that already exist**
+- **Why:** an agent door that misdescribes the brand repeats the error at machine speed.
+- **First:** Cambridge TCG.
+- **Make:** keep `llms.txt`, MCP and registry metadata in step with C1. cambridgetcg.com's custom
+  JSON-RPC "MCP" can't be used by standard MCP clients: make it conformant or stop calling it MCP.
+  Commerce text, not KINGDOM text, on commerce doors (README §3).
+- **Not now:** new doors, UCP or agent checkout, or a Sidekick extension (C9) before merchants exist.
+- **Gate:** G1–G3.
+
+## What each brand needs first
+
+| Brand | Tier (proposed) | First assets |
+|---|---|---|
+| RewardsPro | Focus | A1–A7, B1–B3, C1–C5, D1–D3; later B4, B7, C9, D5 |
+| Cambridge TCG | Maintain (truth fixes) | B1 fix (true sizes); A2 (small ICO); canonical tag and server-rendered Organization JSON-LD; sitemap without retired `/trade-in`, `/rewards`, `/auctions`, `/market`, or with true titles; fix `/rewards` "Daily Spin" and the price guide's "Free daily price guide" (collection stopped 2026-07-12). B9 only once the earning channel is named. |
+| TaxSorted | Maintain | B1, A2 (replace the Vercel default), canonical tag, JSON-LD |
+| R2 and R3 sites | Later, per lane | 10 of 15 live sites have no `og:image`. Four have no favicon. fomoengine.io and axiepro.io serve the stock Next.js favicon. A later sweep with the same skill, through each site's own lane. |
