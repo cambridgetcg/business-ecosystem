@@ -27,9 +27,10 @@ Each entry gives:
   - share cards;
   - a colour kit (tokens, CSS variables, contrast matrix; it exits 1 if a colour pair fails).
 
-  It was still being written on 2026-10-20, so its current contract and outputs are in the skill
-  itself; read it, not this summary. Nothing in this catalogue duplicates it: entries it covers say
-  "artcraft-brand".
+  Its interface is `~/.kingdom/tools/artcraft-brand/SKILL.md`: what it takes, what it builds, its exit codes, and
+  which Craft app suits which job. Use that, not the skill's internals or this summary. The skill
+  says kits belong with what they brand, so a kit is built into the brand's own kernel folder.
+  Nothing in this catalogue duplicates the skill: entries it covers say "artcraft-brand".
 - **Craft CLIs installed on this Mac** (`~/.local/share/artcraft/INSTALLED.tsv`, 2026-10-20):
 
   | App | Version |
@@ -41,11 +42,12 @@ Each entry gives:
   | effectcraft | 0.11.1 |
   | lightcraft | 0.9.1 |
 
-  FilmCraft, DeckCraft, PdfCraft and SoundCraft are **not installed**. Installs belong to the
-  artcraft-brand lane (`scripts/install.sh` pins versions and checksums).
-- **Guardrails for every run:** follow `~/.kingdom/tools/artcraft-brand/references/guardrails.md`,
-  which is re-checked per installed version. Two rules this design adds: record each tool's version
-  in the asset's sidecar (D3), and rebuild exports from masters, never hand-editing an export.
+  FilmCraft, DeckCraft, PdfCraft and SoundCraft are **not installed**. Installs, pinning and
+  updates belong to the artcraft-brand lane (SKILL.md, "Updating").
+- **Guardrails for every run:** before any recipe beyond the skill's own build, read the guardrails
+  SKILL.md points to; they are re-checked per installed version. Two rules this design adds: record
+  each tool's version in the asset's sidecar (D3), and rebuild exports from masters, never
+  hand-editing an export.
 - **File names:** `<brand>_<campaign>_<asset>_<variant>_<WxH>_<yyyymmdd>_v<NN>.<ext>`. Every asset
   gets a `<name>.meta.json` sidecar (see D3).
 
@@ -138,8 +140,9 @@ Each entry gives:
 - **Why:** one machine-readable answer to "what is RewardsPro blue?" for sites, cards, decks and
   emails.
 - **First:** RewardsPro, then each maintain-tier brand.
-- **Make:** artcraft-brand `colour.py`. VectorCraft can also save `.ase` and `.css` swatch files
-  (tested). Name swatches explicitly, or exports include 53 default swatches.
+- **Make:** artcraft-brand (its colour kit: tokens, CSS, contrast table and swatch files). Outside the
+  skill, VectorCraft can also save `.ase` and `.css` swatches (tested); name them explicitly, or
+  exports include 53 default swatches.
 - **Spec:**
   - DTCG tokens (format 2025.10, a stable W3C Community Group report, not a W3C standard);
   - CSS custom properties;
@@ -150,9 +153,10 @@ Each entry gives:
 **A5. Type**
 - **Why:** consistent text across sites and assets.
 - **First:** RewardsPro. Its landing page uses Inter; keep it unless Yu wants a change.
-- **Make:** a choice, not a render. Set the skill's `wordmark.font` and `style` explicitly (Inter):
-  its default is Avenir Next, an Apple system font whose licence for a commercial logo was not
-  checked.
+- **Make:** a choice, not a render. Name the wordmark font explicitly in `brand.json`, using an
+  installed OFL font (Inter, the landing page's font). SKILL.md warns that outlining a font into a
+  logo is a use its licence must allow, so check before shipping a mark set in a macOS system font
+  such as Avenir Next.
   - The Craft apps bundle OFL 1.1 fonts (Inter, Source Sans 3, Source Serif 4, JetBrains Mono, and
     others). OFL allows commercial artwork.
   - craft-fonts has CJK and Arabic faces but no Latin display face.
