@@ -23,8 +23,13 @@ permissions:
   contents: read
 
 jobs:
+  # Off unless the repository variable PROGRESS_SYNC_ENABLED is 'true'. The owner
+  # asked for no AWS calls while AWS is reviewed elsewhere (decision D6,
+  # 2026-10-17), so the variable stays unset and pushes that touch progress
+  # files no longer reach AWS. Setting the variable turns the sync back on.
   sync-to-aws:
     name: Sync Progress to AWS
+    if: vars.PROGRESS_SYNC_ENABLED == 'true'
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
 

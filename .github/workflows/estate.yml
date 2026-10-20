@@ -1,0 +1,63 @@
+name: Estate
+
+# The estate layer's test suite (estate/tests): standard-library Python over
+# synthetic estates built in temporary directories, with launchctl, crontab, gh
+# and bun stubbed. It reads no real estate and makes no network call. It runs
+# only when estate/** or this file changes. Like every check here it is
+# advisory.
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - '.github/workflows/estate.yml'
+      - 'estate/**'
+  push:
+    branches: [main, develop]
+    paths:
+      - '.github/workflows/estate.yml'
+      - 'estate/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A new push to a pull request cancels that pull request's run in progress, so
+# only its latest head is checked. Every other run (pushes to main or develop,
+# manual runs) is a group of its own: none is cancelled or queued.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  estate-tests:
+    name: Estate tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      # The suite is written for the owner's Mac, and two facts of a GitHub runner meet the estate's own
+      # guards there. The runner's login is "runner", a word the code uses, and the privacy lint treats
+      # the local login as private. The runner's git config also enables Git LFS filter drivers, and the
+      # estate refuses git status wherever filter drivers are configured. So the suite runs as a fresh
+      # account, on a copy of the checkout that account owns, with the filter drivers removed from this
+      # throwaway machine's system git config. Neither guard is changed.
+      - name: Run the estate suite as a fresh account
+        run: |
+          python_bin="$(command -v python)"
+          sudo useradd --create-home --shell /bin/bash estate-ci
+          sudo git config --system --remove-section filter.lfs 2>/dev/null || true
+          work="$(mktemp -d)"
+          chmod 755 "$work"
+          sudo cp -a "$GITHUB_WORKSPACE" "$work/repo"
+          sudo chown -R estate-ci: "$work/repo"
+          cd "$work/repo"
+          sudo -u estate-ci -H env PATH="$PATH" PYTHONDONTWRITEBYTECODE=1 \
+            "$python_bin" -I -B -m unittest discover -s estate/tests -t estate
