@@ -29,7 +29,11 @@ Estate observations cite the 2026-10-20 research notes by name:
 - artcraft-media
 - the fact-checks verify-platform and verify-law-tools
 
-The nine research notes and the two fact-checks are committed in
+Section 7 was added the same evening, after Yu named Cambridge TCG's channels and the scanner plan.
+It draws on five more notes (ebay, cardmarket, scanner-market, scanner-rules, app-launch) and two
+more fact-checks (verify-marketplaces, verify-scanner).
+
+The research notes and the fact-checks are committed in
 [research/2026-10-20/](research/2026-10-20/); raw page captures are not. They mention the agents'
 scratchpad paths, which no longer exist. Where a primary URL exists, it is given here.
 
@@ -580,19 +584,21 @@ is a natural co-marketing route [I].
 - Retail and the trade-in desk closed 2026-07-06, after 8 retail orders and zero trade-ins.
 - Wholesale retired around 2026-07-05; wholesaletcgdirect.com redirects to cambridgetcg.com.
 - New listings, bids and checkout have answered 410 since 2026-09-23.
-- eBay shows 0 listings.
+- eBay showed 0 listings under the cambridgetcg Shop URL, which now returns 410 (§7.1); the account
+  Yu sells from is not observed.
 - The site presents "open-source TCG data infrastructure", with a "paid orders are retired" banner.
-- On 2026-10-18 Yu said "TCG is generating revenue now" (quoted in ledger `be-business-facts`). No
-  record shows the channel, so this stays open until Yu names it.
+- On 2026-10-18 Yu said "TCG is generating revenue now" (quoted in ledger `be-business-facts`). On
+  2026-10-20 Yu named the channel: "For now only ebay and cardmarket sales." The accounts themselves
+  are not yet observed (§7.1–7.2).
 
-**Options, if a channel opens:**
+**Channel facts** (§7 holds the fuller, fact-checked picture for eBay and Cardmarket):
 
 | Channel | Fact | Tag |
 |---|---|---|
-| eBay UK, business sellers | 10.9% final value fee in Collectables and Toys & Games (CCG), plus £0.30 per order ≤£10 or £0.40 above (10p in some Collectables categories), plus a 0.42% regulatory operating fee. UK *private* sellers pay no final value fee. https://www.ebay.co.uk/help/selling/fees-credits-invoices/fees-business-sellers?id=4809 | [V-corr]; an earlier note said 0.35% |
-| eBay price guide | Free, UK and US, TCG only (Pokémon EN/JP, Magic, Yu-Gi-Oh!, One Piece, Lorcana), up to two years of sold data plus PSA/CGC population data, app scanning. https://pages.ebay.co.uk/price-guide/ | [V]. The "1 September 2026" launch date is [U] |
-| eBay Authenticity Guarantee | Cards of £500 or more, UK from May 2026 | [S] |
-| Cardmarket (EU) | API closed to new applications. Commission unverified (about 5% plus a fee per third parties). VAT collected on UK orders ≤£135. | [D] / [S] |
+| eBay UK, business sellers | 10.9% final value fee in Collectables and Toys & Games (CCG), plus £0.30 per order ≤£10 or £0.40 above (10p in some Collectables categories), plus a regulatory operating fee of 0.35% excluding VAT (0.42% including VAT, as the private-seller page shows). Business fees exclude VAT. UK *private* sellers pay no final value fee. https://www.ebay.co.uk/help/selling/fees-credits-invoices/fees-business-sellers?id=4809 | [V-corr]; both figures are eBay's, on different VAT bases (§7.1) |
+| eBay price guide | Free, UK and US, TCG only (Pokémon EN/JP, Magic, Yu-Gi-Oh!, One Piece, Lorcana), up to two years of sold data plus PSA/CGC population data, app scanning. https://pages.ebay.co.uk/price-guide/ | [V]. Rolling out from 1 September 2026 (eBay press release) [V] |
+| eBay Authenticity Guarantee | Single cards of £250 or more, raw or graded, UK to UK; launched 6 May 2026 at £500 | [V] (§7.1) |
+| Cardmarket (EU) | API closed to new applications. 5% commission (rates by seller type unread). VAT collected only on non-UK professionals' sales to the UK of £135 or less. | [V] (§7.2) |
 | TCGplayer | International listing only for US and Canadian sellers | [D] |
 | Whatnot UK | 6.67% + VAT commission, plus processing of 2.42% + £0.25. Seen only in search snippets (the pages blocked fetches), so confirm in Seller Hub. Its Shopify integration arrived April 2026. | [S] |
 | TikTok Shop UK | Surprise-product and AIGC rules (§3.4). The collectibles commission is unverified. | [O] / [U] |
@@ -823,10 +829,216 @@ listing's description 0.
 
 ### 6.7 Facts only Yu holds
 
-- **Cambridge TCG's earning channel** (`be-business-facts`, parked).
+- **Cambridge TCG's earning channel**: answered 2026-10-20, eBay and Cardmarket. Still only Yu's:
+  the eBay and Cardmarket usernames and account types, where the money lands, and the VAT status
+  (`be-business-facts`).
 - **Whether any social accounts exist** beyond the @CambridgeTCG YouTube channel. Its one video
   appears unlisted.
 - **Who reads the listing's analytics property.**
 - **Cloudflare bot settings** on rewardspro.io and cambridgetcg.com.
 - **Whether the Shopify store behind ShopifyTheme_TCG is still open.** It returned HTTP 429 on
   2026-10-20.
+
+---
+
+## 7. Cambridge TCG's marketplaces and the scanner spin-off (2026-10-20)
+
+Yu, 2026-10-20, verbatim: "For now only ebay and cardmarket sales. I am planning to spin off one
+piece card scanner and tracker for ios and android". Five research notes (ebay, cardmarket,
+scanner-market, scanner-rules, app-launch) were re-read against primary sources by two
+fact-checkers (verify-marketplaces, verify-scanner): 50 load-bearing claims and 35 spot checks.
+Corrected claims appear in their corrected form. Everything was fetched on 2026-10-20, without
+logging in.
+
+- eBay answered scripted reads with a "Security measure" page, so eBay quotes come through a
+  summarising fetch tool.
+- www.cardmarket.com answered 403. Its help site and data files could be read.
+
+This is research, not legal or tax advice.
+
+### 7.1 eBay UK
+
+Notes: ebay §1–8; verify-marketplaces rows 1–13 and spot checks.
+
+- **Presence is unknown.** https://www.ebay.co.uk/str/cambridgetcg returns HTTP 410 [V]. The
+  username, account type and feedback score are facts only Yu holds.
+- **Fees** (fees page for business sellers, updated 30 Sep 2026) [V-corr, rows 1–2]:
+  - a 10.9% final value fee for collectable cards;
+  - £0.30 per order up to £10, and £0.40 above;
+  - a regulatory operating fee of 0.35% excluding VAT, which is the 0.42% including VAT on the
+    private-seller page. §4.2 now gives both, labelled by VAT basis.
+
+  Business fees exclude VAT. Without VAT registration (status unknown), the effective final value
+  fee is about 13.1% [I].
+- **Paying for reach.**
+  - Coupons, sale events and multi-buy need a Shop, which costs £27, £77 or £437 a month [V].
+  - Promoted Listings are only for "Above standard and Top rated sellers with recent sales
+    activity" [V], so a new or dormant account can't buy reach yet [I].
+- **Links and contact** [V-corr, row 9]:
+  - Listings may not link off eBay, even as text that can't be clicked.
+  - The off-eBay policy also bans using an eBay buyer's contact details to sell elsewhere, at any
+    time, and bans promoting outside sales sites in messages to other eBay members.
+  - Parcel inserts are not named, but those clauses plausibly reach them [I]. Whether a web address
+    may sit in the business-seller details is [U].
+- **Feedback** [V-corr, overreach 3]: eBay policy 4231 bans "any ... incentive in exchange for positive
+  feedback". The DMCC Act bans fake reviews, and reviews that *conceal* an incentive (Schedule 20
+  para 13). The house rule "no incentive, ever" rests on eBay's policy, not the statute.
+- **Business-seller duties** [V, seen through the summary only]: full contact details, a VAT number
+  if registered, a 14-day right to cancel, no restocking fee, and buyers never charged return
+  postage. Read the raw page before relying on the last point, which is stricter than the Consumer
+  Contracts Regulations 2013 (CCR) [I]. Companies show their registered number and office on "its
+  websites" (SI 2015/17 reg. 25) [V].
+- **Authenticity Guarantee** [V]: covers single cards at **£250 or more**, raw or graded, sent UK to
+  UK. Sellers can't opt out, and they pay postage to the authenticator. It launched on 6 May 2026
+  at £500. §4.2 now shows the £250 threshold.
+- **eBay's own scanner** [V]:
+  - Free in the eBay app, rolling out from 1 Sep 2026.
+  - It covers One Piece, with two years of UK sales and "no subscription fees or usage limits".
+  - It needs a UK eBay account, and eBay users "should be aged 18 or over".
+- **eBay Partner Network (EPN, the affiliate scheme; agreement dated 24 Sep 2026)** [V-corr, row 11]:
+  - Any app, and any self-made banner or text, needs EPN's prior written approval.
+  - No promotion may appear on eBay itself, and "You may not make your own advertising claims".
+  - In an app, the ad disclosure sits "above the fold".
+  - ASA advice from 2023 (it may have changed): put "Ad" up front [V].
+
+### 7.2 Cardmarket
+
+Notes: cardmarket §1–7; verify-marketplaces rows 14–25; verify-scanner row 16.
+
+- **Presence is unknown** [U]. The site's profile pages blocked reads, and only Yu holds the
+  username.
+- **Account** [V]:
+  - A Professional account needs a phone number, a photo ID and "a business registration or trade
+    license".
+  - A private account that looks commercial is "excluded from selling until a business
+    registration is available".
+  - DMCC Sch 20 para 25 bans *falsely* implying you are not trading, so selling as a Professional
+    is the careful reading [I].
+- **Money and rank** [V]:
+  - The commission is 5%. The fee table returned 403, so rates by seller type are [U].
+  - Offers are sorted "by the lowest price first regardless of the seller's status", including
+    shipping. No paid placement was found [U].
+  - Trust comes from the rating (at least 36 evaluations) and from tracked post, which is required
+    above €25.
+- **The UK shipping edge varies** [V-corr, row 16; the note's "at least €28" was refuted]. Tracked post
+  costs €4.87 within the UK. The cheapest tracked post to the UK costs €6.85 from Austria, €27.99
+  from Germany and €82.15 from Belgium, so the edge runs from about €2 to €77 by the seller's
+  country. Professional sellers may also add cheaper methods of their own.
+- **Tax and returns** [V]:
+  - Cardmarket collects UK VAT only on non-UK professionals' sales of £135 or less, so VAT on
+    UK-to-UK sales is Cambridge TCG's own concern [I].
+  - EU buyers face a €3 duty from 1 July 2026.
+  - The withdrawal button does not appear on UK-to-UK orders, but CCR 2013 still gives UK buyers 14
+    days [V-corr].
+  - Professionals must show a withdrawal policy on their profile.
+- **The General Terms are readable** (the notes said they were blocked) at
+  https://help.cardmarket.com/en/general-terms-and-conditions [V-corr]:
+  - §10: "you are prohibited from using hyperlinks in your offers".
+  - §3: users must be over 18.
+  - §9: the API is only "for managing your own contents", and **"The presentation of the trading
+    cards and their respective prices on external websites require our prior written agreement"**.
+    The phrase "on external websites" is in bold, which marks a change in the version "from
+    26/11/2026".
+  - The "App Key" is a 24-hour delegated login, not a licence to show prices.
+- **Data** [V]:
+  - The API is closed to new applications.
+  - The public price file for One Piece holds 13,412 products, priced per product with no condition
+    or language.
+  - The 2024 line "use them however you see fit" was an announcement, not a licence.
+  - cambridgetcg.com's source record marks this data `"redistribute": false`, beside member display
+    and download uses.
+
+  Re-check that record and the site's member price display against §9 before 26 Nov 2026 [I].
+- **Japanese One Piece** [V-corr]: Japanese cards are listed only on their own Asian-edition pages,
+  never on English ones. Whether every Japanese set has a page is [U].
+- **Brand** [V]: Cardmarket's logos are its "sole property". The affiliate page returns 404.
+- **Dropped as unverifiable:** "ship within seven days" and "revoked API users can reapply".
+
+### 7.3 The scanner market
+
+Notes: scanner-market §0–4; verify-scanner rows 19–25 and S19–S20.
+
+- **Crowded** [O]: more than 30 Android and about 15 iOS apps scan or track One Piece cards.
+  - Collectr has 68K US iOS ratings [V].
+  - The largest One-Piece-only app has 100k+ Play downloads [V].
+  - In the UK store, One-Piece-only apps have 3–25 ratings each [O].
+- **eBay is the incumbent** (§7.1). The claim that "no app shows a UK sold price in GBP" is refuted
+  [V]. Possible gaps, unverified [I]:
+  - several sources shown side by side, each dated and never blended;
+  - French and Chinese prints;
+  - condition and language for each copy;
+  - stock export for eBay UK and Cardmarket (those import formats are [U]);
+  - players under 18, whom both marketplaces turn away.
+- **Already taken** [O]: offline scanning, no account, unlimited free scans, Cardmarket prices and
+  set-code reading. Reading the code can't separate a card from its parallels, which share one
+  number (OP01-120, `_p1`, `_p2`) [O].
+- **Honest exemplars are rare.** OP TCG Hub claims "No tracking. No analytics.", but its own Data
+  safety label declares device IDs shared with third parties [V-corr].
+- **Names** [V-corr]: some apps do use "One Piece" ("Log Pose - for One Piece TCG"). Others use
+  "OPTCG", or words from the story (Haki, Logia, DON!!). That is what app review let through, not
+  what is lawful [I].
+- **Screenshots** [O]: competitors show Bandai card art, portfolio totals, "#1" laurels and pack
+  simulators. Play bans "Best", "#1", "Top", "New", "Free", testimonials and prices in screenshots
+  [V].
+- **Market size** [V]: Bandai Namco's ONE PIECE sales are flat: ¥139.5bn (FY2025.3), then ¥139.3bn
+  (FY2026.3). It publishes no figure for the card game alone [U].
+- **Events** [V]: BANDAI CARD GAMES Fest London runs at ExCeL on 15–17 Jan 2027.
+- **Community** [S]: r/OnePieceTCG (about 204k members) bans buying and selling, and bans members of
+  profiteering subreddits. So frame the app for players, not for profits [I].
+
+### 7.4 The scanner's rules
+
+Notes: scanner-rules §1–6; verify-scanner rows 1–17 and S1–S17.
+
+- **IP** [V]:
+  - Bandai's site: "All images, text and data on this website may not be reproduced without
+    permission."
+  - Bandai's notice of 10 July 2026 covers physical goods and their use at official events, and says
+    nothing about apps [V-corr].
+  - Apple 4.1(c) bars another developer's "brand, or product name in your app's icon or name".
+    Google Play lists cover art and fan art as violations.
+  - The UK Trade Marks Act 1994, s.11(2)(c): using a mark to refer to the owner's goods does not
+    infringe if it is in accordance with honest practices [V]; whether a given use qualifies is for
+    a solicitor [I].
+  - The trade-mark registers were not searched [U].
+- **Data** [V]:
+  - Apple 5.2.2: "Authorization must be provided upon request" for third-party content.
+  - eBay's Buy APIs are "intended for eBay partners only".
+  - JustTCG's paid tiers may show prices, but bar a "substitute for or competitor to the Service".
+  - eBay's terms and Cardmarket's §10 bar scraping.
+- **Children** [V]:
+  - The ICO Children's Code covers any service "likely to be accessed" by under-18s.
+  - Apple 5.1.2(i) needs explicit permission before data goes to "third-party AI".
+- **Stores** [V]:
+  - Physical cards can't be sold through in-app purchase (Apple 3.1.3(e)).
+  - UK subscription rules start in January 2027.
+  - The CMA has made no steering decision on Apple [V-corr].
+- **Conflict of interest** [V]:
+  - DMCC Sch 20 paras 12, 13, 25 and 30; para 30 bans "a direct appeal to children to buy".
+  - The ASA (4 Feb 2026): a comparison site that "is not independent" may count as an ad "in its
+    entirety".
+
+### 7.5 Launch workflow
+
+Notes: app-launch §0–5; verify-scanner rows 5–11 and S3–S8.
+
+- **Accounts** [V]:
+  - Apple costs $99 a year. An organisation needs a D-U-N-S number (a free business ID from Dun &
+    Bradstreet) and a "publicly available and functional" website; sites with "minimal content"
+    "won't be accepted".
+  - Play costs $25 once. It shows the organisation's legal name, address, email and phone, so a
+    spin-off can't hide its maker [I].
+- **Testing** [V]: a Play personal account opened after 13 Nov 2023 needs 12 testers for 14 days.
+  Organisations are exempt only according to secondary sources [S].
+- **Reviews** [V]: use Apple's system prompt only, at most 3 times a year. CMA guidance CMA208:
+  invite everyone [D].
+- **Specs:** in SCANNER.md [V]. Play's "first 10 seconds" and "80%" video rules are
+  recommendations, not requirements [V-corr].
+
+**What follows** [I]:
+1. Cambridge TCG's marketing is now listings, fair prices, real scans, fast dispatch and an honest
+   profile. No paid reach was found on Cardmarket, and eBay's isn't open to a new account yet.
+2. The scanner should lead with identification, condition and export. It adds prices only behind a
+   written licence.
+3. The maker line is required, because the stores publish the maker anyway.
+4. Four written answers gate prices and card images: from Bandai, Cardmarket, EPN and a price API.
