@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { CurrencyCode, Money } from '@foundational/shared';
+import type { CurrencyCode } from '@foundational/shared';
 import { TaxTypeSchema } from './tax-jurisdiction.js';
 
 /**
