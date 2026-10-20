@@ -123,6 +123,15 @@ renders on every build, below), `navigation_facet` (the named field is a navigat
 capability map one), `confirms` and `status_note`. Any other
 effect key is listed as not applied.
 
+From 2026-10-20 the file also holds decisions agents take under Yu's delegation of that day. They are
+read the same way, and their `by` says an agent made them, never Yu; Yu overturns any of them by saying
+so. A later decision may settle what an earlier one left in `stays_open`: its `settles` table names the
+earlier decision and the positions it settles, and the atlas then shows that item as settled instead of
+asking it. The effects they add: `layer_card_wins` (extends `layer_overrule`: a citizen's card naming any
+layer settles its contest with harvest's fleet), and `sphere_undecided_by_layer`, `sphere_third_party` and
+`sphere_review` (below, under the sphere facet). Each value they change names the decision in `decided_by`
+or `review_decision`.
+
 An owner decision on the taxonomy authority outranks `private/config.toml [kingdom].ref`, which
 applies only when no such decision exists. A config pin that contradicts the decision degrades the
 run with a reason (the decision is still followed) until `decisions --sync-config --write` aligns it,
@@ -182,6 +191,12 @@ curated row that differs from its owner or source project is listed in QUEUE (`s
 and stands until Yu reviews it. Third-party code the estate holds but
 does not own is undecided with `third_party`, since D4 names no sphere for it; third-party apexes (github.com,
 codeberg.org) are not estate zones.
+
+A later decision extends D4 (`dec-2026-10-20-3`, an agent's call under Yu's delegation of 2026-10-20): a
+curated undecided project row gives way to the layer rule where that rule places the project (its earlier
+reason is kept in `was`), undecided third-party code takes the value `third-party` (it has no sphere), and
+curated rows Yu has not reviewed read as reviewed by agents (`reviewed_by = agent`), so they no longer wait
+in Questions for Yu. `reviewed` stays false on every such row, because Yu has not reviewed it.
 
 The assignments come from an evidence-backed classification (`reviewed = false` until Yu reviews it) and sit
 where the curation keeps per-record knowledge: `[family.sphere]` in `curated/families/<family>.toml`, a
