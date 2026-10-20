@@ -39,7 +39,8 @@ Terms:
 - **ArtCraft / Craft apps:** open-source design apps (vector, photo, layout, motion, video) from
   github.com/storytold, each with a command-line tool agents can drive.
 - **`artcraft-brand`:** the estate's skill that turns one brand file into a mark, icons, share cards
-  and a colour kit with the Craft apps (`~/.kingdom/tools/artcraft-brand`).
+  and a colour kit with the Craft apps. Its interface is `~/.kingdom/tools/artcraft-brand/SKILL.md`; this design
+  depends on that interface, not on the skill's internals.
 - **RhetorLint:** the estate's local wording linter. **fomo_scan / Shield:** its pressure and
   dark-pattern scanners (fomoengine).
 - **Sidekick:** Shopify's admin AI assistant, which recommends apps. **Built for Shopify (BFS):**
@@ -115,7 +116,8 @@ visual identity" (`apps/rewardspro/extensions/theme-app-extension-rewardspro/cla
 
 | File | Holds | Who changes it |
 |---|---|---|
-| `brand.json` | What `artcraft-brand` reads (its schema is the skill's `scripts/lib/spec.py`). `description` and the share-card title and subtitle are public text, so G1–G3 apply to them. | Agents by PR. A new identity reaches Yu in a review pack. |
+| `brand.json` | What `artcraft-brand` reads (schema as SKILL.md documents it). `description` and the share-card titles are public text, so G1–G3 apply to them. | Agents by PR. A new identity reaches Yu in a review pack. |
+| `kit/` | What the skill builds from `brand.json`: logos, web icons and share cards, colour tokens, a usage guide and a review sheet | Rebuilt by the skill, never hand-edited |
 | `kernel.toml` | `[meta]` canonical name, banned spellings, status, ring, tier, `review_after`. `[entity]` one sentence plus the 100- and 500-character texts. `[voice]` traits as "X but not Y", words to use or avoid, the RhetorLint ceiling. `[never]` what the brand never says. | Agents draft. Changes to ring, positioning, promise or name need Yu's word. |
 | `claims.toml` | The claims ledger | The Clerk adds rows. A row is `verified` only after its evidence check (§5) and a second session's concurrence. |
 | `templates/` | VectorCraft and EffectCraft templates, CSV copy rows | Maker |
@@ -196,7 +198,7 @@ The five roles and the exit codes below come later, if volume needs them.
 | G2 Pressure | `fomo_scan` on text or HTML. Honest copy scored 8, pressured copy 34–52, so 20 or more goes to a person. Shield rules-only for offers. | Exists. Patterns for its misses (counted social proof, price-rise threats) **to build** |
 | G3 Wording | `rhetorlint --max N --sarif` | Exists (local CLI) |
 | G4 Channel and policy | Sizes, limits, bans and labels per channel, as dated data. Anchor rule: while `CHANCE_MECHANICS_PAUSED = true`, raffle or mystery-box wording blocks. | **To build**; specs in [ASSETS.md](ASSETS.md) |
-| G5 Brand and render | Tokens, spelling, contrast, alt text; output size, count, names, RGB vs RGBA | Exists in the `artcraft-brand` skill: `colour.py` (exit 1 on a failing pair), its output checks and preflight (fonts, missing glyphs, sizes, colour type). Spelling and alt-text checks **to build** |
+| G5 Brand and render | Tokens, spelling, contrast, alt text; output size, count, names, RGB vs RGBA | Exists in the `artcraft-brand` skill: its build and verify steps check sizes, alpha, contrast and fonts, and exit 0 (pass), 1 (a check failed) or 2 (the build failed). Spelling and alt-text checks **to build** |
 | G6 Provenance and privacy | Sidecar with tool versions, input licences, AI involvement and claims; IPTC AI metadata where required; no personal data, test data or licensed IP | **To build** |
 
 Gates read text, files and vectors, not meaning. A true statement arranged to mislead passes them all,
@@ -247,9 +249,9 @@ collection, and never copied into notes, memory or journals.
 
 ## 8. First moves, in order
 
-1. **AGENT.** Claim lightly on the collab board. Agree the `artcraft-brand` contract with the
-   skill's lane (`brand.json` in, fixed output tree out, non-zero exit on failure, versions
-   stamped), editing none of its files. The skill is still being written; read it, not a snapshot.
+1. **AGENT.** Claim lightly on the collab board. Use `artcraft-brand` through its SKILL.md
+   interface (`brand.json` in, a verified kit out, exit 0, 1 or 2), editing none of its files.
+   Changes to the skill go to its lane.
 2. **AGENT.** Record agents' calls: RewardsPro as focus brand; the kernel at
    `apps/rewardspro/marketing/`; ArtCraft's cloud app off for brand material. Put to Yu: "RewardsPro"
    as the one public spelling (#1 in App Store search; "rewards pro" is #103). The app's own TOML
@@ -329,8 +331,8 @@ Meanwhile, run fomoscan and RhetorLint over the Hub's own templates now.
 ## 10. Assumptions
 
 - The free-only relaunch stands and the dev-store test passes; until then G0 holds every outward pack.
-- `artcraft-brand` lands within about two weeks. Placing screenshots into VectorCraft templates is
-  unverified; PhotoCraft finishing is the fallback.
+- `artcraft-brand` was in place on 2026-10-20 and keeps its SKILL.md interface stable. Placing
+  screenshots into VectorCraft templates is unverified; PhotoCraft finishing is the fallback.
 - That card shops value store-credit cashback is a hypothesis on weak signals (the "tcg" search ranks
   us #18; one comic shop's review). Interviews test it.
 - These docs write nothing to `estate/`. Once work runs, the estate lane records the marketing

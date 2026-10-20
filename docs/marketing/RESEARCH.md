@@ -680,9 +680,9 @@ byte-identical rebuilds. Some bugs it found are fixed on newer releases; re-chec
 workaround.
 
 **Guardrails.** The run's guardrails (assert every selection, export single artboards with
-`selectedOnly`, clear default strokes, pin `created`, check RGB against RGBA, and others) now live in
-`~/.kingdom/tools/artcraft-brand/references/guardrails.md`, re-checked per installed version. Follow
-that file rather than this summary. The field report itself is `brand/ARTCRAFT-FIELD-REPORT.md` in
+`selectedOnly`, clear default strokes, pin `created`, check RGB against RGBA, and others) now live
+with the `artcraft-brand` skill, re-checked per installed version; `~/.kingdom/tools/artcraft-brand/SKILL.md` points to them.
+Follow the skill rather than this summary. The field report itself is `brand/ARTCRAFT-FIELD-REPORT.md` in
 cambridgetcg/youspeak.
 
 **Upstream.** Eight issues were filed on 2026-10-09 (vectorcraft #784–788, photocraft #1926,
