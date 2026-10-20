@@ -26,12 +26,14 @@ This repository is Cambridge TCG's business backbone: TypeScript domain packages
 estate (see [estate/README.md](estate/README.md)). Understand the area before
 changing it, and make the smallest change that fits. These facts bite:
 
-- **Some docs reach AWS.** A push to `main` or `develop` that touches
+- **Some docs can reach AWS.** A push to `main` or `develop` that touches
   `**/STATUS.md`, `**/PATH.md`, `**/LIGHT.md`, `PROGRESS.md` or `progress/**`
-  runs `progress-sync.yml`, which loads AWS credentials and writes to AWS. The
-  owner has asked for no AWS calls while AWS is reviewed elsewhere (decision
-  D6, 2026-10-17), so leave those files alone. `[skip ci]` does not help when a
-  merge commit is the pushed head.
+  runs `progress-sync.yml`. Its AWS job runs only when the repository variable
+  `PROGRESS_SYNC_ENABLED` is `true`. The owner has asked for no AWS calls while
+  AWS is reviewed elsewhere (decision D6, 2026-10-17), so the variable stays
+  unset: never set it, and before pushing changes to those files check that it
+  is still unset (`gh variable list`). `[skip ci]` does not help when a merge
+  commit is the pushed head.
 - **Secrets on disk.** `foundational/accounting/.env` holds real credentials,
   protected only by `.gitignore`. Never read, print or stage it.
 - **The estate's private half** lives in `estate/private/` (git-ignored, mode
@@ -56,5 +58,6 @@ Checks (the same commands CI runs; Node 20, pnpm 9):
     pnpm exec turbo run test $(node scripts/ci-quarantine.mjs test)
     python3 -I -B -m unittest discover -s estate/tests -t estate
 
-The accounting suite and wire 1 run as in `.github/workflows/offline-evidence.yml`
-and `.github/workflows/wire-e2e.yml`.
+The estate suite runs in `.github/workflows/estate.yml` when `estate/**`
+changes. The accounting suite and wire 1 run as in
+`.github/workflows/offline-evidence.yml` and `.github/workflows/wire-e2e.yml`.
