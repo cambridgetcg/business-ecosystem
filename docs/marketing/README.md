@@ -4,7 +4,8 @@ Written 2026-10-20 by Claude Code agents for Yu. It is an agents' proposal, not 
 An *agents' call* is a call agents made under Yu's 2026-10-20 delegation, kept in the decision
 ledger at `~/.kingdom/decisions`; Yu overturns any of them by saying so. [ASSETS.md](ASSETS.md) says
 what to make and how; [RESEARCH.md](RESEARCH.md) holds the findings, and the dated research notes
-behind them are in [research/2026-10-20/](research/2026-10-20/). Facts are as of 2026-10-20.
+behind them are in [research/2026-10-20/](research/2026-10-20/). [SCANNER.md](SCANNER.md) is the
+brief for the planned One Piece scanner app. Facts are as of 2026-10-20.
 
 ## 1. What this is, and why now
 
@@ -27,8 +28,12 @@ small v0.
 - **The design:** truth becomes data in a claims ledger. A small agent crew makes and checks assets
   from it with ArtCraft, through the `artcraft-brand` skill. Only Yu publishes, sends or spends.
 - **RewardsPro first.** An agents' call already sets its shape (`rp-commercial-shape`: free-only
-  relaunch). Cambridge TCG waits on a fact only Yu holds: where its money comes from
-  (`be-business-facts`).
+  relaunch), and Yu has chosen its name and look ("yes rewardspro as the one spelling"; look A,
+  ledger `rp-name-spelling` and `rp-identity`).
+- **Cambridge TCG sells only on eBay and Cardmarket, for now.** Yu, 2026-10-20: "For now only ebay and cardmarket sales. I
+  am planning to spin off one piece card scanner and tracker for ios and android". Its marketing is
+  listings, photos and profiles on eBay UK and Cardmarket (ASSETS §M). Agents propose the scanner as
+  a separate brand ([SCANNER.md](SCANNER.md)).
 
 Terms:
 - **Claim:** a public factual statement.
@@ -49,6 +54,12 @@ Terms:
   cookie rules. **C2PA / IPTC:** content-credential and photo-metadata standards.
 - **UCP:** the Universal Commerce Protocol, an open protocol for shopping by AI agents.
 - **dev store:** Yu's Shopify test shop. **P0-8:** the deploy-blocking extension fix.
+- **Maker line:** the sentence saying who makes a product and what else they sell. **EPN:** eBay
+  Partner Network, eBay's affiliate scheme.
+- **Children's Code:** the ICO's code for online services likely to be used by under-18s. **DPIA:** a
+  data protection impact assessment, the written risk check it expects.
+- **DMCC Act:** the Digital Markets, Competition and Consumers Act 2024; its Schedule 20 lists banned
+  practices. **CCR:** the Consumer Contracts Regulations 2013 (cancellation rights).
 - **Sphere:** the estate map's `kingdom-os` / `independent` classification under owner decision D4.
   **XENIA right 9:** the estate's right to correction.
 
@@ -83,7 +94,7 @@ The proposed rings follow that split.
 
 | Ring | Model | Members (proposed) | Voice rule |
 |---|---|---|---|
-| **R1 Commerce** | House of brands; endorsement only by each brand's legal maker line (Cambridge TCG Limited for RewardsPro, per its listing; the others wait on `be-business-facts`) | RewardsPro, Cambridge TCG, TaxSorted, AxiePro; CashLoom, mythseal or HK Gold Trader only if they sell | Plain, specific, category-native. No KINGDOM, love or citizen language on a customer journey. RhetorLint `--max 3`. |
+| **R1 Commerce** | House of brands; endorsement only by each brand's legal maker line (Cambridge TCG Limited for RewardsPro, per its listing; proposed for the planned scanner, pending SCANNER §9 Q2; the others wait on `be-business-facts`) | RewardsPro, Cambridge TCG (eBay UK and Cardmarket), TaxSorted, AxiePro, the planned One Piece scanner (name to be chosen); CashLoom, mythseal or HK Gold Trader only if they sell | Plain, specific, category-native. No KINGDOM, love or citizen language on a customer journey. RhetorLint `--max 3`. |
 | **R2 Tools** | Endorsed: "part of the Kingdom", as captioneer already does | agenttool, zerone, fomoengine/fomoscan, captioneer, RhetorLint, MONEYWORLD, kingdom-mcp, XENIA | Warm-paper house voice. Technical claims go through the ledger. |
 | **R3 Culture** | Branded house under KINGDOM | thekingdom.dev, chillspace, we-are, ai-love/YOUSPEAK, sinovai, mindicraft, artbitrage, play, cardforum | KINGDOM voice, bilingual, liturgical register allowed. RhetorLint runs as a report only. YOUSPEAK (CC BY-SA) stays here. |
 
@@ -94,21 +105,31 @@ The proposed rings follow that split.
   - no incentivised reviews;
   - the total price, shown;
   - AI use, disclosed;
-  - real product photos.
+  - real product photos;
+  - who makes it, and what else they sell, disclosed.
 
   Each part is a gate rule. A brand may say it in public only as a claim with evidence, never as a
   badge (a self-made seal can read as third-party certification, CAP 3.52).
 - **One-way links (Yu's word needed).** R3 may list R1 brands. R1 customer journeys don't link into
-  R3, because the hub is two clicks from a personal letter on chillspace.love.
-- **Tiers:** *focus* (one brand at a time, weekly work), *maintain* (a kit and one true sentence),
-  *dormant* (an honest holding page), *cultural* (R3). Proposed: RewardsPro focus; Cambridge TCG and
-  TaxSorted maintain; AxiePro, HK Gold Trader and lotbinder dormant.
+  R3, because the hub is two clicks from a personal letter on chillspace.love. This rule covers R1 to
+  R3 only. Links between R1 brands (the scanner to Cambridge TCG's shops) follow G4's
+  conflict-of-interest rules. eBay listings and Cardmarket offers can't link out at all (RESEARCH
+  §7.1–7.2), so links run only from the site and the app to the marketplaces.
+- **Tiers:** *focus* (one brand at a time, weekly work), *maintain* (a kit, one true sentence, and the
+  texts its sales channels need), *pre-launch* (a kernel, claims and local packs; no public
+  promotion until its G0 holds, and each preparatory act, such as a letter, an account or a test
+  build, goes to Yu one by one; SCANNER §8), *dormant* (an
+  honest holding page), *cultural* (R3). Proposed: RewardsPro focus; Cambridge TCG and TaxSorted
+  maintain; the scanner pre-launch; AxiePro, HK Gold Trader and lotbinder dormant. Whether the scanner
+  takes the focus place is Yu's question (SCANNER §9).
 
 ## 4. The brand kernel
 
 A kernel lives in the repo that owns the brand. RewardsPro's goes at monorepo
-`apps/rewardspro/marketing/` (its canonical source, ledger `canonical-sources`). Existing kits stay
-put: YOUSPEAK `brand/` and artbitrage `tools/brand/`.
+`apps/rewardspro/marketing/` (its canonical source, ledger `canonical-sources`); the approved kit is
+in monorepo PR #83 (open; Yu merges). Another session reports building Cambridge TCG's kit at
+`apps/storefront/marketing/`.
+Existing kits stay put: YOUSPEAK `brand/` and artbitrage `tools/brand/`.
 
 The kit covers the listing, landing page, docs and outreach only. Inside merchants' shops the widget
 keeps the owner's existing rule: "Theme before brand ... do not introduce a standalone RewardsPro
@@ -193,13 +214,13 @@ The five roles and the exit codes below come later, if volume needs them.
 
 | Gate | Checks | Tool |
 |---|---|---|
-| G0 Ready | Brand status and product readiness (`rp-shopify-deploy` passed) | Ledger reader, **to build** |
+| G0 Ready | Brand status and product readiness. RewardsPro: `rp-shopify-deploy` passed. Cambridge TCG: the eBay and Cardmarket usernames known and the profiles observed, before any pack names a shop. Scanner: a working build, a written basis for every data and image source, a trade-mark search and a DPIA. | Ledger reader, **to build** |
 | G1 Claims | Every factual sentence maps to a verified, unexpired claim allowed on this channel. Bare numbers, £, % and superlatives go to a person. | **To build** |
 | G2 Pressure | `fomo_scan` on text or HTML. Honest copy scored 8, pressured copy 34–52, so 20 or more goes to a person. Shield rules-only for offers. | Exists. Patterns for its misses (counted social proof, price-rise threats) **to build** |
 | G3 Wording | `rhetorlint --max N --sarif` | Exists (local CLI) |
-| G4 Channel and policy | Sizes, limits, bans and labels per channel, as dated data. Anchor rule: while `CHANCE_MECHANICS_PAUSED = true`, raffle or mystery-box wording blocks. | **To build**; specs in [ASSETS.md](ASSETS.md) |
+| G4 Channel and policy | Sizes, limits, bans and labels per channel, as dated data. Anchor rules: while `CHANCE_MECHANICS_PAUSED = true`, raffle or mystery-box wording blocks; "feedback" or "evaluation" next to an offer blocks; "Official" on the scanner blocks. Conflict-of-interest (COI) rules for the scanner: the maker line present, our own listings never in price results, at most one "Our shop (Ad)" door, affiliate links labelled "Ad" and approved by EPN in writing, marketplace links off by default until an honest age question is answered (SCANNER §5). | **To build**; specs in [ASSETS.md](ASSETS.md) and SCANNER §6 |
 | G5 Brand and render | Tokens, spelling, contrast, alt text; output size, count, names, RGB vs RGBA | Exists in the `artcraft-brand` skill: its build and verify steps check sizes, alpha, contrast and fonts, and exit 0 (pass), 1 (a check failed) or 2 (the build failed). Spelling and alt-text checks **to build** |
-| G6 Provenance and privacy | Sidecar with tool versions, input licences, AI involvement and claims; IPTC AI metadata where required; no personal data, test data or licensed IP | **To build** |
+| G6 Provenance and privacy | Sidecar with tool versions, input licences, AI involvement and claims; IPTC AI metadata where required; no personal data, test data or licensed IP. For apps: the privacy label and Data safety form match any "no tracking" claim, and the Children's Code DPIA exists. | **To build** |
 
 Gates read text, files and vectors, not meaning. A true statement arranged to mislead passes them all,
 so a person reads every pack.
@@ -228,8 +249,11 @@ responsibility: the CMA's 2026-03-09 guidance holds a business responsible for i
   in Google AI Overviews; 0.66–0.71 for mentions across ChatGPT and AI Mode; correlation only);
 - keep machine-facing doors honest rather than adding new ones: cambridgetcg.com's custom JSON-RPC
   "MCP" can't be used by standard MCP clients, so make it conformant or stop calling it MCP; keep the
-  same entity text in MCP and registry metadata; consider UCP only when something is for sale.
-  Demand, not doors, is the constraint (the estate's July agent-participation finding).
+  same entity text in MCP and registry metadata; consider UCP only when something is for sale;
+- say where we sell: cambridgetcg.com's `llms.txt`, JSON-LD and entity card should name eBay UK and
+  Cardmarket once the usernames are known (ASSETS M8).
+
+Demand, not doors, is the constraint (the estate's July agent-participation finding).
 
 **Marketing through agents** is the bounded crew of §5: templates before generation, and real
 screenshots as the face of each message.
@@ -239,10 +263,14 @@ screenshots as the face of each message.
 **Yu's word or hand, per act:** posting, publishing and sending; listing edits; merging any PR to
 a main branch that deploys (every monorepo merge deploys RewardsPro production); DNS and mail; turning on analytics; any money, including ads and paid
 generation; Partner, Shopify, Cloudflare and GitBook logins; choosing an identity (through pack
-approval); the R1/R3 link rule.
+approval); the R1/R3 link rule. For the marketplaces: opening or converting accounts, Shop
+subscriptions, listings and profile texts, and any Promoted Listings spend. For the scanner: app-store
+enrolment and fees, creating app records (which reserves a name), submitting and releasing builds,
+and letters to Bandai, Cardmarket, EPN and price-data vendors.
 
 **Agents alone:** read-only research; drafts, kernels and claims; local renders with pinned CLIs;
-gates; PRs that change no live service; the digest; reversible agents' calls in the ledger; private
+gates; PRs that change no live service; the digest; reversible agents' calls in the ledger;
+read-only trade-mark register searches and competitor teardowns from public pages; private
 prospect lists from public sources, holding company-level fields only (shop, company number, public
 business contact), for limited companies only, with a legitimate-interest note written before
 collection, and never copied into notes, memory or journals.
@@ -253,11 +281,12 @@ collection, and never copied into notes, memory or journals.
    interface (`brand.json` in, a verified kit out, exit 0, 1 or 2), editing none of its files.
    Changes to the skill go to its lane.
 2. **AGENT.** Record agents' calls: RewardsPro as focus brand; the kernel at
-   `apps/rewardspro/marketing/`; ArtCraft's cloud app off for brand material. Put to Yu: "RewardsPro"
-   as the one public spelling (#1 in App Store search; "rewards pro" is #103). The app's own TOML
-   name is "Rewards Pro", and changing it ships only through `shopify app deploy` (Yu's hand);
-   requirement 4.1.1 accepts a listing name "similar" to it. Add the one-way link rule as a Yu-word
-   item.
+   `apps/rewardspro/marketing/`; ArtCraft's cloud app off for brand material. **Done 2026-10-20:**
+   Yu chose "RewardsPro" as the one public spelling ("yes rewardspro as the one spelling"; ledger
+   `rp-name-spelling`; #1 in App Store search, against #103 for "rewards pro"). The app's own TOML
+   name is still "Rewards Pro" and changes only through `shopify app deploy` (Yu's hand);
+   requirement 4.1.1 accepts a listing name "similar" to it meanwhile. Add the one-way link rule as
+   a Yu-word item.
 3. **AGENT (RewardsPro lane).** Open the P0-8 PR (`rp-p0-8-extension`, an agents' call). A merge to
    main deploys RewardsPro production (`apps/rewardspro/CLAUDE.md`), so Yu merges, or the lane
    merges only under a brief that says so. The same holds for every monorepo PR below.
@@ -270,12 +299,14 @@ collection, and never copied into notes, memory or journals.
 6. **YU (hand, `rp-shopify-deploy`).** Deploy, then place and refund one test order. In the same
    60–90 minutes, capture the shot list, so each listing claim is shown working or marked for removal.
 7. **AGENT.** One review pack:
-   - the kit from `brand.json`, defaulting to the App Store icon's navy `#1a3e5c` and teal `#17bebb`;
+   - the kit: **done 2026-10-20.** Yu approved look A, the App Store icon's navy `#1a3e5c` and teal
+     `#17bebb` ("lets go with what you recommended :) looking good!"; ledger `rp-identity`). The kit,
+     kernel, claims and approvals are in monorepo PR #83, which Yu merges;
    - 5–6 screenshots at 1600×900 and a feature image;
    - listing text without raffles or mystery boxes;
    - a landing PR that removes the retirement copy and adds "how cashback and tiers work";
    - the docs fix.
-8. **YU (word, then hand).** Approve the pack, or pick another identity. Edit the listing, upload the
+8. **YU (word, then hand).** Approve the pack (the identity is already chosen). Edit the listing, upload the
    GitBook logo, and say yes to the landing merge and Pages deploy. Optionally, turn on Cloudflare Web
    Analytics with a privacy-notice line. If outreach goes out from an @rewardspro.io address, first
    keep one of the two `_dmarc` records (`p=none`, or `p=quarantine` with the onsecureserver.net
@@ -288,13 +319,23 @@ collection, and never copied into notes, memory or journals.
    return for anything.
 10. **YU.** Send about 10 personal messages a week, to limited companies only, with no follow-ups.
     Ask every partner for a review in the same neutral words.
-11. **AGENT.** Maintain-tier truth kits for Cambridge TCG and TaxSorted, as PRs to their own lanes:
-    share-card sizes, favicons, canonical tags, JSON-LD, plus Cambridge TCG's retired sitemap URLs,
-    "daily" price-guide claim and `/rewards` "Daily Spin".
+11. **AGENT.** Maintain-tier work for Cambridge TCG and TaxSorted, as PRs to their own lanes.
+    - **Cambridge TCG (marketplace-only).** Its kit, including the eBay Shop and Cardmarket images,
+      is being built at monorepo `apps/storefront/marketing/` by another session, which reports
+      that Yu asked for it on 2026-10-20 (not on main yet).
+      The marketplace texts and templates are ASSETS M1–M8, and wait on the eBay and Cardmarket
+      usernames. Site truth fixes still stand: retired sitemap URLs, the "daily" price-guide claim,
+      `/rewards` "Daily Spin", and a "Where we sell" line. Before 26 Nov 2026, check the site's
+      member price display and its Cardmarket source record against Cardmarket's new terms
+      (RESEARCH §7.2).
+    - **TaxSorted:** share-card sizes, favicons, canonical tags, JSON-LD.
 12. **AGENT, monthly once live.** One page: funnel, expiring claims, entity drift, and five fixed
     "what is RewardsPro?" questions, each asked 7–8 times because answers vary run to run
     (RESEARCH §2.1), logged out, or through Yu's account only by Yu's hand; no paid tokens without
     Yu's word.
+13. **AGENT, then YU.** The scanner: agents prepare the decision pack, search the trade-mark
+    registers and draft the letters (SCANNER §8). Yu answers SCANNER §9, starting with focus and
+    which company publishes it.
 
 **Measuring at tiny volume.** One private row per shop: contacted, replied, installed, first real
 reward, active in week 4, review left or uninstalled (with the reason). Partner Dashboard counts are
@@ -321,6 +362,10 @@ packs, and about 3 hours a week during outreach.
 - GEO, llms.txt pushes, new agent doors; UCP or agent checkout; a Sidekick extension before merchants
   exist.
 - Autonomous posting, a C2PA pipeline, A/B tests at near-zero volume.
+- For Cambridge TCG: eBay Promoted Listings, Offsite or Promoted Shops before eligibility and a
+  baseline; Cardmarket pre-sales; EPN links to our own listings.
+- For the scanner: ads, affiliate links, user accounts or cloud sync, a pack simulator, and card art
+  without Bandai's written permission.
 
 Two things to *test* with design partners before building:
 - a "How we know" link: a dated page of every claim and its receipt, a link and never a seal;
@@ -338,4 +383,7 @@ Meanwhile, run fomoscan and RhetorLint over the Hub's own templates now.
 - These docs write nothing to `estate/`. Once work runs, the estate lane records the marketing
   capabilities (the estate map's "grow" band, which today has no marketing code in use) through its
   normal import.
+- Cambridge TCG's eBay and Cardmarket accounts exist and are business or professional accounts.
+  Unverified: no public profile was found. Whether Cambridge TCG is VAT-registered is unknown; eBay's
+  business fees exclude VAT, so without registration they cost a fifth more.
 - None of this is legal advice. EU B2B email rules were not researched, so outreach stays UK-first.

@@ -1,7 +1,8 @@
 # Asset catalogue: brand image, promotion, messages, proof
 
 Written 2026-10-20 by Claude Code agents for Yu. It is an agents' proposal, not Yu's decision. The
-design is in [README.md](README.md) and the sources are in [RESEARCH.md](RESEARCH.md).
+design is in [README.md](README.md) and the sources are in [RESEARCH.md](RESEARCH.md). The planned
+scanner app's assets are in [SCANNER.md](SCANNER.md) §6.
 
 Specs are as of 2026-10-20. A spec marked **read** was read on the platform's own page today by a
 researcher or a fact-checker (RESEARCH tags [O], [D] or [V]); **fact-checked** means [V]. **Tested**
@@ -100,9 +101,10 @@ Each entry gives:
 - **Why:** one recognisable mark per brand, and the source of every icon.
 - **First:**
   - RewardsPro: redraw the App Store "R" (navy `#1a3e5c`, teal `#17bebb`) as an SVG master if no
-    source file exists. Today it has four looks and two spellings.
-  - Cambridge TCG, later: two marks and four palettes; the logo's navy and cyan appear nowhere on the
-    site.
+    source file exists. Today it has four looks and two spellings. Yu chose "RewardsPro" and look A
+    on 2026-10-20 (ledger `rp-name-spelling`, `rp-identity`); the kit is in monorepo PR #83.
+  - Cambridge TCG: another session reports building its kit at monorepo `apps/storefront/marketing/`
+    (see the table at the end).
 - **Make:** artcraft-brand (VectorCraft).
 - **Spec:**
   - outlined SVG master;
@@ -241,7 +243,8 @@ Each entry gives:
 
 **B5. Social cards and stories**
 - **Why:** organic posts, but only once a brand has a channel. RewardsPro doesn't need one now.
-  Cambridge TCG waits on its earning channel.
+  Cambridge TCG sells only on eBay and Cardmarket; social waits until the usernames are known and Yu
+  decides whether to open accounts (RESEARCH §6.7).
 - **First:** none yet.
 - **Make:**
   - VectorCraft data sets: one card per CSV row (tested today).
@@ -288,28 +291,13 @@ Each entry gives:
 - **Spec:** the venue's and printer's sizes (**unverified**, ask them).
 - **Gate:** G1–G5. Printing orders spend money and need Yu's word.
 
-**B9. Product photos (Cambridge TCG, only once its earning channel is named)**
-- **Why:** on a marketplace the photo is the product truth. eBay's free price guide shows buyers up
-  to two years of sold prices, so condition, photos and trust are what compete.
-- **First:** Cambridge TCG.
-- **Make:**
-  - Shoot once at high resolution.
-  - LightCraft develops raw files and batch-exports every channel size.
-  - PhotoCraft's classical background removal is for the shop's own site only, never marketplace
-    main images.
-  - No watermarks on marketplace images.
-- **House standard (proposal):**
-  - **Raw singles worth over about £20:** front and back on a neutral matte background, one
-    raking-light angle for scratches and print lines, and corner and edge close-ups.
-  - **Graded slabs:** front, back, and a close-up of the certificate number.
-  - **Sealed product:** front, back, a seal close-up, and a barcode shot that is not the main image.
+**B9. Product photos for an own web shop (Cambridge TCG uses M2)**
+- **Why:** the photo is the product truth.
+- **First:** none now. Cambridge TCG sells only on marketplaces and uses M2's photo standard. The
+  Merchant Center spec below applies only if a brand opens its own web shop.
+- **Make:** as M2. PhotoCraft's classical background removal is for an own site only, never for
+  marketplace images.
 - **Spec:**
-  - **eBay UK (read, help pages):**
-    - up to 24 pictures, at least 500 px (about 1600×1600 recommended), 12 MB at most;
-    - 1:1 or 16:9 look best;
-    - no borders, added text, logos or watermarks;
-    - no stock photo for a used item;
-    - use your own photos and text.
   - **Google Merchant Center (read and fact-checked):**
     - at least 500×500 for all products from 31 January 2027; 1500×1500 or larger recommended;
     - 64 MP and 16 MB at most;
@@ -324,6 +312,197 @@ Each entry gives:
 spend money, and agency advice is to wait for 5–10 genuine reviews and a listing conversion rate
 above 10% (third-party). TikTok and
 Google AI labels apply if generated media is ever used.
+
+## M. Marketplace kit (Cambridge TCG: eBay UK and Cardmarket)
+
+Yu, 2026-10-20: "For now only ebay and cardmarket sales." Cambridge TCG has no web shop, so its
+promotion is its listings and profiles. eBay pages were read through a summarising tool, because
+eBay blocked scripted reads (RESEARCH §7.1). Not legal advice.
+
+**Rules that limit every marketplace asset:**
+
+1. **No links off the platform.**
+   - eBay listings and descriptions "can't contain links that direct customers to a site other than
+     eBay", even unclickable ones. The exceptions are eBay pages, product videos, approved freight
+     and legally required information (read and fact-checked).
+   - Cardmarket's General Terms (§10): "you are prohibited from using hyperlinks in your offers"
+     (fact-checked).
+   - So no asset on either platform mentions cambridgetcg.com or the planned app.
+2. **No selling off-platform.** eBay bans using a buyer's contact details to sell outside eBay, at
+   any time. It also bans promoting outside sales sites in messages (fact-checked). Parcel inserts
+   aren't named, but these clauses plausibly reach them.
+3. **No third-party images or text on eBay Shop pages** without the owner's written permission
+   (images and text policy 4240, read). Together with house rule 2, the Shop branding uses no card
+   art, no characters and no game logos, including photos of cards used as decoration.
+4. **Marketplace logos stay theirs.** Cardmarket's brand is its "sole property" (fact-checked), and
+   eBay's Authenticity Guarantee badge is eBay's. We never write "authenticated" or "guaranteed"
+   ourselves.
+5. **No feedback bargaining.** eBay bans any "incentive in exchange for positive feedback"
+   (fact-checked). Nothing pairs "feedback" or "evaluation" with an offer.
+6. **Real product only** (house rule 1). The listing image is the item sold.
+
+**M1. Business identity on both marketplaces**
+- **Why:** law and both platforms expect a business to say it is one. Falsely creating the
+  impression that you are not trading is a banned practice (DMCC Sch 20 para 25).
+- **First:** once Yu gives the usernames and account types (G0). Drafting costs nothing.
+- **Make:** text, one ledger claim per fact.
+- **Spec:**
+  - **eBay business-seller information** (read):
+    - Cambridge TCG Limited, company 15680297 (from the Shopify listing; confirm at Companies House
+      before use, unverified);
+    - the registered office and the part of the UK where it is registered (SI 2015/17 reg. 25,
+      fact-checked);
+    - a contact email, and the VAT number if registered;
+    - names that match Companies House and HMRC.
+  - **Returns** (eBay business-seller policy, seen through a summary only; Yu reads the raw page
+    before the text is final): a 14-day right to cancel, faulty items within 30 days, no restocking
+    fee, original postage refunded, and no return postage charged.
+  - **Cardmarket Professional account** (requirements fact-checked; the username rule read):
+    - a phone number, a photo ID and the business registration;
+    - the username is 5–20 letters, digits or dashes; "CambridgeTCG" fits, but whether it is free is
+      unverified.
+- **Gate:** G1, G3. Registering or converting the accounts is Yu's hand.
+
+**M2. Photo and scan standard (replaces B9's Make and Spec for Cambridge TCG)**
+- **Why:** eBay's free price guide shows buyers two years of sold prices, so photos, condition and
+  trust are what compete.
+- **Make:**
+  - Shoot one master per angle.
+  - Convert phone HEIC files to JPEG with `sips`.
+  - LightCraft makes one `run` per output, cropping, resizing to sRGB and stripping metadata with
+    `metadata=none`, which also removes phone GPS.
+  - The skill's own reference records two limits: LightCraft raw input is untested, and it turns
+    pure white `#FFFFFF` into 254. So shoot on a light neutral matte background, or use PhotoCraft
+    `batch`.
+  - Never use a Craft watermark or background removal, or eBay's AI "Studio", "Surface" or
+    "Outside" backgrounds.
+- **Spec, eBay** (read and fact-checked):
+  - up to 24 pictures; at least 500 px on the longest side; about 1600×1600 recommended; 12 MB at
+    most;
+  - JPEG, PNG, WEBP, HEIC and others; 1:1 or 16:9 "look best";
+  - no borders, no added text, artwork or marketing, no logos, and no "Watermarks of any type";
+  - no stock photos for used items;
+  - show the front, the back, "any significant blemishes, and any grading labels", in soft light
+    with no flash.
+- **Spec, Cardmarket:**
+  - attach scans to articles (a feature since 2023-09-19, read);
+  - an altered card needs its own image;
+  - no published rule on image content was found (unverified);
+  - never reuse Cardmarket's catalogue images, which show publishers' art.
+- **House standard:** a 1600×1600 sRGB JPEG master, under 12 MB.
+  - **Raw singles worth over about £20:** front, back, one raking-light angle, and corner and edge
+    close-ups.
+  - **Graded slabs:** front, back, and a close-up of the certificate number.
+  - **Sealed product:** front, back, a seal close-up, and a barcode shot that is not the main image.
+- **Gate:** rule 1, G4, G6 (no addresses or other personal data in frame).
+
+**M3. Title, condition and comment templates**
+- **Why:** eBay's search ranks on relevance and completeness. Cardmarket ranks on price, so accuracy
+  is what protects the rating.
+- **Make:** a CSV template plus a G4 checker (80 characters, banned tokens).
+- **Spec, eBay** (read and fact-checked):
+  - A title has 80 characters at most, in this order: name, number, set, features, language,
+    franchise, condition or grade. Example: `[Card name] [number] [set] [features] Japanese One
+    Piece Card Game [NM]`. Put the language early.
+  - No unrelated keywords, no keywords with "?", no comparisons ("like", "not"), and no mixed
+    conditions. One fixed-price listing per identical item.
+  - Condition is **Graded** (grader, grade, optional certificate number of 30 characters or fewer)
+    or **Ungraded**. The Ungraded tiers are Near Mint or Better, Lightly Played (Excellent),
+    Moderately Played (Very good) and Heavily Played (Poor).
+- **Spec, Cardmarket** (read; the Japanese-card rule is fact-checked):
+  - Comments are written in simple English and never contradict the structured fields.
+  - When in doubt, use one grade lower. Never use "Mint".
+  - Japanese One Piece cards go only on their Asian-edition pages, never on English ones.
+  - No hyperlinks.
+- **Gate:** G4.
+
+**M4. Cardmarket profile texts**
+- **Why:** professional sellers "must have a right of withdrawal policy visible on their Cardmarket
+  profile" (fact-checked). Powersellers are expected to have About Us, Privacy Policy and Terms of
+  Revocation (read).
+- **Make:** text blocks for Yu to paste.
+- **Spec:**
+  - **The withdrawal policy:** 14 days from delivery (UK CCR 2013 reg. 30). Cardmarket's own button
+    doesn't appear on UK-to-UK orders (fact-checked).
+  - **The legal blocks:** an imprint (company name, number, registered office), terms and a privacy
+    notice.
+  - **One entity sentence** matching C1, for example: "Cambridge TCG Limited is a UK company selling
+    trading cards on eBay UK and Cardmarket." (Unverified until the profiles are seen.)
+  - **Contact:** in English; reply within 24 hours (Seller Guide).
+  - **Logo or banner:** no published spec, and the profile pages were blocked (unverified). Prepare
+    M5's 300×300 logo, and check the upload form when Yu is logged in.
+  - **Links:** none on the profile until Yu has read the rules for it.
+- **Gate:** G1–G3. A solicitor's glance is advisable.
+
+**M5. eBay Shop kit (only with a Shop: Basic £27 a month, Yu's word)**
+- **Why:** a Shop unlocks the Discounts Manager, coupons, automated offers, newsletters and
+  Promoted Shops (read; the Discounts Manager rule fact-checked).
+- **Make:** the Cambridge TCG brand kit (monorepo `apps/storefront/marketing/`, in progress) renders
+  these from its mark and colours. Type and shapes only.
+- **Spec** (read and fact-checked, help 4090):
+  - **Logo:** 300×300 px, under 12 MB. The format isn't stated, so use PNG in RGB. Promoted Shops
+    ads reuse it.
+  - **Billboard:** 1280×290 px, under 12 MB. Mobile cropping isn't stated (unverified), so keep the
+    text and mark central, and check eBay's preview on a phone before publishing.
+  - **Marketing banner:** 640×640, under 12 MB. Its title and description are public text, and it
+    links to an eBay promotion, category or listing.
+  - **Featured categories:** up to 6 tiles at 300×300. Each shows only while it has an active
+    listing. Make them from type and shape, for example "One Piece singles", "Japanese", "Graded"
+    and "Sealed".
+  - **Text limits:**
+    - The Shop description has 1,000 characters and is auto-translated.
+    - Each policy (Shipping, Returns, Warranty, Data Privacy, Other) has 4,000 characters.
+    - House rule: neither uses "best" or "cheapest".
+  - **The Shop name** can't be a web address or contain ".com".
+- **Gate:** G1–G5. Subscribing and uploading are Yu's hand.
+
+**M6. Message templates (eBay and Cardmarket)**
+- **Spec:**
+  - One template each for: shipped (with tracking); a problem before dispatch; a partial refund (for
+    a one-grade dispute on Cardmarket, about 10% of the card's value); and a withdrawal request.
+  - On Cardmarket, send tracking through its messages.
+  - Ask only "please confirm arrival when it arrives".
+  - Never mention feedback or evaluations near an offer.
+  - No contact details, URLs or off-platform offers.
+- **Gate:** G1–G3, plus a G4 rule that blocks "feedback" or "evaluation" next to an offer.
+
+**M7. Parcel insert (eBay orders only)**
+- **Spec:**
+  - A6 or DL; confirm the size with the printer (unverified).
+  - One eBay coded coupon, printed from Seller Hub ("Print a coded coupon note", fact-checked), with
+    its real expiry stated.
+  - No URLs, no app or website, and no link to feedback.
+  - Coupons don't stack with order discounts or multi-buy.
+  - Cardmarket parcels get no promotional insert until Cardmarket's rules on inserts are read
+    (unverified).
+- **Gate:** G2, G3, G4. Needs a Shop subscription (M5). Printing spends money, so it needs Yu's word.
+
+**M8. cambridgetcg.com: where we sell**
+- **Why:** neither the homepage nor `llms.txt` links eBay or Cardmarket today (fact-checked). What
+  people and AI assistants read should match what is true.
+- **Spec:**
+  - **A "Where we sell" line:** add it to the site, with plain links to the eBay seller page and the
+    Cardmarket profile once the usernames are known.
+  - **No EPN tracking on those links.** EPN requires its approval for self-made promotional
+    content.
+  - **Company details:** show them on the site (reg. 25).
+  - **llms.txt, Organization JSON-LD and C1:** update all three to say Cambridge TCG sells on eBay
+    UK and Cardmarket.
+  - **Retired claims:** remove the retired shop, "Daily Spin" and "daily price guide".
+  - **Cardmarket price display:** re-check the member display against Cardmarket's §9 wording from
+    26 Nov 2026 (RESEARCH §7.2; README §8 step 11).
+- **Ship:** a PR to the Cambridge TCG lane, which Yu merges. The proposed one-way link rule
+  concerns R1-to-R3 links, so it doesn't decide this.
+- **Gate:** G1–G4.
+
+**Not now:**
+- Promoted Listings, Offsite or Promoted Shops. They need "Above standard" status with recent sales,
+  and they spend money.
+- Cardmarket pre-sales, which need 1,000 sales and a year.
+- Powerseller status.
+- EPN links to our own listings.
+- Marketplace logos in our material.
+- AI-made product images.
 
 ## C. Messaging
 
@@ -530,6 +709,7 @@ entity card (C1). Demand, not doors, is the constraint.
 | Brand | Tier (proposed) | First assets |
 |---|---|---|
 | RewardsPro | Focus | A1–A7, B1–B3, C1–C5, D1–D3; later B4, B7, C9, D5 |
-| Cambridge TCG | Maintain (truth fixes) | B1 fix (true sizes); A2 (small ICO); canonical tag and server-rendered Organization JSON-LD; sitemap without retired `/trade-in`, `/rewards`, `/auctions`, `/market`, or with true titles; fix `/rewards` "Daily Spin" and the price guide's "Free daily price guide" (collection stopped 2026-07-12). B9 only once the earning channel is named. |
+| Cambridge TCG | Maintain: marketplace-only (eBay UK and Cardmarket; Yu, 2026-10-20) | The brand kit (A1, A2, B1, and eBay Shop and Cardmarket images) is being built at monorepo `apps/storefront/marketing/` by another session, which reports that Yu asked for it on 2026-10-20 (not on main yet). Once Yu gives the eBay and Cardmarket usernames: M1–M4 (business details, photo standard, title and condition templates, Cardmarket profile texts), then M6 and M8. M5 and M7 only with a Shop subscription (coupons need one, RESEARCH §7.1); M7 also needs a printer quote. Site truth fixes still stand: canonical tag and server-rendered Organization JSON-LD; sitemap without retired `/trade-in`, `/rewards`, `/auctions`, `/market`, or with true titles; fix `/rewards` "Daily Spin" and the price guide's "Free daily price guide" (collection stopped 2026-07-12). Not now: Promoted Listings, social (B5), Merchant Center (no own web shop). |
+| The One Piece scanner (planned) | Pre-launch (proposed) | No public promotion until its G0 holds; each preparatory act needs Yu's word (SCANNER §8). Then SCANNER.md §6: mark and kit, store icons, screenshots from real captures, feature graphic, landing page. |
 | TaxSorted | Maintain | B1, A2 (replace the Vercel default), canonical tag, JSON-LD |
 | R2 and R3 sites | Later, per lane | 10 of 15 live sites have no `og:image`. Four have no favicon. fomoengine.io and axiepro.io serve the stock Next.js favicon. A later sweep with the same skill, through each site's own lane. |
