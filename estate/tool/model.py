@@ -63,7 +63,7 @@ LOCAL = curate.LOCAL
 RISKS = curate.RISKS
 KINGDOM_FIELDS = ("layer", "kind", "state")
 NAVIGATION = ("layer", "kind", "state", "standing", "liveness", "running", "hosting", "stack",
-              "exposure", "family", "role", "topic", "sphere")
+              "exposure", "family", "role", "topic", "sphere", "capability")
 RECORD_KINDS = ("project", "checkout", "group", "family", "surface", "zone", "scheduler", "artifact",
                 "device", "account", "relation", "package")
 VALUE_STATUS = "set"

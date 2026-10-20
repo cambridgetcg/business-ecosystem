@@ -1,9 +1,10 @@
 """The business capability map: what the business has code for, or does by hand, per project.
 
-The vocabulary is vocab/facets.toml [business.capability]: 23 values in four bands (sell, grow,
+The vocabulary is vocab/facets.toml [facet.capability]: 23 values in four bands (sell, grow,
 run, own-funds). The run band is exactly the eleven be.framework_domain ids, so business-ecosystem's
-own domain packages join it by name. The map is a display field of the Business view, not a
-navigation facet: making it one is an owner decision the estate does not take for itself.
+own domain packages join it by name. The map is the 14th navigation facet (decision
+dec-2026-10-20-1, an agent's call under Yu's delegation of 2026-10-20): a filter chip, `estate ls
+--facet capability=VALUE` and the tree axis 8-capability. The Business view shows the whole map.
 
 Each value carries impl (code, code-unbuilt, stub, manual or unread), an operating claim (in-use,
 paused, retired, never or unknown; dated, reviewed = false until Yu reviews it) and serves (self,
@@ -56,7 +57,7 @@ CONFIDENCE = ("high", "medium", "low")
 SHORT_MAX = 300
 REVIEW_DAYS = 90
 COMMITTED_HEADER = (
-    "# The business capability map (vocab/facets.toml [business.capability]): one [[capability]] row per\n"
+    "# The business capability map (vocab/facets.toml [facet.capability]): one [[capability]] row per\n"
     "# project, keyed by forge id, or per package, keyed by its package id (pkg:<forge id>//<subpath>), and\n"
     "# one [[host]] row per repository whose packages are read (tool/packages.py). Written by\n"
     "# `estate capability --import ABS_PATH --write`, which merges rows by id, keeps every row with\n"
@@ -67,7 +68,7 @@ COMMITTED_HEADER = (
     "# Local ids and the full evidence of every row live in private/curated/capability.toml.\n\n")
 PRIVATE_HEADER = ("# Capability rows behind the business capability map: local ids and the full evidence of every\n"
                   "# row. Private; one copy only. Written by `estate capability --import PATH --write`.\n\n")
-# Business scope (vocab/facets.toml [business.capability].rule). The layers and the purpose groups
+# Business scope (vocab/facets.toml [facet.capability].rule). The layers and the purpose groups
 # are the Business section's earlier scope; the families, the role and the KINGDOM kind are the
 # 2026-10-18 business inventory's. The scope is their union, so neither population shrinks.
 BUSINESS_LAYERS = ("commerce", "economy")
@@ -78,7 +79,7 @@ BUSINESS_KINDS = ("venture",)
 
 
 def _table(facets):
-    return ((facets or {}).get("business") or {}).get("capability") or {}
+    return ((facets or {}).get("facet") or {}).get("capability") or {}
 
 
 def values(facets):
@@ -231,7 +232,7 @@ def curated_index(curated, facets):
 # ── resolution ──────────────────────────────────────────────────────────────────────────────
 
 def facet(values_, status, basis, src=None, at=None, **extra):
-    """The capability display field: the common multi-valued facet shape plus capability_extra
+    """The capability facet: the common multi-valued facet shape plus capability_extra
     (vocab/records.toml); extras that are None are left out."""
     out = {"values": list(values_), "status": status, "basis": basis, "src": src, "at": at, "alt": []}
     out.update({k: v for k, v in extra.items() if v is not None})
@@ -357,7 +358,7 @@ def _rows_for(pid, project, rows):
 
 
 def resolve_projects(projects, rows=None, mirrors=None, derived=None, designed=None):
-    """Set display["capability"] on every project (order: vocab/facets.toml [business.capability]
+    """Set facets["capability"] on every project (order: vocab/facets.toml [facet.capability]
     .rule): its curated row, else its packages that have code (derived: {project id: {value:
     {impl, via}}} and designed: {project id: [values]}, from resolve_packages), else the one project it
     mirrors, else unassigned in business scope and none outside it. Returns the problems met."""
@@ -391,8 +392,7 @@ def resolve_projects(projects, rows=None, mirrors=None, derived=None, designed=N
         held = set(out["values"]) | set(out["designed"])
         named = (projects[pid].get("display") or {}).get("be.framework_domain") or []
         out["candidates"] = [v for v in named if v not in held]
-        projects[pid]["display"]["capability"] = out
-        projects[pid]["display_src"]["capability"] = out["basis"] if out["basis"] != NONE else None
+        projects[pid]["facets"]["capability"] = out
     return problems
 
 
@@ -413,7 +413,7 @@ def queue_items(projects, checks):
     capability-review-overdue and capability-orphan-row."""
     out = []
     for pid in sorted(projects):
-        field = (projects[pid].get("display") or {}).get("capability") or {}
+        field = (projects[pid].get("facets") or {}).get("capability") or {}
         if field.get("status") == UNASSIGNED:
             out.append({"reason": "capability-unassigned", "id": pid,
                         "detail": "in business scope: %s" % "; ".join(field.get("scope") or [])})
@@ -464,7 +464,7 @@ def summary(projects, facets, rows=None, problems=(), checks=None, packages=None
     """What the atlas and `estate capability` say about the map in one build; packages and hosts
     (packages.host_summary) say what was read of the host repositories."""
     allowed = values(facets)
-    fields = {pid: (project.get("display") or {}).get("capability") or {} for pid, project in projects.items()}
+    fields = {pid: (project.get("facets") or {}).get("capability") or {} for pid, project in projects.items()}
     by_value = {value: [] for value in allowed}
     for pid, field in sorted(fields.items()):
         if field.get("basis") == MIRROR:

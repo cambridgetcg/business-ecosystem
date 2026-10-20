@@ -69,6 +69,7 @@ estate/bin/estate check --wires           # curated wires against measurement: 1
 estate/bin/estate show <query>            # one record, claims beside measurements
 estate/bin/estate ls --facet layer=soul   # records by facet
 estate/bin/estate ls --facet sphere=kingdom-os   # the members of KINGDOM OS (D4): projects, zones, surfaces
+estate/bin/estate ls --facet capability=tax       # the projects holding one business capability (C9)
 estate/bin/estate ls --kind zone --facet sphere=kingdom-os   # the Cloudflare domains (and other zones) among them
 estate/bin/estate proposals               # the KINGDOM proposals queue
 estate/bin/estate proposals --decide ID --as declined|deferred|accepted --reason TEXT --write
@@ -104,8 +105,9 @@ the privacy lint); without `--write` it only prints the diff. ID is a proposal i
 
 ## Owner decisions
 
-`curated/decisions.toml` also holds owner decisions (`kind = "owner-decision"`, D1 to D8 of
-2026-10-17). Each names what it `resolves` (question and dispute ids), what was decided per id
+`curated/decisions.toml` also holds owner decisions (`kind = "owner-decision"`): D1 to D8 of
+2026-10-17, which are Yu's, and from 2026-10-20 the calls agents make under Yu's delegation of that
+day, whose `by` says so (Yu overturns any of them by saying so). Each names what it `resolves` (question and dispute ids), what was decided per id
 (`outcome`), what stays open (`open`, `stays_open`, `pending`) and a small `effects` table. A build
 applies them (`tool/decisions.py`) instead of rewriting any curation, so the private curation keeps
 its single copy untouched and a status lives in one place: resolved questions and disputes become
@@ -117,7 +119,8 @@ longer contests a citizen's soul card; soul when a card has none; a card naming 
 contested and is listed for Yu), `ownership` (surfaces and zones on the
 estate's own provider account), `provider_status` (AWS: in-progress-elsewhere; the estate makes no AWS
 calls), `sphere_by_layer` (the layer rule of the sphere facet, below), `hygiene_view` (the hygiene plan
-renders on every build, below), `confirms` and `status_note`. Any other
+renders on every build, below), `navigation_facet` (the named field is a navigation facet; C9 makes the
+capability map one), `confirms` and `status_note`. Any other
 effect key is listed as not applied.
 
 An owner decision on the taxonomy authority outranks `private/config.toml [kingdom].ref`, which
@@ -143,11 +146,14 @@ from reading under the Desktop folder, and a quietly failing job is worse than n
   `SHA256SUMS`;
 - `private/tree` (reached as `estate/tree`), the symlink tree of canonical checkouts.
 
-The tree has eight axes: `0-foundation` (the kingdom-os and REALM checkouts the taxonomy is read
+The tree has nine axes: `0-foundation` (the kingdom-os and REALM checkouts the taxonomy is read
 from), `1-layer/<layer>/<family>` (contested records under every candidate layer, beside
 `_CONTESTED.txt`), `2-family`, `3-role`, `4-live` (records with an attributed surface or scheduler
-observed up), `5-name`, `6-groups` (one link per group home), and `7-sphere/<sphere>/<family>` (each
-project once, under kingdom-os, independent or undecided). `NOT-LINKED.txt` says why a record has no link.
+observed up), `5-name`, `6-groups` (one link per group home), `7-sphere/<sphere>/<family>` (each
+project once, under kingdom-os, independent or undecided) and `8-capability/<capability>/<family>` (a
+project under every business capability it holds, or under unassigned when it is in business scope and
+nothing places it; projects outside business scope are not linked there). `NOT-LINKED.txt` says why a
+record has no link.
 
 The design spec the code comments cite ("spec 6.8", "A4") is kept with the survey copy, in
 `private/curated/survey-2026-10-17/design/SPEC.md`.
@@ -193,9 +199,11 @@ discovery (P17, the follow-up of D2) is the route for citizens.
 ## Business: the capability map
 
 The Business view says what the business has code for, or does by hand, with 23 capabilities in four
-bands (`vocab/facets.toml [business.capability]`): sell, grow, run (exactly the eleven `be.framework_domain`
-ids, so business-ecosystem's own domain packages join by name) and own funds. It is a display field of the
-Business view, not a navigation facet: only an owner decision makes it one. One business population serves
+bands (`vocab/facets.toml [facet.capability]`): sell, grow, run (exactly the eleven `be.framework_domain`
+ids, so business-ecosystem's own domain packages join by name) and own funds. It is also the 14th
+navigation facet, by decision `dec-2026-10-20-1` (C9, an agent's call under Yu's delegation of
+2026-10-20): an atlas filter chip, `estate ls --facet capability=VALUE` and the tree axis `8-capability`.
+One business population serves
 the whole view (`capability.business_scope`): a KINGDOM layer commerce or economy, a business purpose group,
 a commerce, economy or business-ecosystem family, the role revenue, or the KINGDOM kind venture.
 

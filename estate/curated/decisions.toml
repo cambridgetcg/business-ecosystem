@@ -175,3 +175,22 @@ stays_open = ["Carrying out any item of the plan: the view only plans, and each 
 
 [decision.effects]
 hygiene_view = true
+
+# Decisions under delegation. On 2026-10-20 Yu asked agents to decide "through principalities and your
+# understanding of what choices I will make", in the shape "more transparency, more truth, more
+# understanding". Rows from that day on are agents' calls under that delegation, never Yu's own: `by`
+# says so, and Yu overturns any of them by saying so.
+
+[[decision]]
+id = "dec-2026-10-20-1"
+label = "C9"
+date = 2026-10-20
+kind = "owner-decision"
+by = "agent, under Yu's delegation of 2026-10-20"
+subject = "Whether the business capability map becomes a navigation facet"
+decision = "Yes. The business capability map becomes the 14th navigation facet (an atlas filter chip and estate ls --facet capability=VALUE) and the tree axis 8-capability. It is navigation only: the values stay as the map resolves them, nothing upstream changes, and reverting the change removes the facet on the next build."
+resolves = []
+basis = "An agent's call under Yu's delegation of 2026-10-20 (decision ledger item be-c9-capability-facet). It extends Yu's request of 2026-10-17 to map the estate into business-ecosystem as a unified layer, and Yu's yes to the plan of 2026-10-18, whose step C9 waited only for a recorded decision."
+
+[decision.effects]
+navigation_facet = "capability"

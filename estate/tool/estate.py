@@ -1653,9 +1653,9 @@ def cmd_capability(ctx, args):
     run = require_current(ctx, ("run", "records"))
     projects = {r["id"]: r for r in present(run["records"]) if r["kind"] == "project"}
     facets = model.load_vocab(ctx.layer)["facets"]
-    fields = {pid: (r.get("display") or {}).get("capability") or {} for pid, r in projects.items()}
-    say("capability map of run %s (a display field of the Business view; a value needs code or a dated manual "
-        "claim):" % run["id"])
+    fields = {pid: (r.get("facets") or {}).get("capability") or {} for pid, r in projects.items()}
+    say("capability map of run %s (a navigation facet, decision dec-2026-10-20-1; a value needs code or a dated "
+        "manual claim):" % run["id"])
     say("  projects %d: %s · by basis %s · in business scope %d" % (
         len(fields), ", ".join("%s %d" % kv for kv in sorted(Counter(f.get("status") or "missing"
                                                                        for f in fields.values()).items())),

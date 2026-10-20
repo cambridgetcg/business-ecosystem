@@ -1,4 +1,4 @@
-# The business capability map (vocab/facets.toml [business.capability]): one [[capability]] row per
+# The business capability map (vocab/facets.toml [facet.capability]): one [[capability]] row per
 # project, keyed by forge id, or per package, keyed by its package id (pkg:<forge id>//<subpath>), and
 # one [[host]] row per repository whose packages are read (tool/packages.py). Written by
 # `estate capability --import ABS_PATH --write`, which merges rows by id, keeps every row with

@@ -331,7 +331,7 @@ class PackageJoinTests(fixture.EstateTestCase):
         self.assertEqual(self.first["capability"]["packages"]["records"], 7)
 
     def test_the_host_project_takes_the_values_of_its_packages_that_have_code(self):
-        field = self.records(self.first, "project")[HOST]["display"]["capability"]
+        field = self.records(self.first, "project")[HOST]["facets"]["capability"]
         self.assertEqual((field["basis"], field["values"]), (capability.DERIVED_PACKAGES,
                                                              ["accounting", "data-privacy", "insurance", "intellectual-property"]))
         impls = {v: e["impl"] for v, e in field["by_value"].items()}
@@ -411,7 +411,7 @@ class CommandLinePackageTests(fixture.EstateTestCase):
         self.assertIn(code, (0, 10), out + err)
         self.assertNotIn("failed validation", out + err)
         self.assertIn("package 7", out)  # records by kind
-        field = self.by_id[HOST]["display"]["capability"]
+        field = self.by_id[HOST]["facets"]["capability"]
         self.assertEqual((field["basis"], field["values"]), (capability.DERIVED_PACKAGES,
                                                              ["accounting", "data-privacy", "insurance", "intellectual-property"]))
         self.assertEqual(self.by_id[pkg("operational/insurance")]["capability"]["evidence"], "One health-only source file.")

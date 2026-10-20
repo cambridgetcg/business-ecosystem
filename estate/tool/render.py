@@ -502,10 +502,6 @@ class View:
             facet = facet_of(project, name)
             rows.append((name, facet_text(facet), "%s %s" % (facet.get("basis") or "—", facet.get("src") or ""),
                          facet.get("at")))
-        field = capability_of(project)
-        if field:
-            rows.append(("capability (business)", facet_text(field), "%s %s" % (field.get("basis") or "—",
-                                                                             field.get("src") or ""), field.get("at")))
         for key, value in sorted((project.get("measures") or {}).items()):
             rows.append(("measure %s" % key, value, "src:census", None))
         rows.append(("checkouts", ["%s (%s)" % (self.rel(c), (self.by_id.get(c) or {}).get("checkout_role"))
@@ -1168,15 +1164,15 @@ def _schedulers(doc, v):
 
 
 def capability_of(project):
-    """The business capability display field of a project ({} when it has none)."""
-    return (project.get("display") or {}).get("capability") or {}
+    """The business capability facet of a project ({} when it has none)."""
+    return (project.get("facets") or {}).get("capability") or {}
 
 
 def _capability_vocab(v):
     """(bands {band: [values]}, {value: definition}) from vocab/facets.toml, else from the snapshot."""
     facets = v.vocab.get("facets") or {}
     info = v.snapshot.get("capability") or {}
-    definitions = ((facets.get("business") or {}).get("capability") or {}).get("values") or {}
+    definitions = ((facets.get("facet") or {}).get("capability") or {}).get("values") or {}
     return capability.bands(facets) or dict(info.get("bands") or {}), definitions
 
 
@@ -1252,8 +1248,9 @@ def _capability_lead(doc, v):
         return False
     fields = [capability_of(p) for p in v.projects]
     scoped = [f for f in fields if f.get("scope")]
-    doc.p("The capability map: what the business has code for, or does by hand (a dated manual claim). It is a "
-          "display field of the Business view, not a navigation facet; only an owner decision makes it one. A "
+    doc.p("The capability map: what the business has code for, or does by hand (a dated manual claim). It is "
+          "also a navigation facet (a filter chip and the tree axis 8-capability), by decision dec-2026-10-20-1, an "
+          "agent's call under Yu's delegation of 2026-10-20. A "
           "capability that is only documented or designed is listed as designed, never as a value; an idea is never "
           "a value. operating is a claim as of its row, reviewed = false until Yu reviews it.")
     doc.p("In business scope: %d present projects, %d with capabilities, %d curated as having none, %d unassigned. "
@@ -1735,8 +1732,9 @@ def _decided(doc, v):
     if not owner:
         doc.p("No owner decision is recorded in curated/decisions.toml.")
         return
-    doc.p("Owner decisions from curated/decisions.toml, applied on every build; the curation itself is "
-          "never rewritten. Questions and disputes they settle leave Questions for Yu.")
+    doc.p("Decisions from curated/decisions.toml, applied on every build; the curation itself is never "
+          "rewritten. Each says who decided: the owner, or an agent under the owner's delegation of 2026-10-20. "
+          "Questions and disputes they settle leave Questions for Yu.")
     items = {q.get("id"): q for q in (all_questions(v) or []) + list(v.curated.get("disputes") or [])}
     effects = v.snapshot.get("decision_effects") or {}
     words = _owner_words(v)
