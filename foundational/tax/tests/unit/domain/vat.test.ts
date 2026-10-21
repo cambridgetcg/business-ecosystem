@@ -50,7 +50,7 @@ describe('VAT Calculator', () => {
 
       expect(result.box1).toBe('0.00');
       expect(result.box4).toBe('400.00');
-      expect(result.box5).toBe('-400.00'); // Reclaim
+      expect(result.box5).toBe('400.00'); // Reclaim: box 5 is unsigned (VAT Notice 700/12 §3.6)
       expect(result.box6).toBe('5000');
     });
 
@@ -276,7 +276,7 @@ describe('VAT Calculator', () => {
       const result = validateVATBoxes(boxes);
 
       expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Box 5 must equal Box 3 - Box 4');
+      expect(result.errors).toContain('Box 5 must equal the difference between Box 3 and Box 4');
     });
 
     it('should detect non-whole number in boxes 6-9', () => {
@@ -316,12 +316,12 @@ describe('VAT Calculator', () => {
       const boxes = emptyVATBoxes();
       boxes.box3 = '300.00';
       boxes.box4 = '1000.00';
-      boxes.box5 = '-700.00';
+      boxes.box5 = '700.00'; // Unsigned; the direction comes from box 3 < box 4
 
       const summary = getVATLiabilitySummary(boxes);
 
       expect(summary.direction).toBe('reclaim');
-      expect(summary.netVAT).toBe('700.00'); // Absolute value
+      expect(summary.netVAT).toBe('700.00');
     });
 
     it('should identify nil return', () => {

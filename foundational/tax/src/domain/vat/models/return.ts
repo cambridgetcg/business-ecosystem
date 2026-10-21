@@ -6,7 +6,7 @@
  * Box 2: VAT due on acquisitions from EU
  * Box 3: Total VAT due (box1 + box2)
  * Box 4: VAT reclaimed on purchases
- * Box 5: Net VAT to pay/reclaim (box3 - box4)
+ * Box 5: Net VAT to pay/reclaim (the unsigned difference between box3 and box4)
  * Box 6: Total sales excluding VAT
  * Box 7: Total purchases excluding VAT
  * Box 8: Total value of supplies to EU
@@ -60,14 +60,14 @@ export const UKVATReturnSchema = z.object({
   // Period
   periodStart: z.date(),
   periodEnd: z.date(),
-  periodKey: z.string().max(10), // HMRC period key (e.g., "24AC", "#001")
+  periodKey: z.string().max(10), // Issued by HMRC's obligations endpoint (e.g., "18A1", "#001"), never derived
 
   // VAT Boxes (MTD format)
   box1: z.string(), // VAT due on sales
   box2: z.string(), // VAT due on acquisitions from EU
   box3: z.string(), // Total VAT due (box1 + box2)
   box4: z.string(), // VAT reclaimed on purchases
-  box5: z.string(), // Net VAT (box3 - box4) - positive = pay, negative = reclaim
+  box5: z.string(), // Net VAT: the unsigned difference between box3 and box4 (box3 > box4 = pay, box3 < box4 = reclaim)
   box6: z.string(), // Total sales excluding VAT (whole pounds)
   box7: z.string(), // Total purchases excluding VAT (whole pounds)
   box8: z.string(), // Total supplies to EU (whole pounds)
@@ -81,7 +81,7 @@ export const UKVATReturnSchema = z.object({
 
   // Status
   status: VATReturnStatusSchema,
-  submissionDeadline: z.date(), // 1 month + 7 days after period end
+  submissionDeadline: z.date(), // 1 calendar month + 7 days after period end; HMRC's obligation `due` is authoritative
   submittedAt: z.date().nullable(),
 
   // MTD Tracking
@@ -126,7 +126,9 @@ export const CreateVATReturnInputSchema = z.object({
   registrationId: z.string().uuid(),
   periodStart: z.date(),
   periodEnd: z.date(),
-  periodKey: z.string().max(10).optional(),
+  // Required: the key of the obligation this return answers, as HMRC's obligations endpoint
+  // returned it (MTDObligation.periodKey). Period keys cannot be derived from dates.
+  periodKey: z.string().min(1).max(10),
   flatRateScheme: z.boolean().default(false),
   flatRatePercentage: z.string().optional(),
   metadata: z.record(z.unknown()).optional(),
@@ -203,32 +205,31 @@ export type SubmitVATReturnInput = z.infer<typeof SubmitVATReturnInputSchema>;
 // =============================================================================
 
 /**
- * Calculate submission deadline
- * VAT returns due: 1 calendar month + 7 days after period end
+ * Calculate the usual submission deadline: "1 calendar month and 7 days after the end of an
+ * accounting period" (VAT Notice 700/12). A period ending on the last day of a month is due on
+ * the 7th of the month after next (31 March -> 7 May, 31 January -> 7 March, 30 June -> 7 August);
+ * otherwise the same day next month, clamped to that month's end, plus 7 days.
+ *
+ * `periodEnd` is read as a UTC calendar date (as `new Date('YYYY-MM-DD')` parses HMRC's dates)
+ * and the deadline is returned at UTC midnight. HMRC's obligation `due` date is authoritative;
+ * this is only an estimate for synthetic planning.
+ *
+ * Period keys are not derived here or anywhere: HMRC issues them through the obligations
+ * endpoint (MTDObligation.periodKey).
  */
 export function calculateVATDeadline(periodEnd: Date): Date {
-  const deadline = new Date(periodEnd);
-  deadline.setMonth(deadline.getMonth() + 1);
-  deadline.setDate(deadline.getDate() + 7);
-  return deadline;
-}
+  const year = periodEnd.getUTCFullYear();
+  const month = periodEnd.getUTCMonth();
+  const day = periodEnd.getUTCDate();
+  const lastDayOfMonth = (y: number, m: number): number => new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
 
-/**
- * Generate period key for MTD
- * Format varies but commonly "YY" + quarter letter (A, B, C, D) + month indicator
- */
-export function generatePeriodKey(periodEnd: Date): string {
-  const year = periodEnd.getFullYear().toString().slice(-2);
-  const month = periodEnd.getMonth();
+  const nextMonthLastDay = lastDayOfMonth(year, month + 1);
+  const oneMonthLaterDay = day === lastDayOfMonth(year, month)
+    ? nextMonthLastDay
+    : Math.min(day, nextMonthLastDay);
 
-  // Quarter letters (A=Q1, B=Q2, C=Q3, D=Q4)
-  const quarterIndex = Math.floor(month / 3);
-  const quarterLetter = ['A', 'B', 'C', 'D'][quarterIndex];
-
-  // Month within quarter
-  const monthInQuarter = (month % 3) + 1;
-
-  return `${year}${quarterLetter}${monthInQuarter}`;
+  // Date.UTC rolls the day past the month end and the month past December.
+  return new Date(Date.UTC(year, month + 1, oneMonthLaterDay + 7));
 }
 
 /**

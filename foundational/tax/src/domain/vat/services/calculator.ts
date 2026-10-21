@@ -6,6 +6,11 @@
  * - Flat Rate Scheme
  * - Cash Accounting
  * - EU supplies and acquisitions
+ *
+ * Box rules follow HMRC's "How to fill in and submit your VAT Return (VAT Notice 700/12)":
+ * https://www.gov.uk/guidance/how-to-fill-in-and-submit-your-vat-return-vat-notice-70012
+ *
+ * This is a synthetic calculator. Nothing here files a return or talks to HMRC.
  */
 
 import { Decimal } from 'decimal.js';
@@ -39,7 +44,9 @@ export function emptyVATBoxes(): VATBoxes {
  * Box 2: VAT due on acquisitions from other EC Member States
  * Box 3: Total VAT due (sum of boxes 1 and 2)
  * Box 4: VAT reclaimed on purchases and other inputs
- * Box 5: Net VAT to pay/reclaim (box 3 - box 4)
+ * Box 5: Net VAT to pay or reclaim: the difference between boxes 3 and 4, never negative
+ *        (Notice 700/12 §3.6; §3.1: "not enter a minus sign in box 5"). Whether it is a payment
+ *        or a reclaim comes from comparing boxes 3 and 4 (see getVATLiabilitySummary).
  * Box 6: Total value of sales and outputs excluding VAT
  * Box 7: Total value of purchases and inputs excluding VAT
  * Box 8: Total value of supplies of goods to EC Member States
@@ -97,9 +104,9 @@ export function calculateVATReturn(transactions: VATTransaction[]): VATBoxes {
     }
   }
 
-  // Calculate derived boxes
+  // Calculate derived boxes. Box 5 is the unsigned difference (Notice 700/12 §3.6).
   const box3 = box1.plus(box2);
-  const box5 = box3.minus(box4);
+  const box5 = box3.minus(box4).abs();
 
   // Format boxes - boxes 1-5 have 2 decimal places, boxes 6-9 are whole pounds
   return {
@@ -118,22 +125,31 @@ export function calculateVATReturn(transactions: VATTransaction[]): VATBoxes {
 /**
  * Calculate VAT return under Flat Rate Scheme
  *
- * Under FRS:
- * - Box 1 = Flat Rate % × VAT-inclusive turnover
- * - Box 4 = VAT on capital assets over £2,000
- * - Boxes 6-9 still show actual sales/purchases ex VAT
+ * Under FRS (Notice 700/12 §4.1):
+ * - Box 1 = Flat Rate % × VAT-inclusive flat rate turnover
+ * - Box 4 = VAT on capital goods of £2,000 or more (including VAT)
+ * - Box 5 = the unsigned difference between boxes 3 and 4 (§3.6)
+ * - Box 6 = the turnover the flat rate percentage was applied to, "including VAT"
+ * - Box 7 = the value, excluding VAT, of a capital good whose VAT is claimed in box 4,
+ *           plus "any amount you've entered in box 9"
+ *
+ * `vatInclusiveTurnover` is the flat rate turnover (VAT Notice 733 §6.2): all supplies including
+ * VAT, zero-rated ones too, so any box 8 dispatches are taken to be inside it already. Supplies
+ * accounted for outside the scheme, and reverse charge transactions, are not modelled here.
  */
 export function calculateFlatRateVATReturn(
   flatRatePercentage: number,
   vatInclusiveTurnover: Decimal | number | string,
   capitalAssetVAT: Decimal | number | string = 0,
   euSupplies: Decimal | number | string = 0,
-  euAcquisitions: Decimal | number | string = 0
+  euAcquisitions: Decimal | number | string = 0,
+  capitalAssetNetValue: Decimal | number | string = 0
 ): VATBoxes {
   const turnover = new Decimal(vatInclusiveTurnover);
   const capitalVAT = new Decimal(capitalAssetVAT);
   const euSuppliesValue = new Decimal(euSupplies);
   const euAcquisitionsValue = new Decimal(euAcquisitions);
+  const capitalNetValue = new Decimal(capitalAssetNetValue);
 
   // Calculate flat rate VAT (Box 1)
   const flatRateDecimal = new Decimal(flatRatePercentage).div(100);
@@ -142,15 +158,16 @@ export function calculateFlatRateVATReturn(
   // EU acquisition VAT (Box 2) - use standard rate
   const box2 = euAcquisitionsValue.mul(VATRates.STANDARD);
 
-  // Box 4 - only capital assets over £2,000 can be reclaimed under FRS
+  // Box 4 - only capital goods of £2,000 or more can be reclaimed under FRS
   const box4 = capitalVAT;
 
-  // Boxes 6-9 (excluding VAT)
-  // Under FRS, turnover is VAT-inclusive, so divide by 1.2 to get ex-VAT
-  const turnoverExVAT = turnover.div(1 + VATRates.STANDARD);
-
   const box3 = box1.plus(box2);
-  const box5 = box3.minus(box4);
+  const box5 = box3.minus(box4).abs();
+
+  // Box 6 is the flat rate turnover including VAT; box 7 holds the capital good's net value
+  // and every box 9 amount (Notice 700/12 §4.1).
+  const box6 = turnover;
+  const box7 = capitalNetValue.plus(euAcquisitionsValue);
 
   return {
     box1: box1.toFixed(2),
@@ -158,8 +175,8 @@ export function calculateFlatRateVATReturn(
     box3: box3.toFixed(2),
     box4: box4.toFixed(2),
     box5: box5.toFixed(2),
-    box6: turnoverExVAT.toDecimalPlaces(0, Decimal.ROUND_DOWN).toString(),
-    box7: '0', // Purchases not tracked in detail under FRS
+    box6: box6.toDecimalPlaces(0, Decimal.ROUND_DOWN).toString(),
+    box7: box7.toDecimalPlaces(0, Decimal.ROUND_DOWN).toString(),
     box8: euSuppliesValue.toDecimalPlaces(0, Decimal.ROUND_DOWN).toString(),
     box9: euAcquisitionsValue.toDecimalPlaces(0, Decimal.ROUND_DOWN).toString(),
   };
@@ -228,9 +245,12 @@ export function validateVATBoxes(boxes: VATBoxes): { valid: boolean; errors: str
     errors.push('Box 3 must equal Box 1 + Box 2');
   }
 
-  // Box 5 = Box 3 - Box 4
-  if (!box5.equals(box3.minus(box4))) {
-    errors.push('Box 5 must equal Box 3 - Box 4');
+  // Box 5 = the difference between Box 3 and Box 4, with no minus sign (Notice 700/12 §3.1, §3.6)
+  if (box5.lt(0)) {
+    errors.push('Box 5 must not be negative');
+  }
+  if (!box5.equals(box3.minus(box4).abs())) {
+    errors.push('Box 5 must equal the difference between Box 3 and Box 4');
   }
 
   // Boxes 6-9 must be whole numbers (no decimals)
@@ -250,6 +270,9 @@ export function validateVATBoxes(boxes: VATBoxes): { valid: boolean; errors: str
 
 /**
  * Calculate VAT liability summary
+ *
+ * Box 5 carries no sign, so the direction comes from comparing box 3 with box 4: more VAT due
+ * than reclaimed means a payment, less means a repayment (Notice 700/12 §3.6).
  */
 export function getVATLiabilitySummary(boxes: VATBoxes): {
   outputVAT: string;
@@ -262,9 +285,9 @@ export function getVATLiabilitySummary(boxes: VATBoxes): {
   const netVAT = new Decimal(boxes.box5);
 
   let direction: 'pay' | 'reclaim' | 'nil';
-  if (netVAT.gt(0)) {
+  if (outputVAT.gt(inputVAT)) {
     direction = 'pay';
-  } else if (netVAT.lt(0)) {
+  } else if (outputVAT.lt(inputVAT)) {
     direction = 'reclaim';
   } else {
     direction = 'nil';
