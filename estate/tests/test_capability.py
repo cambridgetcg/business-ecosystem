@@ -2,8 +2,8 @@
 
 Unit cases cover the vocabulary (23 values in four bands, the run band equal to the framework
 domains, no collision with other navigation values or topics, the companion vocabularies), the 14th
-navigation facet and the decision that makes it one (dec-2026-10-20-1), the one
-business population (business_scope), which the Business section and the map share, the curated
+navigation facet and the decision that makes it one (dec-2026-10-20-1, which claims no build-time
+effect), the one business population (business_scope), which the Business section and the map share, the curated
 index, the resolution order (curated row, packages, mirror, else unassigned or none), the package
 resolution (curated package row, else the run-band value a directory names; impl measured), the QUEUE
 lines, and the classification import: merged by id, reviewed rows kept, local ids private, [[host]]
@@ -58,6 +58,11 @@ def field(projects, pid):
     return projects[pid]["facets"]["capability"]
 
 
+def committed_decisions():
+    with open(os.path.join(fixture.LAYER_DIR, "curated", "decisions.toml"), "rb") as stream:
+        return tomllib.load(stream)["decision"]
+
+
 class VocabularyTests(fixture.EstateTestCase):
 
     def test_twenty_three_values_in_four_bands(self):
@@ -96,14 +101,34 @@ class VocabularyTests(fixture.EstateTestCase):
         for basis in (capability.CURATED_PROJECT, capability.DERIVED_PACKAGES, capability.MIRROR, capability.NONE):
             self.assertIn(basis, table["bases"])
         self.assertIn("14th navigation facet", table["rule"])
-        # The decision the facet names is committed, carries the effect, and says an agent made it.
-        with open(os.path.join(fixture.LAYER_DIR, "curated", "decisions.toml"), "rb") as stream:
-            rows = tomllib.load(stream)["decision"]
+        # The decision the facet names is committed and says an agent made it.
+        rows = committed_decisions()
         row = next(d for d in rows if d["id"] == table["decision"])
-        self.assertEqual(row["effects"]["navigation_facet"], "capability")
-        self.assertIn("navigation_facet", decisions.effect_keys(row)[0])
         self.assertTrue(row["by"].startswith("agent, under Yu's delegation"))
         self.assertEqual([p for p in decisions.problems(rows, set()) if row["id"] in p], [])
+
+    def test_the_decision_claims_no_effect_that_the_build_does_not_apply(self):
+        # The facet's place in navigation lives in the vocabulary and the code, as D4's sphere facet
+        # does, so dec-2026-10-20-1 claims no build-time effect for it: the atlas never credits the
+        # build with applying something that removing the row would not undo.
+        rows = committed_decisions()
+        row = next(d for d in rows if d["id"] == FACETS["facet"]["capability"]["decision"])
+        self.assertNotIn("navigation_facet", decisions.APPLIED)
+        self.assertEqual(decisions.effect_keys(row), (["status_note"], []))
+        self.assertIn("[facet.capability] names this decision", row["effects"]["status_note"])
+        # Removing the row changes nothing a build applies; only the row itself goes.
+        kept = decisions.rules(rows)
+        removed = decisions.rules([d for d in rows if d.get("id") != row["id"]])
+        self.assertEqual(set(kept.pop("by_id")) - set(removed.pop("by_id")), {row["id"]})
+        self.assertEqual(kept, removed)
+        # A row that still carried the old key would be listed as not applied, never credited.
+        self.assertEqual(decisions.effect_keys({"effects": {"navigation_facet": "capability"}}),
+                         ([], ["navigation_facet"]))
+        # The link is the facet table: every facet that names a decision names a committed owner decision.
+        owner_ids = {d["id"] for d in decisions.owner_decisions(rows)}
+        named = {name: t["decision"] for name, t in FACETS["facet"].items() if isinstance(t, dict) and "decision" in t}
+        self.assertEqual((named["capability"], named["sphere"]), (row["id"], "dec-2026-10-17-5"))
+        self.assertLessEqual(set(named.values()), owner_ids)
 
     def test_the_companion_vocabularies(self):
         self.assertEqual(capability.vocabulary(FACETS, "capability_impl"),
