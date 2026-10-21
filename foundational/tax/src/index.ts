@@ -11,3 +11,7 @@ export * from './domain/entities/index.js';
 
 // Application services
 export { TaxService } from './application/services/index.js';
+
+// UK VAT: the 9-box return calculator and its models, with the VAT schemes and rates they use
+export * from './domain/vat/index.js';
+export * from './domain/value-objects/index.js';

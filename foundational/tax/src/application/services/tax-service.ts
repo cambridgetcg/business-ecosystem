@@ -1,5 +1,5 @@
 import { Decimal } from 'decimal.js';
-import type { CurrencyCode, Money } from '@foundational/shared';
+import type { CurrencyCode } from '@foundational/shared';
 import type {
   TaxJurisdiction,
   TaxNexus,
@@ -29,26 +29,26 @@ export class TaxService {
   /**
    * Get all jurisdictions where an entity has tax nexus
    */
-  async getEntityNexus(entityId: string): Promise<TaxNexus[]> {
-    return Array.from(this.nexusRecords.values())
-      .filter(n => n.entityId === entityId && !n.terminatedDate);
+  getEntityNexus(entityId: string): Promise<TaxNexus[]> {
+    return Promise.resolve(Array.from(this.nexusRecords.values())
+      .filter(n => n.entityId === entityId && !n.terminatedDate));
   }
 
   /**
    * Get upcoming tax obligations for an entity
    */
-  async getUpcomingObligations(
+  getUpcomingObligations(
     entityId: string,
     daysAhead: number = 90
   ): Promise<TaxObligation[]> {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() + daysAhead);
 
-    return Array.from(this.obligations.values())
+    return Promise.resolve(Array.from(this.obligations.values())
       .filter(o => o.entityId === entityId)
       .filter(o => o.status !== 'closed' && o.status !== 'paid')
       .filter(o => o.filingDueDate <= cutoffDate)
-      .sort((a, b) => a.filingDueDate.getTime() - b.filingDueDate.getTime());
+      .sort((a, b) => a.filingDueDate.getTime() - b.filingDueDate.getTime()));
   }
 
   /**
@@ -56,8 +56,8 @@ export class TaxService {
    */
   calculateQuarterlyEstimate(
     annualTaxableIncome: Decimal,
-    jurisdiction: TaxJurisdiction,
-    quarter: 1 | 2 | 3 | 4
+    _jurisdiction: TaxJurisdiction,
+    _quarter: 1 | 2 | 3 | 4
   ): Decimal {
     // Simplified calculation - real implementation would use jurisdiction-specific rates
     const annualTax = annualTaxableIncome.times(0.21); // Federal corporate rate
@@ -70,7 +70,7 @@ export class TaxService {
   /**
    * Get total unrecognized tax benefits (UTB) for an entity
    */
-  async getTotalUTB(entityId: string): Promise<{ amount: Decimal; currency: CurrencyCode }> {
+  getTotalUTB(entityId: string): Promise<{ amount: Decimal; currency: CurrencyCode }> {
     const entityPositions = Array.from(this.positions.values())
       .filter(p => p.entityId === entityId)
       .filter(p => p.status !== 'closed' && p.status !== 'resolved');
@@ -80,43 +80,43 @@ export class TaxService {
       new Decimal(0)
     );
 
-    return {
+    return Promise.resolve({
       amount: totalUTB,
       currency: entityPositions[0]?.currency ?? 'USD',
-    };
+    });
   }
 
   /**
    * Get filing calendar for entity
    */
-  async getFilingCalendar(
+  getFilingCalendar(
     entityId: string,
     startDate: Date,
     endDate: Date
   ): Promise<TaxObligation[]> {
-    return Array.from(this.obligations.values())
+    return Promise.resolve(Array.from(this.obligations.values())
       .filter(o => o.entityId === entityId)
       .filter(o => o.filingDueDate >= startDate && o.filingDueDate <= endDate)
-      .sort((a, b) => a.filingDueDate.getTime() - b.filingDueDate.getTime());
+      .sort((a, b) => a.filingDueDate.getTime() - b.filingDueDate.getTime()));
   }
 
   /**
    * Check if entity is subject to CFC rules
    */
-  async checkCFCStatus(
+  checkCFCStatus(
     entityId: string,
     parentEntityId: string,
     ownershipPercentage: Decimal
   ): Promise<{ isCFC: boolean; reason?: string }> {
     // Controlled Foreign Corporation: >50% ownership by US shareholders
     if (ownershipPercentage.greaterThan(50)) {
-      return {
+      return Promise.resolve({
         isCFC: true,
         reason: `Ownership of ${ownershipPercentage.toString()}% exceeds 50% threshold`,
-      };
+      });
     }
 
-    return { isCFC: false };
+    return Promise.resolve({ isCFC: false });
   }
 
   /**
