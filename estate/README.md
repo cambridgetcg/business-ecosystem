@@ -119,9 +119,11 @@ longer contests a citizen's soul card; soul when a card has none; a card naming 
 contested and is listed for Yu), `ownership` (surfaces and zones on the
 estate's own provider account), `provider_status` (AWS: in-progress-elsewhere; the estate makes no AWS
 calls), `sphere_by_layer` (the layer rule of the sphere facet, below), `hygiene_view` (the hygiene plan
-renders on every build, below), `navigation_facet` (the named field is a navigation facet; C9 makes the
-capability map one), `confirms` and `status_note`. Any other
-effect key is listed as not applied.
+renders on every build, below), `confirms` and `status_note`. Any other
+effect key is listed as not applied. A decision whose change lives in the vocabulary and the code
+carries no effect for it, so the atlas never credits the build with applying it: a facet's place
+among the navigation facets is one such change, and its `[facet.<name>]` table names the decision
+instead (D4 for `sphere`, C9 for `capability`). Undoing such a decision means reverting that change.
 
 An owner decision on the taxonomy authority outranks `private/config.toml [kingdom].ref`, which
 applies only when no such decision exists. A config pin that contradicts the decision degrades the

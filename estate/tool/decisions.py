@@ -9,6 +9,11 @@ The effects are applied at build time instead of being written back into the cur
 curation keeps its single copy untouched, a status never lives in two places, and removing a
 decision undoes its effects on the next build. An effect this version does not apply is listed as
 not applied, never guessed at.
+
+A decision whose change lives in the vocabulary and the code, such as a facet's place among the
+navigation facets, carries no effect for that change, so the atlas never credits the build with
+applying it: the facet's [facet.<name>] table names the decision instead (D4's sphere facet and
+C9's capability facet), and undoing such a decision means reverting the change that made it.
 """
 import re
 
@@ -33,8 +38,6 @@ APPLIED = {
                        "layer maps to",
     "hygiene_view": "the private hygiene plan (estate hygiene) renders as HYGIENE.md and an atlas section on every "
                     "build, joined with the run's own measurements",
-    "navigation_facet": "the named field is a navigation facet: an atlas filter chip, `estate ls --facet` and a tree "
-                        "axis (vocab/facets.toml [facet.<name>] names this decision)",
 }
 _SEQ = re.compile(r"-(\d+)$")
 
@@ -93,9 +96,6 @@ def problems(rows, known_ids):
             out.append("owner decision %s: sphere_by_layer must be a table of layer = sphere" % ident)
         if "hygiene_view" in effects and effects["hygiene_view"] is not True:
             out.append("owner decision %s: hygiene_view must be true" % ident)
-        if "navigation_facet" in effects and not (isinstance(effects["navigation_facet"], str)
-                                                  and effects["navigation_facet"]):
-            out.append("owner decision %s: navigation_facet must name a facet" % ident)
     return out
 
 

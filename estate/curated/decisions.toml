@@ -193,4 +193,4 @@ resolves = []
 basis = "An agent's call under Yu's delegation of 2026-10-20 (decision ledger item be-c9-capability-facet). It extends Yu's request of 2026-10-17 to map the estate into business-ecosystem as a unified layer, and Yu's yes to the plan of 2026-10-18, whose step C9 waited only for a recorded decision."
 
 [decision.effects]
-navigation_facet = "capability"
+status_note = "carried by the vocabulary and the code, not by a build-time effect: vocab/facets.toml [facet.capability] names this decision, as [facet.sphere] names D4, and reverting the change removes the facet on the next build"
