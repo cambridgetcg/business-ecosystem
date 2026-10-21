@@ -111,11 +111,19 @@ TOPIC_CAP = 40
 TOPICS_PER_RECORD = 3
 # The sphere facet's values (owner decision D4; vocab/facets.toml [facet.sphere] defines them).
 SPHERES = ("kingdom-os", "independent", "undecided")
+# The capability facet's values (decision dec-2026-10-20-1; vocab/facets.toml [facet.capability]
+# defines them, with their bands).
+CAPABILITIES = ("goods-sales", "marketplace", "stock-sourcing", "catalogue-channels", "market-pricing", "billing",
+                "agent-commerce", "marketing-outreach", "customer-messaging", "customer-loyalty",
+                "business-analytics", "accounting", "banking-treasury", "tax", "compliance", "entity-governance",
+                "kyc-identity", "contracts-legal", "data-privacy", "insurance", "intellectual-property",
+                "corporate-security", "own-account-trading")
 # Overlay values of the navigation facets; with the live KINGDOM values (nav_values) a topic may
 # never equal one of them.
 OVERLAY_NAV_VALUES = (EXPECT["standing"] + EXPECT["liveness"] + ("up", "down", "contradicted", "unprobed", "none",
                                                                  "unknown")
-                      + EXPECT["hosting"] + EXPECT["stack"] + EXPECT["exposure"] + FAMILIES + ROLES + SPHERES)
+                      + EXPECT["hosting"] + EXPECT["stack"] + EXPECT["exposure"] + FAMILIES + ROLES + SPHERES
+                      + CAPABILITIES)
 
 
 def nav_values(card_enums):

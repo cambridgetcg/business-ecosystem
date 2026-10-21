@@ -48,7 +48,7 @@ at = "ISO-8601 time"
 alt = "other facts considered"
 kingdom_extra = "layer, kind and state add ref, resolved_by, candidates[{value, source, ref, overruled_by?}], off_enum[{value, source, ref}], ref_divergent and by_ref{ref: {status, value}}; decided_by names the owner decision that settled the value, authority the decision that made ref the primary ref (set where the refs diverge)"
 sphere_extra = "sphere (projects, zones, surfaces) always holds a value; its basis is one of vocab/facets.toml [facet.sphere].bases, and it adds decision (the owner decision defining the facet), confidence, reviewed, via (the project or alias the value came from), layer (rule:layer), family (curated:family), reason (why; always set when undecided), evidence (the full private text behind a curated row), follows (the record a curated zone or surface row takes its value from) and third_party"
-capability_extra = "the business display field capability (projects; and the capability field of package records) has the facet shape with its basis one of vocab/facets.toml [business.capability].bases, and adds by_value {<value>: {impl, operating, serves, and for derived:packages via, the package ids holding it}} (vocab/facets.toml capability_impl, capability_operating and capability_serves; operating is a claim as of the row), designed (values only documented or designed, never values), scope (why the project is in business scope; empty when it is not), candidates (run-band values be.framework_domain names that the project holds neither as a value nor as designed), via (the alias or mirrored project the values came from), reason (why unassigned or none), and from a curated row its confidence, reviewed, review_after, source, evidence (the committed short text) and evidence_full (the private text)"
+capability_extra = "the business capability facet (projects, a navigation facet by decision dec-2026-10-20-1; and the capability field of package records) has the facet shape with its basis one of vocab/facets.toml [facet.capability].bases, and adds by_value {<value>: {impl, operating, serves, and for derived:packages via, the package ids holding it}} (vocab/facets.toml capability_impl, capability_operating and capability_serves; operating is a claim as of the row), designed (values only documented or designed, never values), scope (why the project is in business scope; empty when it is not), candidates (run-band values be.framework_domain names that the project holds neither as a value nor as designed), via (the alias or mirrored project the values came from), reason (why unassigned or none), and from a curated row its confidence, reviewed, review_after, source, evidence (the committed short text) and evidence_full (the private text)"
 
 [enum]
 basis = ["measured", "claimed", "curated", "derived", "imported", "kingdom"]
@@ -139,6 +139,9 @@ topic = { type = "facet", enum = "facets:facet/topic", statuses = ["none"] }
 # Optional only because missing and gone stubs carried from runs before the facet lack it; every
 # present project has one (tool/sphere.py).
 sphere = { type = "facet", enum = "facets:facet/sphere", statuses = [], optional = true }
+# The business capability map (decision dec-2026-10-20-1), in the common facet shape plus
+# capability_extra. Optional only because missing and gone stubs carried from runs before it lack it.
+capability = { type = "facet", enum = "facets:facet/capability", statuses = ["unassigned", "none"], optional = true }
 
 [kind.project.subfields.display]
 owner_sister = { type = "str", nullable = true, enum = "kingdom:owner_sister" }
@@ -148,9 +151,6 @@ provenance = { type = "str", nullable = true, enum = "facets:display/provenance"
 purpose_group = { type = "str", nullable = true, enum = "facets:business/purpose_group" }
 "be.framework_domain" = { type = "list", enum = "facets:business/be.framework_domain" }
 role_status = { type = "str", nullable = true, enum = "facets:display/role_status" }
-# The business capability map, in the common facet shape plus capability_extra; a display field, not
-# navigation. Optional only because missing and gone stubs carried from runs before it lack it.
-capability = { type = "facet", enum = "facets:business/capability", statuses = ["unassigned", "none"], optional = true }
 
 [kind.project.subfields.flags]
 resting = { type = "bool" }
@@ -578,7 +578,7 @@ imported_by = { type = "list" }
 static = { type = "list", enum = "facets:vocab/package_static" }
 build = { type = "dict" }
 # capability: the business capability field (capability_extra); basis curated:package, rule:package-path or none.
-capability = { type = "facet", enum = "facets:business/capability", statuses = ["none"] }
+capability = { type = "facet", enum = "facets:facet/capability", statuses = ["none"] }
 group_ids = { type = "list", ref = "group" }
 # relations: the relation records at either end of which this package stands (wires, tool/wires.py);
 # optional only because missing and gone stubs carried from runs before wires lack it.

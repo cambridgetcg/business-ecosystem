@@ -1,7 +1,8 @@
 """The symlink tree of one build (spec section 8, amendments A2 and A4).
 
-Each build makes a complete fresh tree inside its own run directory: a foundation axis, seven
-navigation axes (the seventh, 7-sphere, is owner decision D4's KINGDOM OS facet), a manifest,
+Each build makes a complete fresh tree inside its own run directory: a foundation axis, eight
+navigation axes (the seventh, 7-sphere, is owner decision D4's KINGDOM OS facet; the eighth,
+8-capability, is the business capability facet of decision dec-2026-10-20-1), a manifest,
 NOT-LINKED.txt and _CONTESTED.txt. Links are absolute, point at a
 canonical checkout's realpath (or, for a group, at its canonical location), and each one is
 self-checked immediately before it is created: the target must exist, be a directory holding a
@@ -31,8 +32,8 @@ TREE = "tree"
 MANIFEST = safety.TREE_MANIFEST
 SCHEMA = "estate.tree/1"
 README, NOT_LINKED, CONTESTED, SAME_HOME = "README.txt", "NOT-LINKED.txt", "_CONTESTED.txt", "SAME-HOME.txt"
-FOUNDATION, LAYER, FAMILY, ROLE, LIVE, NAME, GROUPS, SPHERE = (
-    "0-foundation", "1-layer", "2-family", "3-role", "4-live", "5-name", "6-groups", "7-sphere")
+FOUNDATION, LAYER, FAMILY, ROLE, LIVE, NAME, GROUPS, SPHERE, CAPABILITY = (
+    "0-foundation", "1-layer", "2-family", "3-role", "4-live", "5-name", "6-groups", "7-sphere", "8-capability")
 REALM_ID = "github.com/cambridgetcg/kingdom"
 REALM_FILE = "REALM.md"
 UNASSIGNED = "unassigned"
@@ -392,6 +393,11 @@ class _Builder:
         value = _facet(project, "sphere").get("value")
         if value:
             self.add([SPHERE, sanitize(value), family or UNASSIGNED, name], target, pid, SPHERE, co)
+        # Every capability a project holds; a project in business scope that nothing places is linked
+        # under unassigned, so it can be reviewed. A project outside business scope is not linked here.
+        capability = _facet(project, "capability")
+        for value in capability.get("values") or ([UNASSIGNED] if capability.get("status") == UNASSIGNED else []):
+            self.add([CAPABILITY, sanitize(value), family or UNASSIGNED, name], target, pid, CAPABILITY, co)
 
     # -- creation --
     def create(self):
@@ -452,6 +458,9 @@ def readme_text(run_id, snapshot, layers):
         "  %-13s home are listed in SAME-HOME.txt)" % "",
         "  %-13s <sphere>/<family>/<name>: kingdom-os, independent or undecided, the KINGDOM OS" % SPHERE,
         "  %-13s facet of owner decision D4 (each project once; undecided is listed for Yu)" % "",
+        "  %-13s <capability>/<family>/<name>: the business capability facet of decision" % CAPABILITY,
+        "  %-13s dec-2026-10-20-1 (a project under every value it holds; unassigned: in business" % "",
+        "  %-13s scope and placed by nothing; projects outside business scope are not linked here)" % "",
         "",
         "Links are absolute and point at canonical checkouts only. NOT-LINKED.txt lists every",
         "record without a link and why; .estate-tree.json is the manifest `estate check --tree` reads.",

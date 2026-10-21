@@ -9,6 +9,11 @@ The effects are applied at build time instead of being written back into the cur
 curation keeps its single copy untouched, a status never lives in two places, and removing a
 decision undoes its effects on the next build. An effect this version does not apply is listed as
 not applied, never guessed at.
+
+A decision whose change lives in the vocabulary and the code, such as a facet's place among the
+navigation facets, carries no effect for that change, so the atlas never credits the build with
+applying it: the facet's [facet.<name>] table names the decision instead (D4's sphere facet and
+C9's capability facet), and undoing such a decision means reverting the change that made it.
 """
 import re
 

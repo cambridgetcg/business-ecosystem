@@ -136,11 +136,12 @@ class VocabularyTests(fixture.EstateTestCase):
         with open(os.path.join(LAYER, "vocab", "records.toml"), "rb") as stream:
             self.records = tomllib.load(stream)
 
-    def test_navigation_lists_exactly_thirteen_facets(self):
-        # The thirteenth, sphere, is owner decision D4's KINGDOM OS facet.
+    def test_navigation_lists_exactly_fourteen_facets(self):
+        # The thirteenth, sphere, is owner decision D4's KINGDOM OS facet; the fourteenth, capability,
+        # is decision dec-2026-10-20-1's business capability map.
         navigation = self.facets["meta"]["navigation"]
-        self.assertEqual(len(navigation), 13)
-        self.assertEqual(navigation[-1], "sphere")
+        self.assertEqual(len(navigation), 14)
+        self.assertEqual(navigation[-2:], ["sphere", "capability"])
         self.assertEqual(tuple(navigation), model.NAVIGATION)
         for name in navigation:
             self.assertIn(name, self.facets["facet"])

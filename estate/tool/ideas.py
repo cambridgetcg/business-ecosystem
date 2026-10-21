@@ -160,9 +160,9 @@ text_of = plans.text_of
 # ── the join a build renders ────────────────────────────────────────────────────────────────
 
 def _holding(record, value):
-    """The reading of a capability value on one record (a project's display field or a package's own), or
+    """The reading of a capability value on one record (a project's capability facet or a package's own), or
     None when it does not hold the value."""
-    field = (record.get("display") or {}).get("capability") if record.get("kind") == "project" else record.get("capability")
+    field = (record.get("facets") or {}).get("capability") if record.get("kind") == "project" else record.get("capability")
     field = field or {}
     if field.get("basis") == capability.MIRROR or value not in (field.get("values") or []):
         return None

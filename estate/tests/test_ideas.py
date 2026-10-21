@@ -169,7 +169,7 @@ def record(rid, kind="package", presence="present", values=(), impl="code", oper
              "by_value": {v: {"impl": impl, "operating": operating, "serves": "self"} for v in values}}
     out = {"id": rid, "kind": kind, "presence": presence}
     if kind == "project":
-        out["display"] = {"capability": field}
+        out["facets"] = {"capability": field}
     else:
         out["capability"] = field
     return out

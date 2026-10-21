@@ -1,13 +1,15 @@
 """Business capability map tests (tool/capability.py).
 
 Unit cases cover the vocabulary (23 values in four bands, the run band equal to the framework
-domains, no collision with navigation values or topics, the companion vocabularies), the one
-business population (business_scope), which the Business section and the map share, the curated
+domains, no collision with other navigation values or topics, the companion vocabularies), the 14th
+navigation facet and the decision that makes it one (dec-2026-10-20-1, which claims no build-time
+effect), the one business population (business_scope), which the Business section and the map share, the curated
 index, the resolution order (curated row, packages, mirror, else unassigned or none), the package
 resolution (curated package row, else the run-band value a directory names; impl measured), the QUEUE
 lines, and the classification import: merged by id, reviewed rows kept, local ids private, [[host]]
 rows kept, a re-import byte for byte the same. One synthetic estate is then classified and built through the
-command line, and its records, queue and the capability verb checked."""
+command line, and its records, queue, the capability verb, the facet filter and the 8-capability tree
+axis checked."""
 import datetime as dt
 import json
 import os
@@ -19,9 +21,11 @@ from . import test_e2e
 from . import test_model
 import capability
 import curate
+import decisions
 import model
 import packages
 import safety
+import tree
 
 G = "github.com/cambridgetcg/"
 FACETS = test_model.VOCAB["facets"]
@@ -51,7 +55,12 @@ def index(*rows, private=()):
 
 
 def field(projects, pid):
-    return projects[pid]["display"]["capability"]
+    return projects[pid]["facets"]["capability"]
+
+
+def committed_decisions():
+    with open(os.path.join(fixture.LAYER_DIR, "curated", "decisions.toml"), "rb") as stream:
+        return tomllib.load(stream)["decision"]
 
 
 class VocabularyTests(fixture.EstateTestCase):
@@ -68,24 +77,58 @@ class VocabularyTests(fixture.EstateTestCase):
         self.assertEqual(set(bands["run"]), set(FACETS["business"]["be.framework_domain"]["values"]))
 
     def test_no_value_collides_with_navigation_values_topics_or_statuses(self):
-        table = FACETS["business"]["capability"]
-        taken = set(curate.OVERLAY_NAV_VALUES) | set(curate.TOPICS) | set(table["statuses"])
+        table = FACETS["facet"]["capability"]
+        self.assertEqual(tuple(curate.CAPABILITIES), ALLOWED)
+        # A topic may never equal a navigation value, so the capability values join them.
+        self.assertTrue(set(ALLOWED) <= set(curate.OVERLAY_NAV_VALUES))
+        taken = (set(curate.OVERLAY_NAV_VALUES) - set(ALLOWED)) | set(curate.TOPICS) | set(table["statuses"])
         taken |= {v for values in fixture.KINGDOM_ENUMS.values() for v in values}
         self.assertEqual(set(ALLOWED) & taken, set())
         candidates = FACETS["capability_candidates"]["values"]
         self.assertEqual(candidates, ["customer-support"])
         self.assertEqual(set(candidates) & set(ALLOWED), set())
 
-    def test_a_display_field_not_a_navigation_facet(self):
-        self.assertNotIn("capability", model.NAVIGATION)
-        self.assertNotIn("capability", FACETS["meta"]["navigation"])
-        spec = test_model.VOCAB["records"]["kind"]["project"]["subfields"]["display"]["capability"]
+    def test_the_fourteenth_navigation_facet_by_a_recorded_decision(self):
+        self.assertEqual(model.NAVIGATION[-1], "capability")
+        self.assertEqual(FACETS["meta"]["navigation"][-1], "capability")
+        subfields = test_model.VOCAB["records"]["kind"]["project"]["subfields"]
+        self.assertNotIn("capability", subfields["display"])
+        spec = subfields["facets"]["capability"]
         self.assertEqual((spec["type"], spec["enum"], spec["statuses"], spec["optional"]),
-                         ("facet", "facets:business/capability", ["unassigned", "none"], True))
-        table = FACETS["business"]["capability"]
+                         ("facet", "facets:facet/capability", ["unassigned", "none"], True))
+        self.assertNotIn("capability", FACETS.get("business") or {})
+        table = FACETS["facet"]["capability"]
         for basis in (capability.CURATED_PROJECT, capability.DERIVED_PACKAGES, capability.MIRROR, capability.NONE):
             self.assertIn(basis, table["bases"])
-        self.assertIn("only an owner decision makes it one", table["rule"])
+        self.assertIn("14th navigation facet", table["rule"])
+        # The decision the facet names is committed and says an agent made it.
+        rows = committed_decisions()
+        row = next(d for d in rows if d["id"] == table["decision"])
+        self.assertTrue(row["by"].startswith("agent, under Yu's delegation"))
+        self.assertEqual([p for p in decisions.problems(rows, set()) if row["id"] in p], [])
+
+    def test_the_decision_claims_no_effect_that_the_build_does_not_apply(self):
+        # The facet's place in navigation lives in the vocabulary and the code, as D4's sphere facet
+        # does, so dec-2026-10-20-1 claims no build-time effect for it: the atlas never credits the
+        # build with applying something that removing the row would not undo.
+        rows = committed_decisions()
+        row = next(d for d in rows if d["id"] == FACETS["facet"]["capability"]["decision"])
+        self.assertNotIn("navigation_facet", decisions.APPLIED)
+        self.assertEqual(decisions.effect_keys(row), (["status_note"], []))
+        self.assertIn("[facet.capability] names this decision", row["effects"]["status_note"])
+        # Removing the row changes nothing a build applies; only the row itself goes.
+        kept = decisions.rules(rows)
+        removed = decisions.rules([d for d in rows if d.get("id") != row["id"]])
+        self.assertEqual(set(kept.pop("by_id")) - set(removed.pop("by_id")), {row["id"]})
+        self.assertEqual(kept, removed)
+        # A row that still carried the old key would be listed as not applied, never credited.
+        self.assertEqual(decisions.effect_keys({"effects": {"navigation_facet": "capability"}}),
+                         ([], ["navigation_facet"]))
+        # The link is the facet table: every facet that names a decision names a committed owner decision.
+        owner_ids = {d["id"] for d in decisions.owner_decisions(rows)}
+        named = {name: t["decision"] for name, t in FACETS["facet"].items() if isinstance(t, dict) and "decision" in t}
+        self.assertEqual((named["capability"], named["sphere"]), (row["id"], "dec-2026-10-17-5"))
+        self.assertLessEqual(set(named.values()), owner_ids)
 
     def test_the_companion_vocabularies(self):
         self.assertEqual(capability.vocabulary(FACETS, "capability_impl"),
@@ -97,7 +140,7 @@ class VocabularyTests(fixture.EstateTestCase):
             for value, definition in FACETS["vocab"][name]["values"].items():
                 self.assertTrue(definition.strip(), "%s.%s" % (name, value))
         for value in ALLOWED:
-            self.assertTrue(FACETS["business"]["capability"]["values"][value].strip(), value)
+            self.assertTrue(FACETS["facet"]["capability"]["values"][value].strip(), value)
 
     def test_the_files_of_the_map_pass_the_privacy_lint(self):
         for rel in ("vocab/facets.toml", "vocab/records.toml", "tool/capability.py", "tests/test_capability.py"):
@@ -130,7 +173,7 @@ class ScopeTests(fixture.EstateTestCase):
     def test_in_scope_is_unassigned_and_outside_is_none_never_a_value(self):
         projects = {G + "shop": project(G + "shop", family="commerce-tcg"), G + "poem": project(G + "poem", "soul")}
         capability.resolve_projects(projects)
-        shop, poem = (projects[G + n]["display"]["capability"] for n in ("shop", "poem"))
+        shop, poem = (projects[G + n]["facets"]["capability"] for n in ("shop", "poem"))
         self.assertEqual((shop["values"], shop["status"], shop["basis"], shop["scope"]),
                          ([], capability.UNASSIGNED, capability.NONE, ["family commerce-tcg"]))
         self.assertIn("in business scope", shop["reason"])
@@ -148,13 +191,13 @@ class ScopeTests(fixture.EstateTestCase):
                      for name in ("shop", "poem")]
         snapshot, _ = test_model.mini_build(checkouts, curated=curated)
         self.assertTrue(model.validate(snapshot, test_model.VOCAB["records"], facets=FACETS)["ok"])
-        fields = {pid: p["display"]["capability"] for pid, p in test_model.projects(snapshot).items()}
+        fields = {pid: p["facets"]["capability"] for pid, p in test_model.projects(snapshot).items()}
         self.assertEqual(fields[G + "shop"]["status"], capability.UNASSIGNED)
         self.assertEqual(fields[G + "poem"]["status"], capability.NONE)
         self.assertEqual(snapshot["capability"]["unassigned"], [G + "shop"])
         # A stub carried from a run before the field existed still validates.
         for record in snapshot["records"]:
-            record.get("display", {}).pop("capability", None)
+            record.get("facets", {}).pop("capability", None)
         data = {"checkouts": checkouts[:1], "artifacts": [], "coverage": {}, "finished_at": test_model.NOW_ISO,
                 "last_full_at": test_model.NOW_ISO}
         later = test_model.NOW + dt.timedelta(hours=2)
@@ -232,8 +275,7 @@ class ResolutionTests(fixture.EstateTestCase):
         self.assertEqual((field(projects, G + "copy")["via"], field(projects, G + "copy")["scope"]), (G + "row", []))
         self.assertEqual(field(projects, G + "trunk")["via"], G + "old-name")
         self.assertEqual(field(projects, G + "nothing")["scope"], ["role revenue"])
-        self.assertEqual(projects[G + "row"]["display_src"]["capability"], capability.CURATED_PROJECT)
-        self.assertIsNone(projects[G + "nothing"]["display_src"]["capability"])
+        self.assertNotIn("capability", projects[G + "row"]["display_src"])  # a facet now, not a display field
 
     def test_a_mirror_of_an_unplaced_project_stays_unplaced_and_two_aliases_are_reported(self):
         projects = {G + "a": project(G + "a", family="commerce-tcg"), G + "b": project(G + "b", family="commerce-tcg"),
@@ -529,7 +571,7 @@ class CommandLineCapabilityTests(fixture.EstateTestCase):
         cls.full = test_e2e.read_text(os.path.join(cls.run_dir, "CAPABILITIES.md"))
 
     def capability_of(self, pid):
-        return self.by_id[pid]["display"]["capability"]
+        return self.by_id[pid]["facets"]["capability"]
 
     def test_the_import_prints_first_then_writes_through_the_owner_writers(self):
         code, out, err = self.dry
@@ -578,6 +620,23 @@ class CommandLineCapabilityTests(fixture.EstateTestCase):
                       + G + "never-seen", out)
         self.assertEqual(self.cli("capability", "--write")[0], 2)
 
+    def test_the_facet_filters_projects_and_the_tree_has_the_capability_axis(self):
+        code, out, err = self.cli("ls", "--facet", "capability=billing")
+        self.assertEqual(code, 0, out + err)
+        self.assertIn(G + "alpha-service", out)
+        self.assertNotIn(G + "plain-tool", out)
+        axis = os.path.join(self.run_dir, "tree", tree.CAPABILITY)
+        billing = os.path.join(axis, "billing")
+        self.assertTrue(any(os.path.islink(os.path.join(billing, family, "alpha-service"))
+                            for family in os.listdir(billing)))
+        # A project outside business scope (status none) is not linked on this axis.
+        linked = {name for _root, _dirs, names in os.walk(axis) for name in names}
+        self.assertNotIn("plain-tool", linked)
+        readme = test_e2e.read_text(os.path.join(self.run_dir, "tree", tree.README))
+        self.assertIn(tree.CAPABILITY, readme)
+        code, out, _err = self.cli("check", "--tree")
+        self.assertEqual(code, 0, out)
+
     def cli(self, *argv):
         return test_e2e.cli(self.layer, *argv)
 
@@ -587,7 +646,7 @@ class CommandLineCapabilityTests(fixture.EstateTestCase):
     def test_the_map_is_the_body_of_the_business_section_not_a_second_section(self):
         business = self.section("\n## Business (secondary)", "\n## Freshness")
         self.assertEqual(business.count("\n## "), 1)
-        for needle in ("Scope, one population for this whole section", "display field of the Business view",
+        for needle in ("Scope, one population for this whole section", "also a navigation facet",
                        "### Band: sell", "### Band: own-funds", "alpha-service \\[unknown\\]", "in-use 1",
                        "### Gaps: no code in use found", "marketing-outreach (grow): no code in use; no record "
                        "holds it", "says what the code shows, not what the business does by other means",

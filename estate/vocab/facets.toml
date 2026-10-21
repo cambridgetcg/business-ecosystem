@@ -1,6 +1,6 @@
 # Facet registry of the estate layer (vocab/facets.toml).
 #
-# The 13 navigation facets are the atlas filter chips and `estate ls --facet`. Facets that
+# The 14 navigation facets are the atlas filter chips and `estate ls --facet`. Facets that
 # KINGDOM owns are POINTERS: they name where kingdom-os defines the vocabulary, and the values
 # are read live from bin/harvest.ts on every build, never copied here and never extended.
 # Overlay facets and every other vocabulary list each value with a one-line definition.
@@ -11,7 +11,7 @@
 
 [meta]
 schema = "estate.facets/1"
-navigation = ["layer", "kind", "state", "standing", "liveness", "running", "hosting", "stack", "exposure", "family", "role", "topic", "sphere"]
+navigation = ["layer", "kind", "state", "standing", "liveness", "running", "hosting", "stack", "exposure", "family", "role", "topic", "sphere", "capability"]
 primary = "layer"
 kingdom_owned = ["layer", "kind", "state", "owner_sister", "domain", "adopts", "conformance"]
 bases = ["measured", "claimed", "curated", "derived", "imported"]
@@ -279,6 +279,51 @@ kingdom-os = "part of the KINGDOM OS civilisation"
 independent = "independent tools, existing services and businesses (origin/main's PROJECTS label)"
 undecided = "evidence mixed or absent; listed for Yu"
 
+# ── the business capability map (decision dec-2026-10-20-1, C9) ────────────────────────────
+
+[facet.capability]
+owner = "curated"
+basis = "curated"
+multi = true
+decision = "dec-2026-10-20-1"
+statuses = ["unassigned", "none"]
+companion = "capability_extra"
+bases = ["curated:project", "derived:packages", "mirror", "curated:package", "rule:package-path", "none"]
+rule = "The business capabilities a project has code for, or does by hand (a dated manual claim). It is the 14th navigation facet by decision dec-2026-10-20-1 (an agent's call under Yu's delegation of 2026-10-20): a filter chip, estate ls --facet capability=VALUE and the tree axis 8-capability, which links each project under every value it holds and under unassigned when it is in business scope and nothing places it. The Business view shows the whole map. A project takes, in order: its curated row (curated/capabilities.toml, under its id or an alias); else the union of its packages that have code (derived:packages: the package records of a host repository, which a [[host]] row names); else the values of the one project it is a mirror_of or copy_of; else status unassigned when it is in business scope and none otherwise. A curated row with no values says the project has no business capability (status none). Business scope is one population for the whole Business view: a KINGDOM layer commerce or economy, a purpose group business_operations, payments_finance or commerce_marketplaces, a family commerce-tcg, commerce-ventures, economy-ventures or business-ecosystem, the role revenue, or the KINGDOM kind venture. Each value names its impl, operating claim, serves and reviewed flag in capability_extra.by_value. A capability that is only documented or designed is listed under designed and is never a value; an idea is never a value. be.framework_domain is relevance only: a run-band value it names that no row holds waits in QUEUE (capability-candidate). A package takes its curated row (curated:package, a [[capability]] row keyed by its package id), else the run-band value its directory names (rule:package-path: business-ecosystem's domain packages are named after their framework domain), else none; its impl is measured (code, code-unbuilt or unread) unless its curated row states stub or manual, and a package with no source holds no value: one with documents lists it as designed."
+
+[facet.capability.values]
+goods-sales = "selling own stock to buyers: storefront, cart and checkout, wholesale quotes, orders"
+marketplace = "letting others trade with each other: listings, bids and offers, escrow, settlement, seller payouts, disputes"
+stock-sourcing = "acquiring stock: supplier buy lists and purchases, customer trade-in quotes and payouts"
+catalogue-channels = "the product catalogue, SKUs and stock levels, and their sync to sales channels such as Shopify and eBay"
+market-pricing = "collecting market prices and exchange rates, computing buy and sell prices, fees and price indices"
+billing = "charging customers for the business's own software or membership: plans, usage charges, per-call payments"
+agent-commerce = "selling to or through software agents: MCP doors, x402 per-call APIs, agent marketplace listings"
+marketing-outreach = "reaching new customers: outreach campaigns, app store listing work, landing pages and content made to acquire users"
+customer-messaging = "contacting known customers: transactional email, campaigns and CRM sync"
+customer-loyalty = "loyalty programmes: points, store credit, tiers, gift cards, rewards and prize promotions"
+business-analytics = "measuring sales, usage and funnels: dashboards, metrics and reports for decisions"
+accounting = "the general ledger: chart of accounts, double-entry journals, periods, reversals, journal import, financial reports"
+banking-treasury = "bank accounts, payment processors and payouts, reconciliation, cash position, wallets and currency conversion"
+tax = "tax obligations and calculation: VAT and sales tax, corporation tax, filings, tax guidance"
+compliance = "regulatory obligations register, filing calendar, audit findings and compliance status"
+entity-governance = "legal entities, officers, shareholders, resolutions and statutory filings"
+kyc-identity = "knowing who customers and counterparties are: identity checks, sanctions and PEP flags, trust and reputation records"
+contracts-legal = "contracts, templates, e-signature, obligations, revenue recognition schedules, disputes and litigation"
+data-privacy = "personal data handling: consent, data subject requests, erasure webhooks, breach register"
+insurance = "insurance policies, coverage, claims and certificates"
+intellectual-property = "trademarks, patents, copyrights, licences, domain names and their deadlines"
+corporate-security = "the corporate security programme: access control, key custody, incident response, continuity"
+own-account-trading = "trading the business's own funds and the research behind it: prediction markets, betting exchanges"
+
+# Display grouping (the order of the values above is the band order). The run band is exactly the
+# eleven be.framework_domain ids, so business-ecosystem's own domain packages join it by name.
+[facet.capability.bands]
+sell = ["goods-sales", "marketplace", "stock-sourcing", "catalogue-channels", "market-pricing", "billing", "agent-commerce"]
+grow = ["marketing-outreach", "customer-messaging", "customer-loyalty", "business-analytics"]
+run = ["accounting", "banking-treasury", "tax", "compliance", "entity-governance", "kyc-identity", "contracts-legal", "data-privacy", "insurance", "intellectual-property", "corporate-security"]
+own-funds = ["own-account-trading"]
+
 # ── display-only fields (not navigation) ──────────────────────────────────────────────────
 
 [display.owner_sister]
@@ -371,50 +416,6 @@ contracts-legal = "contracts and legal"
 insurance = "insurance"
 intellectual-property = "intellectual property"
 data-privacy = "data privacy"
-
-# ── the business capability map (a display field of the Business view, not navigation) ──────
-
-[business.capability]
-owner = "curated"
-basis = "curated"
-multi = true
-statuses = ["unassigned", "none"]
-companion = "capability_extra"
-bases = ["curated:project", "derived:packages", "mirror", "curated:package", "rule:package-path", "none"]
-rule = "The business capabilities a project has code for, or does by hand (a dated manual claim). It is a display field of the Business view, not a navigation facet: only an owner decision makes it one. A project takes, in order: its curated row (curated/capabilities.toml, under its id or an alias); else the union of its packages that have code (derived:packages: the package records of a host repository, which a [[host]] row names); else the values of the one project it is a mirror_of or copy_of; else status unassigned when it is in business scope and none otherwise. A curated row with no values says the project has no business capability (status none). Business scope is one population for the whole Business view: a KINGDOM layer commerce or economy, a purpose group business_operations, payments_finance or commerce_marketplaces, a family commerce-tcg, commerce-ventures, economy-ventures or business-ecosystem, the role revenue, or the KINGDOM kind venture. Each value names its impl, operating claim, serves and reviewed flag in capability_extra.by_value. A capability that is only documented or designed is listed under designed and is never a value; an idea is never a value. be.framework_domain is relevance only: a run-band value it names that no row holds waits in QUEUE (capability-candidate). A package takes its curated row (curated:package, a [[capability]] row keyed by its package id), else the run-band value its directory names (rule:package-path: business-ecosystem's domain packages are named after their framework domain), else none; its impl is measured (code, code-unbuilt or unread) unless its curated row states stub or manual, and a package with no source holds no value: one with documents lists it as designed."
-
-[business.capability.values]
-goods-sales = "selling own stock to buyers: storefront, cart and checkout, wholesale quotes, orders"
-marketplace = "letting others trade with each other: listings, bids and offers, escrow, settlement, seller payouts, disputes"
-stock-sourcing = "acquiring stock: supplier buy lists and purchases, customer trade-in quotes and payouts"
-catalogue-channels = "the product catalogue, SKUs and stock levels, and their sync to sales channels such as Shopify and eBay"
-market-pricing = "collecting market prices and exchange rates, computing buy and sell prices, fees and price indices"
-billing = "charging customers for the business's own software or membership: plans, usage charges, per-call payments"
-agent-commerce = "selling to or through software agents: MCP doors, x402 per-call APIs, agent marketplace listings"
-marketing-outreach = "reaching new customers: outreach campaigns, app store listing work, landing pages and content made to acquire users"
-customer-messaging = "contacting known customers: transactional email, campaigns and CRM sync"
-customer-loyalty = "loyalty programmes: points, store credit, tiers, gift cards, rewards and prize promotions"
-business-analytics = "measuring sales, usage and funnels: dashboards, metrics and reports for decisions"
-accounting = "the general ledger: chart of accounts, double-entry journals, periods, reversals, journal import, financial reports"
-banking-treasury = "bank accounts, payment processors and payouts, reconciliation, cash position, wallets and currency conversion"
-tax = "tax obligations and calculation: VAT and sales tax, corporation tax, filings, tax guidance"
-compliance = "regulatory obligations register, filing calendar, audit findings and compliance status"
-entity-governance = "legal entities, officers, shareholders, resolutions and statutory filings"
-kyc-identity = "knowing who customers and counterparties are: identity checks, sanctions and PEP flags, trust and reputation records"
-contracts-legal = "contracts, templates, e-signature, obligations, revenue recognition schedules, disputes and litigation"
-data-privacy = "personal data handling: consent, data subject requests, erasure webhooks, breach register"
-insurance = "insurance policies, coverage, claims and certificates"
-intellectual-property = "trademarks, patents, copyrights, licences, domain names and their deadlines"
-corporate-security = "the corporate security programme: access control, key custody, incident response, continuity"
-own-account-trading = "trading the business's own funds and the research behind it: prediction markets, betting exchanges"
-
-# Display grouping (the order of the values above is the band order). The run band is exactly the
-# eleven be.framework_domain ids, so business-ecosystem's own domain packages join it by name.
-[business.capability.bands]
-sell = ["goods-sales", "marketplace", "stock-sourcing", "catalogue-channels", "market-pricing", "billing", "agent-commerce"]
-grow = ["marketing-outreach", "customer-messaging", "customer-loyalty", "business-analytics"]
-run = ["accounting", "banking-treasury", "tax", "compliance", "entity-governance", "kyc-identity", "contracts-legal", "data-privacy", "insurance", "intellectual-property", "corporate-security"]
-own-funds = ["own-account-trading"]
 
 [capability_candidates]
 values = ["customer-support"]
