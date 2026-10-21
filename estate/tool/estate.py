@@ -1443,7 +1443,7 @@ def cmd_decisions(ctx, args):
             say("    still open in %s: %s" % (rid, remainder))
     say("primary ref: %s (%s%s)%s" % (info["ref"], info["basis"], " " + info["decision"] if info["decision"] else "",
                                       "; " + decisions.conflict_reason(info) if info["conflict"] else ""))
-    problems = [p for p in curated.get("problems") or [] if p.startswith("owner decision")]
+    problems = [p for p in curated.get("problems") or [] if p.startswith(decisions.PROBLEM)]
     for item in problems:
         say("  problem: %s" % item)
     return 1 if problems else 0

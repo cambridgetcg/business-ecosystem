@@ -532,6 +532,47 @@ class FixtureDecisionTests(fixture.EstateTestCase):
         self.assertIn("settles what %s left open: item 1" % D2, decided)
         self.assertIn("by agent, under Yu's delegation of 2026-10-20", decided)
 
+    def test_a_malformed_settles_table_degrades_the_run_and_the_atlas_still_renders(self):
+        # A hand-edited settles of another shape (a list, a string, a bare number, or positions that
+        # are no list of integers) is an owner-decision problem: the run is degraded and says why, the
+        # atlas still renders, and nothing is settled by it.
+        self.assertEqual(decisions.settles_of({"settles": {D2: [0, "1", True], D3: "0"}}), {D2: [0]})
+        self.assertEqual([decisions.settles_of({"settles": bad}) for bad in ([D2], D2, 3)], [{}, {}, {}])
+        agent = "agent, under Yu's delegation of 2026-10-20"
+        bad = {"dec-2026-10-20-11": [D2], "dec-2026-10-20-12": D2, "dec-2026-10-20-13": 3,
+               "dec-2026-10-20-14": {D2: "0"}, "dec-2026-10-20-15": {D2: 0}}
+        try:
+            set_decisions(self.estate, owner_decisions() + [owner(ident, date="2026-10-20", by=agent, resolves=[],
+                                                                  settles=value) for ident, value in bad.items()])
+            curated, srcs, snapshot = build(type(self))
+        finally:
+            set_decisions(self.estate, owner_decisions())
+        found = [p for p in snapshot["problems"] if p.startswith(decisions.PROBLEM) and " settles" in p]
+        self.assertEqual(sorted(p.split()[2].rstrip(":") for p in found), sorted(bad))
+        reasons = [r for r in snapshot["degraded_reasons"] if "not every decision is applied as written" in r]
+        self.assertEqual(len(reasons), 1)
+        for ident in bad:
+            self.assertIn(ident, reasons[0])
+        self.assertIsNone(decisions.degraded_reason(["a problem that is not about a decision"]))
+        props = proposals.propose(snapshot, self.foundation, self.before_props, curated["decisions"], self.blobs,
+                                  None, None, curated, VOCAB["facets"])
+        run_id = "20261021T120000Z-0d21"
+        self.area.mkdir("runs/" + run_id)
+        self.area.write("runs/%s/%s" % (run_id, safety.RUN_MARKER), run_id + "\n")
+        files = render.render_all(os.path.join(self.area.root, "runs", run_id), snapshot, props,
+                                  {"mode": "full", "first_run": False, "tree": self.tree,
+                                   "degraded_reasons": snapshot["degraded_reasons"]}, curated=curated, vocab=VOCAB,
+                                  portfolio=srcs.get("portfolio"), prev_props=self.before_props, home=self.estate.home)
+        with open(files["ATLAS.md"], encoding="utf-8") as stream:
+            atlas = stream.read()
+        decided = atlas[atlas.index("\n## Decided"):atlas.index("\n## Questions for Yu")]
+        for ident in bad:
+            self.assertIn("### %s — subject %s" % (ident, ident), decided)
+        self.assertNotIn("settles what %s left open" % D2, decided)
+        self.assertNotIn("stayed open, settled by", decided)
+        questions = atlas[atlas.index("\n## Questions for Yu"):]
+        self.assertIn("A fixture card naming another layer stays contested.", questions)
+
     def test_the_decided_section_says_what_each_decision_did(self):
         positions = [self.atlas.index(h + "\n") for h in ("## Proposals", "## Decided", "## Questions for Yu")]
         self.assertEqual(positions, sorted(positions))

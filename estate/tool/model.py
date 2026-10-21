@@ -3063,6 +3063,9 @@ def degraded_reasons(snapshot, census_data=None):
         reasons.append("the primary kingdom-os ref %s (%s) could not be read; this run resolved KINGDOM facets "
                        "on %s" % (authority["unreadable"], authority.get("decision") or authority.get("basis"),
                                   snapshot.get("ref")))
+    decided = decisions.degraded_reason(snapshot.get("problems"))
+    if decided:
+        reasons.append(decided)
     for view in ("hygiene", "ideas"):
         if (snapshot.get(view) or {}).get("degraded"):
             reasons.append(snapshot[view]["degraded"])

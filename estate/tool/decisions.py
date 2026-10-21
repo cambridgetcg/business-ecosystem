@@ -21,6 +21,9 @@ import kingdom
 
 KIND = "owner-decision"
 DECIDED, PARTLY = "decided", "partly-decided"
+# Every problem about an owner decision starts so; `estate decisions` lists them and a build that
+# has any is degraded (degraded_reason).
+PROBLEM = "owner decision"
 # Effect keys this version applies, and what each one does to the map.
 APPLIED = {
     "taxonomy_ref": "the build reads this kingdom-os ref as the primary (authority) ref",
@@ -144,15 +147,39 @@ def _settles_problems(d, earlier):
     return out
 
 
+def degraded_reason(run_problems):
+    """The degraded reason for the owner-decision problems among a run's problems (each starts with
+    PROBLEM), or None. A decision with a problem is not wholly applied as written (what fails its
+    shape is skipped), so the run says so instead of completing as if it were."""
+    found = [p for p in run_problems or [] if isinstance(p, str) and p.startswith(PROBLEM)]
+    if not found:
+        return None
+    return ("%d owner decision problem%s, so not every decision is applied as written (estate decisions lists "
+            "them): %s" % (len(found), "" if len(found) == 1 else "s", "; ".join(found)))
+
+
+def settles_of(decision):
+    """{earlier decision id: [positions]} of one decision's settles table, keeping only what has the
+    shape of one: a table of decision ids to lists of integer positions. problems() names the rest,
+    and every view reads this instead of the raw table, so a hand-edited value of another shape (a
+    list, a string, a bare number) is reported and never breaks a build."""
+    table = decision.get("settles")
+    out = {}
+    for target, positions in (table.items() if isinstance(table, dict) else ()):
+        kept = [n for n in positions if isinstance(n, int) and not isinstance(n, bool)] \
+            if isinstance(positions, list) else []
+        if isinstance(target, str) and kept:
+            out[target] = kept
+    return out
+
+
 def settled(rows):
     """{(decision id, position): the later decision that settles that stays_open item}."""
     out = {}
     for d in owner_decisions(rows):
-        table = d.get("settles") if isinstance(d.get("settles"), dict) else {}
-        for target, positions in table.items():
-            for n in positions if isinstance(positions, list) else []:
-                if isinstance(n, int) and not isinstance(n, bool):
-                    out[(target, n)] = d["id"]
+        for target, positions in settles_of(d).items():
+            for n in positions:
+                out[(target, n)] = d["id"]
     return out
 
 

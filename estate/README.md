@@ -130,7 +130,9 @@ earlier decision and the positions it settles, and the atlas then shows that ite
 asking it. The effects they add: `layer_card_wins` (extends `layer_overrule`: a citizen's card naming any
 layer settles its contest with harvest's fleet), and `sphere_undecided_by_layer`, `sphere_third_party` and
 `sphere_review` (below, under the sphere facet). Each value they change names the decision in `decided_by`
-or `review_decision`.
+or `review_decision`. A decision that fails its shape check is listed by `estate decisions` and degrades
+the run, whose reasons name it; a `settles` value that is not a table of decision ids to lists of
+positions (a list, a string, a bare number) settles nothing, and the atlas still renders.
 
 An owner decision on the taxonomy authority outranks `private/config.toml [kingdom].ref`, which
 applies only when no such decision exists. A config pin that contradicts the decision degrades the
@@ -361,7 +363,8 @@ stays the owner's. Items in progress elsewhere (AWS, D6) are shown as such; the 
 
 - `0`: complete, and every required source is fresh.
 - `10`: complete but degraded. `run.json` lists every reason (a stale or missing source,
-  unmeasured checkouts, vocabulary drift, unmapped tags, broken tree links, unknown visibility).
+  unmeasured checkouts, vocabulary drift, unmapped tags, broken tree links, unknown visibility, an
+  owner decision with a problem).
   Wrappers must not treat 10 as failure.
 - `1`: failed. The previous run stays current.
 - `2`: usage error or guard refusal. Nothing was written.

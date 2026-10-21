@@ -1783,7 +1783,7 @@ def _decided(doc, v):
         lines += ["not yet applied: " + text(item) for item in d.get("pending") or []]
         lines += ["stayed open, settled by %s: %s" % (settled[(d["id"], n)], text(item)) if (d["id"], n) in settled
                   else "stays open: " + text(item) for n, item in enumerate(d.get("stays_open") or [])]
-        for target, positions in sorted((d.get("settles") or {}).items()):
+        for target, positions in sorted(decisions.settles_of(d).items()):
             lines.append("settles what %s left open: %s" % (target, ", ".join("item %d" % (n + 1) for n in positions)))
         lines += ["private note: " + text(item) for item in notes.get(d["id"]) or []]
         doc.ul(lines)
