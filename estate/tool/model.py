@@ -520,8 +520,10 @@ def resolve_field(field, card, roster_row, view, enums, ruling=None):
     A ruling overrules one candidate source (harvest's forced fleet) only where it decides
     something: the card names the ruling's default (citizens are soul) or names no layer, when the
     default holds, as harvest itself would give it once it honours the card. That claim stays
-    listed, marked overruled_by. A card naming another layer is a case the ruling does not cover,
-    so its contest with the forced value stays open for Yu and no decision is credited with it."""
+    listed, marked overruled_by. A card naming another layer is a case the ruling alone does not
+    cover: its contest with the forced value stays open, and no decision is credited with it, unless
+    a later decision extends the ruling with layer_card_wins (card_wins names it). Then the card's
+    own layer settles the contest too, and that later decision is the one credited."""
     allowed = set(enums.get(field) or ())
     candidates, off = [], []
 
@@ -540,17 +542,20 @@ def resolve_field(field, card, roster_row, view, enums, ruling=None):
     roster_value = (roster_row or {}).get(field)
     claim(roster_value, "roster")
     out = {"status": "unset", "value": None, "basis": None, "candidates": candidates, "off_enum": off}
+    covered = card_value in (None, (ruling or {}).get("default"))
+    card_wins = (ruling or {}).get("card_wins") if card_value is not None and not covered else None
     ruled = (ruling or {}).get("field") == field and ruling.get("overrule") == harvest_source \
-        and harvest is not None and harvest != card_value and card_value in (None, ruling.get("default"))
+        and harvest is not None and harvest != card_value and (covered or bool(card_wins))
     if ruled:
+        decider = card_wins or ruling["decision"]
         for item in candidates + off:
             if item["source"] == harvest_source:
-                item["overruled_by"] = ruling["decision"]
+                item["overruled_by"] = decider
         value = card_value if card_value is not None else ruling.get("default")
         if value in allowed:
             if card_value is None:
                 candidates.append({"value": value, "source": "owner-decision"})
-            out.update(status="settled", value=value, basis="owner-decision", decided_by=ruling["decision"])
+            out.update(status="settled", value=value, basis="owner-decision", decided_by=decider)
             return out
         harvest = None  # overruled, and no value to take its place: the other claims decide
     if card_value is not None:
@@ -1841,17 +1846,20 @@ class _Join:
         rows, families, problems = sphere.curated_index(self.curated, allowed)
         rule = self.decided.get("sphere")
         problems += sphere.rule_problems(rule, set(self.enums_primary.get("layer") or ()), allowed)
+        policy = self.decided.get("sphere_policy")
         problems += sphere.resolve_projects(self.projects, rows, families, rule,
                                             sphere.mirror_targets(self.relations.values()), allowed,
-                                            self.primary if self.refs else None, self.foundation.get("observed_at"))
+                                            self.primary if self.refs else None, self.foundation.get("observed_at"),
+                                            policy)
         decision = (rule or {}).get("decision")
         for zone in self.zones.values():
-            zone["sphere"] = sphere.resolve_zone(zone, rows, self.projects, decision, problems)
+            zone["sphere"] = sphere.resolve_zone(zone, rows, self.projects, decision, problems, policy)
         for surface in self.surfaces.values():
-            surface["sphere"] = sphere.resolve_surface(surface, rows, self.projects, decision, self.zones, problems)
+            surface["sphere"] = sphere.resolve_surface(surface, rows, self.projects, decision, self.zones, problems,
+                                                       policy)
         mismatches = sphere.follow_mismatches(self.zones, self.surfaces, self.projects)
         self.sphere = sphere.summary(self.projects, self.zones, self.surfaces, rows, families, rule, allowed, problems,
-                                     mismatches)
+                                     mismatches, policy)
         self.problems += problems
         for rid in self.sphere["unmatched"]:
             self.queue.append({"reason": "sphere-unmatched", "id": rid,
@@ -2693,6 +2701,21 @@ class _Join:
                        if (p["facets"].get("layer") or {}).get("decided_by") == layer["decision"]]
             values = Counter(p["facets"]["layer"]["value"] for p in settled)
             out[layer["decision"]].update(layer_settled=len(settled), layer_values=dict(sorted(values.items())))
+        if layer and layer.get("card_wins") in out:
+            won = [p for p in self.projects.values()
+                   if (p["facets"].get("layer") or {}).get("decided_by") == layer["card_wins"]]
+            out[layer["card_wins"]].update(layer_card_settled=len(won), layer_card_values=dict(sorted(
+                Counter(p["facets"]["layer"]["value"] for p in won).items())))
+        policy = self.decided.get("sphere_policy") or {}
+        spheres = [p["facets"].get("sphere") or {} for p in self.projects.values()]
+        spheres += [r.get("sphere") or {} for r in list(self.zones.values()) + list(self.surfaces.values())]
+        for did in sorted({policy.get("undecided_by_layer"), policy.get("third_party")} - {None}):
+            if did in out:
+                out[did]["sphere_decided"] = dict(sorted(Counter(f.get("value") for f in spheres
+                                                                 if f.get("decided_by") == did).items()))
+        if policy.get("review") in out:
+            out[policy["review"]]["sphere_agent_reviewed"] = sum(1 for f in spheres
+                                                                 if f.get("review_decision") == policy["review"])
         for item in self.ownership:
             out.setdefault(item["decision"], {}).setdefault("ownership", []).append(item)
         for provider, status in sorted(self.decided["provider_status"].items()):
@@ -3040,6 +3063,9 @@ def degraded_reasons(snapshot, census_data=None):
         reasons.append("the primary kingdom-os ref %s (%s) could not be read; this run resolved KINGDOM facets "
                        "on %s" % (authority["unreadable"], authority.get("decision") or authority.get("basis"),
                                   snapshot.get("ref")))
+    decided = decisions.degraded_reason(snapshot.get("problems"))
+    if decided:
+        reasons.append(decided)
     for view in ("hygiene", "ideas"):
         if (snapshot.get(view) or {}).get("degraded"):
             reasons.append(snapshot[view]["degraded"])

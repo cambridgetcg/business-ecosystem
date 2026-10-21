@@ -109,8 +109,9 @@ TOPIC_CANDIDATES = ("purpose-prompter", "whitehack", "taxsorted", "cashloom", "k
 TOPICS = TOPIC_SEEDS + TOPIC_CANDIDATES
 TOPIC_CAP = 40
 TOPICS_PER_RECORD = 3
-# The sphere facet's values (owner decision D4; vocab/facets.toml [facet.sphere] defines them).
-SPHERES = ("kingdom-os", "independent", "undecided")
+# The sphere facet's values (owner decision D4, and third-party from dec-2026-10-20-3;
+# vocab/facets.toml [facet.sphere] defines them).
+SPHERES = ("kingdom-os", "independent", "undecided", "third-party")
 # The capability facet's values (decision dec-2026-10-20-1; vocab/facets.toml [facet.capability]
 # defines them, with their bands).
 CAPABILITIES = ("goods-sales", "marketplace", "stock-sourcing", "catalogue-channels", "market-pricing", "billing",

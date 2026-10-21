@@ -29,6 +29,7 @@ import tree
 VOCAB = test_model.VOCAB
 D1, D2, D3, D5, D6 = ("dec-2026-10-17-2", "dec-2026-10-17-3", "dec-2026-10-17-4", "dec-2026-10-17-6",
                       "dec-2026-10-17-7")
+LATER = "dec-2026-10-20-3"  # an agent's call under Yu's delegation of 2026-10-20
 OWNED = ["surface:cf-pages:alpha-docs", "zone:example.dev", "surface:cf-worker:never-seen"]
 
 
@@ -125,6 +126,48 @@ class DecisionIndexTests(fixture.EstateTestCase):
                        "resolves must be a list", "has no subject"):
             self.assertIn(needle, joined)
 
+    def test_a_later_decision_settles_what_an_earlier_one_left_open(self):
+        rows = owner_decisions() + [owner(LATER, date="2026-10-20", by="agent, under Yu's delegation of 2026-10-20",
+                                          settles={D2: [0]}, effects={"layer_card_wins": True})]
+        self.assertEqual([p for p in decisions.problems(rows, set()) if LATER in p], [])
+        self.assertEqual(decisions.settled(rows), {(D2, 0): LATER})
+        bad = [owner(D2, stays_open=["one"]),
+               owner(LATER, date="2026-10-20", settles={D2: [1], "dec-2026-10-17-9": [0]},
+                     effects={"layer_card_wins": "yes", "sphere_third_party": "nobody", "sphere_review": "yu"})]
+        joined = "\n".join(decisions.problems(bad, set()))
+        for needle in ("settles %s must list positions 0 to 0" % D2, "settles dec-2026-10-17-9, which is no earlier",
+                       "layer_card_wins must be true", "sphere_third_party must be one of", "sphere_review must be"):
+            self.assertIn(needle, joined)
+
+    def test_later_effects_extend_the_rules_and_keep_the_earlier_rulings(self):
+        rows = owner_decisions() + [owner(LATER, date="2026-10-20", effects={
+            "layer_card_wins": True, "sphere_undecided_by_layer": True, "sphere_third_party": "third-party",
+            "sphere_review": "agent"})]
+        found = decisions.rules(rows)
+        self.assertEqual((found["layer"]["decision"], found["layer"]["card_wins"]), (D2, LATER))
+        self.assertEqual(found["sphere_policy"], {"undecided_by_layer": LATER, "third_party": LATER,
+                                                  "third_party_value": "third-party", "review": LATER})
+        self.assertEqual(decisions.effect_keys(rows[-1])[1], [])  # every effect is applied
+        # Without the later decision the rules are as before.
+        self.assertIsNone(decisions.rules(owner_decisions())["layer"]["card_wins"])
+
+    def test_the_committed_delegated_decisions_say_an_agent_made_them(self):
+        with open(os.path.join(fixture.LAYER_DIR, "curated", "decisions.toml"), "rb") as stream:
+            rows = tomllib.load(stream)["decision"]
+        delegated = [d for d in rows if str(d.get("date")) >= "2026-10-20"]
+        self.assertTrue(delegated)
+        for d in delegated:
+            self.assertTrue(d["by"].startswith("agent, under Yu's delegation of 2026-10-20"), d["id"])
+            self.assertEqual(decisions.effect_keys(d)[1], [], d["id"])
+        # The atlas questions they answer are private ids, unknown here; nothing else is wrong with them.
+        problems = [p for p in decisions.problems(rows, set()) if "which no question or dispute carries" not in p]
+        self.assertEqual(problems, [])
+        settled = decisions.settled(rows)
+        by_id = {d["id"]: d for d in rows}
+        for (target, n), later in settled.items():
+            self.assertLess(n, len(by_id[target]["stays_open"]))
+            self.assertTrue(by_id[later]["by"].startswith("agent"))
+
     def test_the_authority_decision_picks_the_primary_ref_over_the_config(self):
         rules = decisions.rules(owner_decisions())
         pinned = decisions.primary_ref({"kingdom": {"ref": kingdom.WORKTREE}}, rules)
@@ -186,6 +229,18 @@ class LayerRulingTests(fixture.EstateTestCase):
         self.assertEqual((one["status"], one["value"], one["basis"]), ("contested", None, "harvest-rule"))
         self.assertNotIn("decided_by", one)
         self.assertFalse(any(c.get("overruled_by") for c in one["candidates"]))
+
+    def test_a_later_decision_lets_a_card_naming_another_layer_win(self):
+        card, view = self.citizen("economy")
+        ruling = dict(self.ruling, card_wins=LATER)
+        one = model.resolve_field("layer", card, None, view, self.enums, ruling)
+        self.assertEqual((one["status"], one["value"], one["basis"], one["decided_by"]),
+                         ("settled", "economy", "owner-decision", LATER))
+        fleet = next(c for c in one["candidates"] if c["source"] == "harvest:fleet")
+        self.assertEqual(fleet["overruled_by"], LATER)
+        # A soul card is still D2's: the later decision only takes the case D2 left open.
+        card, view = self.citizen()
+        self.assertEqual(model.resolve_field("layer", card, None, view, self.enums, ruling)["decided_by"], D2)
 
     def test_the_default_holds_when_the_forced_layer_was_the_only_claim(self):
         rules = test_model.mini_ref(kingdom.WORKTREE, "")
@@ -455,6 +510,68 @@ class FixtureDecisionTests(fixture.EstateTestCase):
         self.assertIn("- %s (D2): A fixture card naming another layer stays contested." % D2, questions)
         self.assertIn("Sphere review (KINGDOM OS, owner decision D4):", questions)
         self.assertIn("(<#kingdom-os>)", questions)
+
+    def test_a_later_decision_settles_a_remainder_and_says_an_agent_made_it(self):
+        curated = copy.deepcopy(self.curated)
+        curated["owner_decisions"] = curated["owner_decisions"] + [
+            owner(LATER, date="2026-10-20", by="agent, under Yu's delegation of 2026-10-20", settles={D2: [0]})]
+        run_id = "20261020T120000Z-0d20"
+        self.area.mkdir("runs/" + run_id)
+        self.area.write("runs/%s/%s" % (run_id, safety.RUN_MARKER), run_id + "\n")
+        files = render.render_all(os.path.join(self.area.root, "runs", run_id), self.snapshot, self.props,
+                                  {"mode": "full", "first_run": False, "tree": self.tree}, curated=curated,
+                                  vocab=VOCAB, portfolio=self.srcs.get("portfolio"), prev_props=self.before_props,
+                                  home=self.estate.home)
+        with open(files["ATLAS.md"], encoding="utf-8") as stream:
+            atlas = stream.read()
+        questions = atlas[atlas.index("\n## Questions for Yu"):]
+        self.assertNotIn("A fixture card naming another layer stays contested.", questions)
+        decided = atlas[atlas.index("\n## Decided"):atlas.index("\n## Questions for Yu")]
+        self.assertIn("stayed open, settled by %s: A fixture card naming another layer stays contested." % LATER,
+                      decided)
+        self.assertIn("settles what %s left open: item 1" % D2, decided)
+        self.assertIn("by agent, under Yu's delegation of 2026-10-20", decided)
+
+    def test_a_malformed_settles_table_degrades_the_run_and_the_atlas_still_renders(self):
+        # A hand-edited settles of another shape (a list, a string, a bare number, or positions that
+        # are no list of integers) is an owner-decision problem: the run is degraded and says why, the
+        # atlas still renders, and nothing is settled by it.
+        self.assertEqual(decisions.settles_of({"settles": {D2: [0, "1", True], D3: "0"}}), {D2: [0]})
+        self.assertEqual([decisions.settles_of({"settles": bad}) for bad in ([D2], D2, 3)], [{}, {}, {}])
+        agent = "agent, under Yu's delegation of 2026-10-20"
+        bad = {"dec-2026-10-20-11": [D2], "dec-2026-10-20-12": D2, "dec-2026-10-20-13": 3,
+               "dec-2026-10-20-14": {D2: "0"}, "dec-2026-10-20-15": {D2: 0}}
+        try:
+            set_decisions(self.estate, owner_decisions() + [owner(ident, date="2026-10-20", by=agent, resolves=[],
+                                                                  settles=value) for ident, value in bad.items()])
+            curated, srcs, snapshot = build(type(self))
+        finally:
+            set_decisions(self.estate, owner_decisions())
+        found = [p for p in snapshot["problems"] if p.startswith(decisions.PROBLEM) and " settles" in p]
+        self.assertEqual(sorted(p.split()[2].rstrip(":") for p in found), sorted(bad))
+        reasons = [r for r in snapshot["degraded_reasons"] if "not every decision is applied as written" in r]
+        self.assertEqual(len(reasons), 1)
+        for ident in bad:
+            self.assertIn(ident, reasons[0])
+        self.assertIsNone(decisions.degraded_reason(["a problem that is not about a decision"]))
+        props = proposals.propose(snapshot, self.foundation, self.before_props, curated["decisions"], self.blobs,
+                                  None, None, curated, VOCAB["facets"])
+        run_id = "20261021T120000Z-0d21"
+        self.area.mkdir("runs/" + run_id)
+        self.area.write("runs/%s/%s" % (run_id, safety.RUN_MARKER), run_id + "\n")
+        files = render.render_all(os.path.join(self.area.root, "runs", run_id), snapshot, props,
+                                  {"mode": "full", "first_run": False, "tree": self.tree,
+                                   "degraded_reasons": snapshot["degraded_reasons"]}, curated=curated, vocab=VOCAB,
+                                  portfolio=srcs.get("portfolio"), prev_props=self.before_props, home=self.estate.home)
+        with open(files["ATLAS.md"], encoding="utf-8") as stream:
+            atlas = stream.read()
+        decided = atlas[atlas.index("\n## Decided"):atlas.index("\n## Questions for Yu")]
+        for ident in bad:
+            self.assertIn("### %s — subject %s" % (ident, ident), decided)
+        self.assertNotIn("settles what %s left open" % D2, decided)
+        self.assertNotIn("stayed open, settled by", decided)
+        questions = atlas[atlas.index("\n## Questions for Yu"):]
+        self.assertIn("A fixture card naming another layer stays contested.", questions)
 
     def test_the_decided_section_says_what_each_decision_did(self):
         positions = [self.atlas.index(h + "\n") for h in ("## Proposals", "## Decided", "## Questions for Yu")]

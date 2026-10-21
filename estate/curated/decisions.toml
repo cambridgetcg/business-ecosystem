@@ -100,6 +100,29 @@ stays_open = ["dispute:adr-0001: whether legible-money stays canonical or the li
 [decision.effects]
 sphere_by_layer = { soul = "kingdom-os", runtime = "kingdom-os", nervous = "kingdom-os", fleet = "kingdom-os", economy = "kingdom-os", os = "kingdom-os", commerce = "independent" }
 
+# An agent's call under Yu's delegation of 2026-10-20 that extends D2 and D4 (`by` says so; Yu
+# overturns it by saying so). The build applies its effects; it rewrites no curation.
+
+[[decision]]
+id = "dec-2026-10-20-3"
+date = 2026-10-20
+kind = "owner-decision"
+by = "agent, under Yu's delegation of 2026-10-20"
+subject = "Who clears the estate's review backlog: the sphere review and the contested citizen layer"
+decision = "Agents clear it by extending the rules Yu set, not Yu. A citizen's own card layer wins over harvest's forced fleet whatever layer the card names (extending D2), which settles the citizen layer the cards still contest. A curated undecided sphere row gives way to D4's layer rule where that rule places the project; a record nothing places stays undecided and agents carry it. Third-party code the estate holds but does not own takes no sphere: it reads third-party, not undecided. Curated sphere rows Yu has not reviewed were made and checked by agents (the classification of 2026-10-17 and its checker); they read as reviewed by agents and accepted under this delegation, and none is marked reviewed by Yu."
+resolves = []
+basis = "An agent's call under Yu's delegation of 2026-10-20 (decision ledger item estate-review-backlog): Yu said the decisions had got out of hand and asked agents to decide by principle; these rulings extend D2 and D4 and change only labels, which the next build re-derives."
+
+[decision.settles]
+"dec-2026-10-17-3" = [0]
+"dec-2026-10-17-5" = [1]
+
+[decision.effects]
+layer_card_wins = true
+sphere_undecided_by_layer = true
+sphere_third_party = "third-party"
+sphere_review = "agent"
+
 [[decision]]
 id = "dec-2026-10-17-6"
 label = "D5"
@@ -160,6 +183,65 @@ basis = "The owner's answer of 2026-10-17 to the atlas questions."
 
 [decision.effects]
 status_note = "decided: go-ahead, carried out 2026-10-18 outside the estate tool (the private curation records the details)"
+
+# Agents' calls under Yu's delegation of 2026-10-20 that answer the atlas questions still open
+# after D7 and the remainder of D8 (`by` says so; Yu overturns any of them by saying so).
+
+[[decision]]
+id = "dec-2026-10-20-2"
+date = 2026-10-20
+kind = "owner-decision"
+by = "agent, under Yu's delegation of 2026-10-20"
+subject = "Whether business-ecosystem is the estate's legal and finance backbone or only the host directory"
+decision = "Cambridge TCG's finance backbone, in shadow mode: its ledger shadows the books on synthetic data until the owner's business facts are answered. estate/ stays a hosted map layer. Whether it also carries other entities' legal records waits on the legal-entities question. It is a reversible label, not a commitment."
+resolves = ["q:business-ecosystem-state"]
+basis = "An agent's call under Yu's delegation of 2026-10-20 (decision ledger item be-backbone-vs-host), following Yu's request of 2026-10-17 to map the estate into business-ecosystem as a unified layer and Yu's yes to the plan of 2026-10-18; the first wire (sale to ledger) is demonstrated on synthetic data."
+
+[decision.outcome]
+"q:business-ecosystem-state" = "Cambridge TCG's finance backbone in shadow mode (synthetic data until the business facts are answered); estate/ stays a hosted map layer; other entities' legal records wait on q:legal-entities"
+
+[[decision]]
+id = "dec-2026-10-20-4"
+date = 2026-10-20
+kind = "owner-decision"
+by = "agent, under Yu's delegation of 2026-10-20"
+subject = "The darwin-* native-macOS prototypes"
+decision = "Keep them where they are, unversioned and off every forge, marked KEEP so storage cleanups skip them. Their likely owner is the agenttool and KINGDOM OS macOS prototype work, inferred from the hygiene baseline. Delete nothing; the agenttool lane may claim them later if it wants them versioned."
+resolves = ["q:darwin-workstream"]
+basis = "An agent's call under Yu's delegation of 2026-10-20 (decision ledger item darwin-workstream): no other copy exists, so nothing is deleted, and putting this prototype code on a forge gains nothing while nothing runs it."
+
+[decision.outcome]
+"q:darwin-workstream" = "kept in place, unversioned and off every forge, marked KEEP; nothing deleted; the agenttool lane may version them later"
+
+[[decision]]
+id = "dec-2026-10-20-5"
+date = 2026-10-20
+kind = "owner-decision"
+by = "agent, under Yu's delegation of 2026-10-20"
+subject = "The shared-folder items and the keys kept with them"
+decision = "Map the five shared-folder items as names-only rows in the private curation, each with its owner and end date, and keep every key: delete nothing. Ask about the three keys the question names again only after the Season 1 mission ends on 2026-11-13, and only if someone needs them gone."
+resolves = ["q:shared-folder-items"]
+basis = "An agent's call under Yu's delegation of 2026-10-20 (decision ledger item shared-folder-items): mapping is read-only and reversible, deleting a key cannot be undone, and the mission is still live."
+pending = ["The names-only rows go into the private curation as notes of this decision (estate decisions --private-from) once this row is on main."]
+
+[decision.outcome]
+"q:shared-folder-items" = "mapped names-only in the private curation; every key kept; asked again only after 2026-11-13 and only if someone needs a key gone"
+
+[[decision]]
+id = "dec-2026-10-20-6"
+date = 2026-10-20
+kind = "owner-decision"
+by = "agent, under Yu's delegation of 2026-10-20"
+subject = "What agents may do on the hygiene plan without asking (D8)"
+decision = "Agents may propose every step of the plan; carry out items that are local and reversible and involve no credential use, money, chain, DNS or mail, visibility or AWS; remove a stale copy only after checking in the shell, by comparing hashes and printing nothing, that another copy exists, and only by moving it to the trash, recorded as moved rather than removed; find what reads a file before moving it; and set an item's status with estate hygiene --set and a note saying an agent set it under this delegation. Rotations, account settings, DNS, visibility, chain and AWS items stay with Yu or with D6."
+resolves = ["q:secret-hygiene"]
+basis = "An agent's call under Yu's delegation of 2026-10-20 (decision ledger item secret-hygiene-agent-scope): D8 kept execution with the owner, and the owner has delegated; the plan was re-triaged under this rule the same day."
+
+[decision.outcome]
+"q:secret-hygiene" = "agents propose every step and carry out the local, reversible items that need no credential, money, chain, DNS or mail, visibility or AWS; Yu keeps rotations, account settings, DNS, visibility and chain; D6 keeps AWS"
+
+[decision.settles]
+"dec-2026-10-17-9" = [0]
 
 [[decision]]
 id = "dec-2026-10-17-9"

@@ -3,7 +3,12 @@
 curated/decisions.toml holds two kinds of [[decision]]: proposal dispositions written by
 `estate proposals --decide` (proposals.py reads those) and owner decisions (kind "owner-decision"),
 read here. An owner decision names the questions and disputes it resolves, says per id what was
-decided (outcome) and what stays open (open), and carries a small effects table.
+decided (outcome) and what stays open (open), and carries a small effects table. A later decision
+may settle what an earlier one left in stays_open: its settles table names the earlier decision and
+the 0-based positions of the items it settles.
+
+From 2026-10-20 the rows include agents' calls under Yu's delegation of that day; their `by` says
+so, and the atlas shows it beside every decision.
 
 The effects are applied at build time instead of being written back into the curation: the private
 curation keeps its single copy untouched, a status never lives in two places, and removing a
@@ -21,6 +26,9 @@ import kingdom
 
 KIND = "owner-decision"
 DECIDED, PARTLY = "decided", "partly-decided"
+# Every problem about an owner decision starts so; `estate decisions` lists them and a build that
+# has any is degraded (degraded_reason).
+PROBLEM = "owner decision"
 # Effect keys this version applies, and what each one does to the map.
 APPLIED = {
     "taxonomy_ref": "the build reads this kingdom-os ref as the primary (authority) ref",
@@ -38,7 +46,17 @@ APPLIED = {
                        "layer maps to",
     "hygiene_view": "the private hygiene plan (estate hygiene) renders as HYGIENE.md and an atlas section on every "
                     "build, joined with the run's own measurements",
+    "layer_card_wins": "extends layer_overrule: the overruled candidate no longer contests a card that names any "
+                       "layer, so the card's layer settles it",
+    "sphere_undecided_by_layer": "a curated undecided sphere row gives way to the layer rule where that rule places "
+                                 "the project",
+    "sphere_third_party": "third-party code the estate holds but does not own takes this sphere value instead of "
+                          "undecided",
+    "sphere_review": "curated sphere rows Yu has not reviewed read as reviewed by agents under this decision; none is "
+                     "marked reviewed by Yu",
 }
+# The sphere value third-party code takes under sphere_third_party (vocab/facets.toml [facet.sphere]).
+THIRD_PARTY_VALUES = ("third-party",)
 _SEQ = re.compile(r"-(\d+)$")
 
 
@@ -56,7 +74,7 @@ def owner_decisions(rows):
 def problems(rows, known_ids):
     """Shape problems of the owner decisions, as plain sentences (empty when usable). known_ids:
     every question and dispute id of the curation, so a decision cannot resolve a typo."""
-    out, seen = [], set()
+    out, seen, seen_rows = [], set(), {}
     for d in owner_decisions(rows):
         ident = d["id"]
         if ident in seen:
@@ -80,6 +98,8 @@ def problems(rows, known_ids):
             for key in value:
                 if key not in resolves:
                     out.append("owner decision %s: %s names %s, which it does not resolve" % (ident, table, key))
+        out += _settles_problems(d, seen_rows)
+        seen_rows[ident] = d
         effects = d.get("effects") or {}
         if not isinstance(effects, dict):
             out.append("owner decision %s: effects must be a table" % ident)
@@ -96,15 +116,82 @@ def problems(rows, known_ids):
             out.append("owner decision %s: sphere_by_layer must be a table of layer = sphere" % ident)
         if "hygiene_view" in effects and effects["hygiene_view"] is not True:
             out.append("owner decision %s: hygiene_view must be true" % ident)
+        for key in ("layer_card_wins", "sphere_undecided_by_layer"):
+            if key in effects and effects[key] is not True:
+                out.append("owner decision %s: %s must be true" % (ident, key))
+        if "sphere_third_party" in effects and effects["sphere_third_party"] not in THIRD_PARTY_VALUES:
+            out.append("owner decision %s: sphere_third_party must be one of %s" % (ident, ", ".join(THIRD_PARTY_VALUES)))
+        if "sphere_review" in effects and effects["sphere_review"] != "agent":
+            out.append("owner decision %s: sphere_review must be \"agent\"" % ident)
+    return out
+
+
+def _settles_problems(d, earlier):
+    """A settles table must name earlier owner decisions and positions in their stays_open."""
+    table = d.get("settles")
+    if table is None:
+        return []
+    if not isinstance(table, dict):
+        return ["owner decision %s: settles must be a table keyed by decision id" % d["id"]]
+    out = []
+    for target, positions in table.items():
+        other = earlier.get(target)
+        if other is None:
+            out.append("owner decision %s settles %s, which is no earlier owner decision" % (d["id"], target))
+            continue
+        items = other.get("stays_open") or []
+        if not (isinstance(positions, list) and positions
+                and all(isinstance(n, int) and not isinstance(n, bool) and 0 <= n < len(items) for n in positions)):
+            out.append("owner decision %s: settles %s must list positions 0 to %d of its stays_open"
+                       % (d["id"], target, len(items) - 1))
+    return out
+
+
+def degraded_reason(run_problems):
+    """The degraded reason for the owner-decision problems among a run's problems (each starts with
+    PROBLEM), or None. A decision with a problem is not wholly applied as written (what fails its
+    shape is skipped), so the run says so instead of completing as if it were."""
+    found = [p for p in run_problems or [] if isinstance(p, str) and p.startswith(PROBLEM)]
+    if not found:
+        return None
+    return ("%d owner decision problem%s, so not every decision is applied as written (estate decisions lists "
+            "them): %s" % (len(found), "" if len(found) == 1 else "s", "; ".join(found)))
+
+
+def settles_of(decision):
+    """{earlier decision id: [positions]} of one decision's settles table, keeping only what has the
+    shape of one: a table of decision ids to lists of integer positions. problems() names the rest,
+    and every view reads this instead of the raw table, so a hand-edited value of another shape (a
+    list, a string, a bare number) is reported and never breaks a build."""
+    table = decision.get("settles")
+    out = {}
+    for target, positions in (table.items() if isinstance(table, dict) else ()):
+        kept = [n for n in positions if isinstance(n, int) and not isinstance(n, bool)] \
+            if isinstance(positions, list) else []
+        if isinstance(target, str) and kept:
+            out[target] = kept
+    return out
+
+
+def settled(rows):
+    """{(decision id, position): the later decision that settles that stays_open item}."""
+    out = {}
+    for d in owner_decisions(rows):
+        for target, positions in settles_of(d).items():
+            for n in positions:
+                out[(target, n)] = d["id"]
     return out
 
 
 def rules(rows):
     """What a build applies, later decisions winning: {authority {ref, decision} | None, layer
-    {field, overrule, default, decision} | None, ownership [{provider, ids, basis, decision}],
+    {field, overrule, default, decision, card_wins} | None, ownership [{provider, ids, basis, decision}],
     provider_status {provider: {status, decision, note}}, sphere {by_layer, decision} | None,
-    hygiene {decision} | None, by_id {id: decision}}."""
+    sphere_policy {undecided_by_layer, third_party, third_party_value, review} (each a decision id or
+    None), hygiene {decision} | None, by_id {id: decision}}. layer_card_wins extends the layer ruling
+    an earlier decision set, so card_wins names the later decision and the ruling keeps its own."""
     out = {"authority": None, "layer": None, "ownership": [], "provider_status": {}, "sphere": None, "hygiene": None,
+           "sphere_policy": {"undecided_by_layer": None, "third_party": None, "third_party_value": None, "review": None},
            "by_id": {}}
     for d in owner_decisions(rows):
         effects = d.get("effects") if isinstance(d.get("effects"), dict) else {}
@@ -113,7 +200,16 @@ def rules(rows):
             out["authority"] = {"ref": effects["taxonomy_ref"], "decision": d["id"]}
         if isinstance(effects.get("layer_overrule"), str):
             out["layer"] = {"field": "layer", "overrule": effects["layer_overrule"],
-                            "default": effects.get("layer_default"), "decision": d["id"]}
+                            "default": effects.get("layer_default"), "decision": d["id"], "card_wins": None}
+        if effects.get("layer_card_wins") is True and out["layer"]:
+            out["layer"]["card_wins"] = d["id"]
+        policy = out["sphere_policy"]
+        if effects.get("sphere_undecided_by_layer") is True:
+            policy["undecided_by_layer"] = d["id"]
+        if effects.get("sphere_third_party") in THIRD_PARTY_VALUES:
+            policy["third_party"], policy["third_party_value"] = d["id"], effects["sphere_third_party"]
+        if effects.get("sphere_review") == "agent":
+            policy["review"] = d["id"]
         for item in effects.get("ownership") or []:
             if isinstance(item, dict) and item.get("provider") and isinstance(item.get("ids"), list):
                 out["ownership"].append({"provider": item["provider"], "ids": [i for i in item["ids"] if isinstance(i, str)],

@@ -12,6 +12,12 @@ zones, surfaces and projects without a curated row as [[sphere]] rows of curated
 local ids plus the full evidence of every row in private/curated/sphere.toml. The decision's
 sphere_by_layer places what no assignment names, from the KINGDOM layer on the authority ref.
 
+A later decision (decisions.rules()["sphere_policy"]) may extend D4: a curated undecided project row
+then gives way to the layer rule where that rule places the project (sphere_undecided_by_layer),
+third-party code takes the value third-party instead of undecided (sphere_third_party), and curated
+rows Yu has not reviewed read as reviewed by agents (sphere_review). Each value it changes names
+that decision in decided_by or review_decision; reviewed stays false, because Yu has not reviewed it.
+
 `estate sphere --import` writes a classification into those places. Committed files are edited by
 inserting text exactly where import-survey renders it, so a later re-import (which carries the rows
 forward, curate.carry_spheres) reproduces them; the private file goes through curate.keep_private.
@@ -26,9 +32,10 @@ import curate
 import safety
 from safety import GuardError, require
 
-KINGDOM_OS, INDEPENDENT, UNDECIDED = curate.SPHERES
+KINGDOM_OS, INDEPENDENT, UNDECIDED, THIRD_PARTY = curate.SPHERES
 # Only the classification input says this; the facet holds it as undecided with third_party set,
-# because D4 names no sphere for code the estate holds but does not own.
+# because D4 names no sphere for code the estate holds but does not own (a later decision may give it
+# the value third-party).
 NOT_OURS = "not-ours"
 CURATED_PROJECT, MIRROR, CURATED_FAMILY, RULE_LAYER = "curated:project", "mirror", "curated:family", "rule:layer"
 CURATED_ZONE, OWNER_PROJECT, CURATED_SURFACE, SOURCE_PROJECT = ("curated:zone", "owner-project", "curated:surface",
@@ -147,7 +154,33 @@ def _layer_values(layer):
     return []
 
 
-def _own(pid, project, rows, families, rule, allowed, ref, at):
+def _by_layer(project, rule, allowed, ref, at):
+    """(facet or None, layer facet, layer values, mapped spheres): the sphere the decision's
+    sphere_by_layer gives the project's KINGDOM layer, when its values map to exactly one sphere."""
+    decision = (rule or {}).get("decision")
+    layer = ((project.get("facets") or {}).get("layer")) or {}
+    found = _layer_values(layer)
+    by_layer = (rule or {}).get("by_layer") or {}
+    mapped = {by_layer.get(v) for v in found}
+    if found and len(mapped) == 1 and None not in mapped and next(iter(mapped)) in allowed:
+        return (facet(next(iter(mapped)), RULE_LAYER, decision, "src:kingdom:%s" % ref if ref else None, at,
+                      layer="|".join(found)), layer, found, mapped)
+    return None, layer, found, mapped
+
+
+def apply_policy(out, policy):
+    """The facet as a later decision's sphere_policy leaves it: third-party code that is undecided
+    takes the third-party value, and a curated row Yu has not reviewed reads as reviewed by agents.
+    reviewed stays false; decided_by and review_decision name the decision."""
+    policy = policy or {}
+    if policy.get("third_party") and out.get("third_party") and out.get("value") == UNDECIDED:
+        out = dict(out, value=policy.get("third_party_value") or THIRD_PARTY, decided_by=policy["third_party"])
+    if policy.get("review") and out.get("reviewed") is False:
+        out = dict(out, reviewed_by="agent", review_decision=policy["review"])
+    return out
+
+
+def _own(pid, project, rows, families, rule, allowed, ref, at, policy=None):
     """A project's sphere before mirrors are considered, and any problem with its assignment."""
     decision = (rule or {}).get("decision")
     entry, via, problem = rows.get(pid), None, None
@@ -158,19 +191,25 @@ def _own(pid, project, rows, families, rule, allowed, ref, at):
             if len({e["value"] for _, e in hits}) > 1:
                 problem = "sphere: the aliases of %s carry different spheres; %s is used" % (pid, via)
     if entry is not None:
-        return _curated_facet(entry, CURATED_PROJECT, decision, via), problem
+        out = _curated_facet(entry, CURATED_PROJECT, decision, via)
+        later = (policy or {}).get("undecided_by_layer")
+        if later and out["value"] == UNDECIDED and not out.get("third_party"):
+            placed = _by_layer(project, rule, allowed, ref, at)[0]
+            if placed is not None:
+                kept = {"reviewed": out.get("reviewed"), "confidence": out.get("confidence")}
+                placed.update({k: v for k, v in kept.items() if v is not None}, decided_by=later,
+                              was="curated undecided: %s" % (out.get("reason") or "no reason given"))
+                return placed, problem
+        return out, problem
     family = project.get("family_id")
     default = families.get(family) if family else None
     if default is not None and default["value"] != UNDECIDED:
         return facet(default["value"], CURATED_FAMILY, decision, "src:curated", default.get("as_of"),
                      confidence=default.get("confidence"), reviewed=default.get("reviewed"), family=family), None
-    layer = ((project.get("facets") or {}).get("layer")) or {}
-    found = _layer_values(layer)
+    placed, layer, found, mapped = _by_layer(project, rule, allowed, ref, at)
+    if placed is not None:
+        return placed, None
     by_layer = (rule or {}).get("by_layer") or {}
-    mapped = {by_layer.get(v) for v in found}
-    if found and len(mapped) == 1 and None not in mapped and next(iter(mapped)) in allowed:
-        return facet(next(iter(mapped)), RULE_LAYER, decision, "src:kingdom:%s" % ref if ref else None, at,
-                     layer="|".join(found)), None
     if default is not None:
         why = "family %s presumes nothing (its members are mixed)" % family.split(":", 1)[-1]
     else:
@@ -216,12 +255,13 @@ def mirror_root(pid, mirrors, projects, own):
             return current
 
 
-def resolve_projects(projects, rows, families, rule, mirrors, allowed, ref=None, at=None):
-    """Set facets["sphere"] on every project (order: vocab/facets.toml [facet.sphere].rule).
-    Returns the problems met (conflicting aliases)."""
+def resolve_projects(projects, rows, families, rule, mirrors, allowed, ref=None, at=None, policy=None):
+    """Set facets["sphere"] on every project (order: vocab/facets.toml [facet.sphere].rule), with a
+    later decision's sphere_policy applied (apply_policy). Returns the problems met (conflicting
+    aliases)."""
     base, problems = {}, []
     for pid in sorted(projects):
-        base[pid], problem = _own(pid, projects[pid], rows, families, rule, allowed, ref, at)
+        base[pid], problem = _own(pid, projects[pid], rows, families, rule, allowed, ref, at, policy)
         if problem:
             problems.append(problem)
     for pid in sorted(projects):
@@ -233,7 +273,7 @@ def resolve_projects(projects, rows, families, rule, mirrors, allowed, ref=None,
                 out = facet(theirs["value"], MIRROR, theirs["decision"], theirs.get("src"), theirs.get("at"),
                             via=root, confidence=theirs.get("confidence"), third_party=theirs.get("third_party"),
                             reason=("follows %s: %s" % (root, theirs["reason"])) if theirs.get("reason") else None)
-        projects[pid]["facets"]["sphere"] = out
+        projects[pid]["facets"]["sphere"] = apply_policy(out, policy)
     return problems
 
 
@@ -270,24 +310,25 @@ def _row(entry, basis, decision, theirs_of, problems):
     return out
 
 
-def resolve_zone(zone, rows, projects, decision, problems=None):
+def resolve_zone(zone, rows, projects, decision, problems=None, policy=None):
     if zone["id"] in rows:
-        return _row(rows[zone["id"]], CURATED_ZONE, decision,
-                    lambda ident: ((projects.get(ident) or {}).get("facets") or {}).get("sphere"),
-                    problems if problems is not None else [])
-    return _follow(OWNER_PROJECT, zone.get("owner_project"), projects, decision) or facet(
-        UNDECIDED, NONE, decision, reason="no curated assignment and no owner project")
+        return apply_policy(_row(rows[zone["id"]], CURATED_ZONE, decision,
+                                 lambda ident: ((projects.get(ident) or {}).get("facets") or {}).get("sphere"),
+                                 problems if problems is not None else []), policy)
+    return apply_policy(_follow(OWNER_PROJECT, zone.get("owner_project"), projects, decision) or facet(
+        UNDECIDED, NONE, decision, reason="no curated assignment and no owner project"), policy)
 
 
-def resolve_surface(surface, rows, projects, decision, zones=None, problems=None):
+def resolve_surface(surface, rows, projects, decision, zones=None, problems=None, policy=None):
     """zones: the resolved zones, which a surface's row may follow (a worker that only routes on one
     zone)."""
     if surface["id"] in rows:
-        return _row(rows[surface["id"]], CURATED_SURFACE, decision,
-                    lambda ident: ((projects.get(ident) or {}).get("facets") or {}).get("sphere")
-                    or ((zones or {}).get(ident) or {}).get("sphere"), problems if problems is not None else [])
-    return _follow(SOURCE_PROJECT, surface.get("source_project"), projects, decision) or facet(
-        UNDECIDED, NONE, decision, reason="no curated assignment and no source project")
+        return apply_policy(_row(rows[surface["id"]], CURATED_SURFACE, decision,
+                                 lambda ident: ((projects.get(ident) or {}).get("facets") or {}).get("sphere")
+                                 or ((zones or {}).get(ident) or {}).get("sphere"),
+                                 problems if problems is not None else []), policy)
+    return apply_policy(_follow(SOURCE_PROJECT, surface.get("source_project"), projects, decision) or facet(
+        UNDECIDED, NONE, decision, reason="no curated assignment and no source project"), policy)
 
 
 def follow_mismatches(zones, surfaces, projects):
@@ -306,7 +347,7 @@ def follow_mismatches(zones, surfaces, projects):
     return sorted(out, key=lambda m: m["id"])
 
 
-def summary(projects, zones, surfaces, rows, families, rule, allowed, problems, mismatches=()):
+def summary(projects, zones, surfaces, rows, families, rule, allowed, problems, mismatches=(), policy=None):
     """What the atlas and `estate sphere` say about the facet in one build."""
     matched = set(projects) | set(zones) | set(surfaces)
     for project in projects.values():
@@ -323,6 +364,7 @@ def summary(projects, zones, surfaces, rows, families, rule, allowed, problems, 
             "families": {fid: entry["value"] for fid, entry in sorted(families.items())},
             "unmatched": sorted(rid for rid in rows if rid not in matched),
             "mismatches": list(mismatches),
+            "policy": {k: v for k, v in (policy or {}).items() if v},
             "problems": list(problems)}
 
 

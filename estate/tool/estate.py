@@ -1443,7 +1443,7 @@ def cmd_decisions(ctx, args):
             say("    still open in %s: %s" % (rid, remainder))
     say("primary ref: %s (%s%s)%s" % (info["ref"], info["basis"], " " + info["decision"] if info["decision"] else "",
                                       "; " + decisions.conflict_reason(info) if info["conflict"] else ""))
-    problems = [p for p in curated.get("problems") or [] if p.startswith("owner decision")]
+    problems = [p for p in curated.get("problems") or [] if p.startswith(decisions.PROBLEM)]
     for item in problems:
         say("  problem: %s" % item)
     return 1 if problems else 0
@@ -1580,7 +1580,12 @@ def cmd_sphere(ctx, args):
     require(not args.write, "--write goes with --import")
     run = require_current(ctx, ("records",))
     records = present(run["records"])
-    say("sphere facet of run %s (owner decision D4; undecided is listed for Yu):" % run["id"])
+    later = sorted({f.get("decided_by") or f.get("review_decision") for r in records if r["kind"] in SPHERE_KINDS
+                    for f in [((r.get("facets") or {}).get("sphere") if r["kind"] == "project" else r.get("sphere")) or {}]
+                    if f.get("decided_by") or f.get("review_decision")})
+    say("sphere facet of run %s (owner decision D4%s):" % (
+        run["id"], "; extended by " + ", ".join(later) + ", agents' calls under Yu's delegation of 2026-10-20" if later
+        else "; undecided is listed for Yu"))
     for kind in ("project", "zone", "surface"):
         rows = [r for r in records if r["kind"] == kind]
         facets = [(r.get("facets") or {}).get("sphere") if kind == "project" else r.get("sphere") for r in rows]

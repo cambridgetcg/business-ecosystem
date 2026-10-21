@@ -29,7 +29,9 @@ BY_LAYER = {"soul": "kingdom-os", "runtime": "kingdom-os", "nervous": "kingdom-o
             "economy": "kingdom-os", "os": "kingdom-os", "commerce": "independent"}
 RULE = {"by_layer": BY_LAYER, "decision": D4}
 ALLOWED = sphere.values(test_model.VOCAB["facets"])
-KOS, IND, UND = sphere.KINGDOM_OS, sphere.INDEPENDENT, sphere.UNDECIDED
+KOS, IND, UND, TP = sphere.KINGDOM_OS, sphere.INDEPENDENT, sphere.UNDECIDED, sphere.THIRD_PARTY
+LATER = "dec-2026-10-20-3"  # an agent's call under Yu's delegation of 2026-10-20
+POLICY = {"undecided_by_layer": LATER, "third_party": LATER, "third_party_value": TP, "review": LATER}
 # Local ids are built from parts, as the fixture plants them (no home-relative literal here).
 NOTES = test_model.LOCAL + fixture.HOME_REL + "notes"
 LOCAL_NOTES = test_model.LOCAL + fixture.HOME_REL + "Desktop/local-notes"
@@ -52,16 +54,17 @@ def entry(value, **extra):
     return dict({"value": value, "where": "test"}, **extra)
 
 
-def resolve(projects, rows=None, families=None, rule=RULE, mirrors=None):
+def resolve(projects, rows=None, families=None, rule=RULE, mirrors=None, policy=None):
     problems = sphere.resolve_projects(projects, rows or {}, families or {}, rule, mirrors or {}, ALLOWED,
-                                       "origin/main", "2026-10-17T12:00:00Z")
+                                       "origin/main", "2026-10-17T12:00:00Z", policy)
     return {pid: p["facets"]["sphere"] for pid, p in projects.items()}, problems
 
 
 class VocabularyTests(fixture.EstateTestCase):
 
-    def test_the_facet_has_the_three_values_of_the_decision(self):
-        self.assertEqual(ALLOWED, (KOS, IND, UND))
+    def test_the_facet_has_the_values_of_the_decisions(self):
+        # D4's three, and third-party from the later decision that extends it.
+        self.assertEqual(ALLOWED, (KOS, IND, UND, TP))
         self.assertEqual(tuple(curate.SPHERES), ALLOWED)
         table = test_model.VOCAB["facets"]["facet"]["sphere"]
         self.assertEqual(table["decision"], D4)
@@ -231,6 +234,64 @@ class ResolutionTests(fixture.EstateTestCase):
         self.assertEqual(sphere._value(data["exceptions"][0], ALLOWED, "exceptions"), (KOS, True))
         with self.assertRaises(safety.GuardError):
             sphere._value({"id": "x", "sphere": KOS, "third_party": "yes"}, ALLOWED, "exceptions")
+
+
+class PolicyTests(fixture.EstateTestCase):
+    """A later decision's sphere_policy (decisions.rules): undecided curated rows give way to the
+    layer rule, third-party code takes the value third-party, and unreviewed rows read as reviewed
+    by agents, never by Yu."""
+
+    def rows(self):
+        return {G + "mixed": entry(UND, evidence="mixed evidence", confidence="low", reviewed=False),
+                G + "bare": entry(UND, evidence="no evidence either way", reviewed=False),
+                G + "vendor": entry(UND, third_party=True, evidence="a vendor's code", reviewed=False),
+                G + "placed": entry(KOS, reviewed=False)}
+
+    def projects(self):
+        return {G + "mixed": project(G + "mixed", "commerce"), G + "bare": project(G + "bare"),
+                G + "vendor": project(G + "vendor", "soul"), G + "placed": project(G + "placed", "soul")}
+
+    def test_the_policy_places_rows_by_layer_and_labels_third_party_code(self):
+        got, problems = resolve(self.projects(), self.rows(), policy=POLICY)
+        self.assertEqual(problems, [])
+        mixed = got[G + "mixed"]
+        self.assertEqual((mixed["value"], mixed["basis"], mixed["decision"], mixed["decided_by"]),
+                         (IND, sphere.RULE_LAYER, D4, LATER))
+        self.assertEqual(mixed["was"], "curated undecided: mixed evidence")
+        bare = got[G + "bare"]  # the layer rule cannot place it: it stays undecided, with its reason
+        self.assertEqual((bare["value"], bare["basis"], bare["reason"]), (UND, sphere.CURATED_PROJECT,
+                                                                          "no evidence either way"))
+        self.assertNotIn("decided_by", bare)
+        vendor = got[G + "vendor"]  # third-party code is not placed by its layer
+        self.assertEqual((vendor["value"], vendor["basis"], vendor["decided_by"], vendor["third_party"]),
+                         (TP, sphere.CURATED_PROJECT, LATER, True))
+        for facet in got.values():  # agents reviewed them; Yu did not
+            self.assertIs(facet["reviewed"], False)
+            self.assertEqual((facet["reviewed_by"], facet["review_decision"]), ("agent", LATER))
+        self.assertNotIn("decided_by", got[G + "placed"])
+
+    def test_without_the_policy_nothing_changes(self):
+        got, _ = resolve(self.projects(), self.rows())
+        self.assertEqual({k: v["value"] for k, v in got.items()},
+                         {G + "mixed": UND, G + "bare": UND, G + "vendor": UND, G + "placed": KOS})
+        self.assertFalse(any("reviewed_by" in f or "decided_by" in f for f in got.values()))
+
+    def test_zones_and_surfaces_take_the_policy_too(self):
+        rows = {"zone:vendor.example": entry(UND, third_party=True, evidence="a vendor's zone", reviewed=False),
+                "surface:external:vendor": entry(UND, third_party=True, evidence="a vendor endpoint")}
+        zone = sphere.resolve_zone({"id": "zone:vendor.example"}, rows, {}, D4, [], POLICY)
+        self.assertEqual((zone["value"], zone["decided_by"], zone["reviewed_by"]), (TP, LATER, "agent"))
+        surface = sphere.resolve_surface({"id": "surface:external:vendor"}, rows, {}, D4, {}, [], POLICY)
+        self.assertEqual((surface["value"], surface["decided_by"]), (TP, LATER))
+        self.assertNotIn("reviewed_by", surface)  # no reviewed flag, so nothing to read as reviewed
+        self.assertEqual(sphere.resolve_zone({"id": "zone:vendor.example"}, rows, {}, D4, [])["value"], UND)
+
+    def test_the_summary_names_the_policy(self):
+        projects = self.projects()
+        resolve(projects, self.rows(), policy=POLICY)
+        info = sphere.summary(projects, {}, {}, self.rows(), {}, RULE, ALLOWED, [], (), POLICY)
+        self.assertEqual(info["policy"], POLICY)
+        self.assertEqual(info["projects"], {IND: 1, UND: 1, TP: 1, KOS: 1})
 
 
 class CuratedIndexTests(fixture.EstateTestCase):

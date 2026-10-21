@@ -746,7 +746,7 @@ def _foundation(doc, v):
 
 
 SPHERE_LABELS = {sphere.KINGDOM_OS: "Part of KINGDOM OS", sphere.INDEPENDENT: "Independent",
-                 sphere.UNDECIDED: "Undecided"}
+                 sphere.UNDECIDED: "Undecided", sphere.THIRD_PARTY: "Third-party (no sphere)"}
 
 
 def sphere_of(record):
@@ -785,9 +785,19 @@ def _kingdom_os(doc, v):
               ", ".join("%s ⇒ %s" % kv for kv in by_layer.items()) or "no layer rule"))
     bases = Counter(sphere_of(p).get("basis") or "missing" for p in v.projects)
     unreviewed = sum(1 for p in v.projects if sphere_of(p).get("reviewed") is False)
-    doc.p("Present projects: %s · by basis: %s · %d values rest on curated rows Yu has not reviewed yet "
-          "(reviewed = false)." % (_counts(v.projects), ", ".join("%s %d" % kv for kv in sorted(bases.items())),
-                                   unreviewed))
+    policy = info.get("policy") or {}
+    doc.p("Present projects: %s · by basis: %s · %d values rest on curated rows Yu has not reviewed (reviewed = "
+          "false)%s." % (_counts(v.projects), ", ".join("%s %d" % kv for kv in sorted(bases.items())), unreviewed,
+                         "; agents reviewed them, and %s accepts them under Yu's delegation of 2026-10-20, so none "
+                         "waits on Yu" % policy["review"] if policy.get("review") else ""))
+    later = [(key, policy[key]) for key in ("undecided_by_layer", "third_party") if policy.get(key)]
+    if later:
+        moved = Counter(sphere_of(r).get("decided_by") for r in v.projects + v.kind("zone") + v.kind("surface")
+                        if sphere_of(r).get("decided_by"))
+        doc.p("Extended by %s (an agent's call under Yu's delegation of 2026-10-20): a curated undecided row gives way "
+              "to the layer rule where it places the project, and third-party code takes the value third-party. "
+              "Values it decides: %s." % (", ".join(sorted({d for _k, d in later})),
+                                         ", ".join("%s %d" % kv for kv in sorted(moved.items())) or "none"))
     columns = list(values)
     doc.h(3, "Sphere × layer")
     doc.p("Rows are the KINGDOM layer partition of the Layer × liveness matrix, so each present project is counted once.")
@@ -839,7 +849,11 @@ def _kingdom_os_zones(doc, v, values):
 
 
 def _kingdom_os_undecided(doc, v):
-    doc.h(3, "Undecided, for Yu")
+    policy = (v.snapshot.get("sphere") or {}).get("policy") or {}
+    doc.h(3, "Undecided" if policy.get("review") else "Undecided, for Yu")
+    if policy.get("review"):
+        doc.p("Agents carry this list under %s: nothing here waits on Yu, and a record leaves it when evidence "
+              "places it." % policy["review"])
     undecided = [p for p in v.projects if sphere_of(p).get("value") == sphere.UNDECIDED]
     third = [p for p in undecided if sphere_of(p).get("third_party")]
     asked = [p for p in undecided if not sphere_of(p).get("third_party")]
@@ -849,8 +863,14 @@ def _kingdom_os_undecided(doc, v):
               [(p.get("name") or p["id"], p["id"], _family_of(p), sphere_of(p).get("basis"),
                 sphere_of(p).get("confidence") or "—", clip(sphere_of(p).get("reason"), 300),
                 clip(sphere.final_word(sphere_of(p).get("evidence")), 400) or "—") for p in asked])
-    placed = [p for p in v.projects if sphere_of(p).get("third_party") and sphere_of(p).get("value") != sphere.UNDECIDED]
-    if third or placed:
+    no_sphere = [p for p in v.projects if sphere_of(p).get("value") == sphere.THIRD_PARTY]
+    if no_sphere:
+        doc.p("Third-party code the estate holds but does not own takes no sphere (%s): %s." % (
+            sphere_of(no_sphere[0]).get("decided_by") or "curated",
+            ", ".join("%s (%s)" % (p.get("name") or p["id"], _family_of(p)) for p in no_sphere)))
+    placed = [p for p in v.projects if sphere_of(p).get("third_party")
+              and sphere_of(p).get("value") not in (sphere.UNDECIDED, sphere.THIRD_PARTY)]
+    if third:
         doc.p("Third-party code the estate holds but does not own (%d), one question: does it take a sphere at all? "
               "Owner decision D4 names none, so each is undecided: %s." % (
                   len(third), ", ".join("%s (%s)" % (p.get("name") or p["id"], _family_of(p)) for p in third) or "none"))
@@ -1679,13 +1699,16 @@ def _questions(doc, v):
         if done:
             doc.p("No longer asked, decided (see Decided): %s." % ", ".join(
                 "%s (%s)" % (q.get("id"), ", ".join(q.get("decided_by") or [])) for q in sorted(done, key=lambda q: q["id"])))
+    settled = decisions.settled(v.curated.get("owner_decisions") or [] if v.curated else [])
     left = [(d, item) for d in (v.curated.get("owner_decisions") or [] if v.curated else [])
-            for item in d.get("stays_open") or []]
+            for n, item in enumerate(d.get("stays_open") or []) if (d["id"], n) not in settled]
     if left:
         doc.p("Left open by the owner decisions themselves:")
         doc.ul("%s%s: %s" % (d["id"], " (%s)" % d["label"] if d.get("label") else "", text(item)) for d, item in left)
     undecided = [r for r in v.projects + v.kind("zone") + v.kind("surface") if sphere_of(r).get("value") == sphere.UNDECIDED]
-    if undecided or (v.snapshot.get("sphere") or {}).get("decision"):
+    if ((v.snapshot.get("sphere") or {}).get("policy") or {}).get("review"):
+        pass  # the sphere review is carried by agents under a later decision (KINGDOM OS says so)
+    elif undecided or (v.snapshot.get("sphere") or {}).get("decision"):
         third = sum(1 for r in undecided if r.get("kind") == "project" and sphere_of(r).get("third_party"))
         kinds = Counter(r["kind"] for r in undecided)
         unreviewed = sum(1 for r in v.projects + v.kind("zone") + v.kind("surface") if sphere_of(r).get("reviewed") is False)
@@ -1736,6 +1759,7 @@ def _decided(doc, v):
           "rewritten. Each says who decided: the owner, or an agent under the owner's delegation of 2026-10-20. "
           "Questions and disputes they settle leave Questions for Yu.")
     items = {q.get("id"): q for q in (all_questions(v) or []) + list(v.curated.get("disputes") or [])}
+    settled = decisions.settled(owner)
     effects = v.snapshot.get("decision_effects") or {}
     words = _owner_words(v)
     opens, notes = decisions.private_texts(v.curated)
@@ -1757,7 +1781,10 @@ def _decided(doc, v):
         if pending:
             lines.append("not applied by this tool version: " + ", ".join(pending))
         lines += ["not yet applied: " + text(item) for item in d.get("pending") or []]
-        lines += ["stays open: " + text(item) for item in d.get("stays_open") or []]
+        lines += ["stayed open, settled by %s: %s" % (settled[(d["id"], n)], text(item)) if (d["id"], n) in settled
+                  else "stays open: " + text(item) for n, item in enumerate(d.get("stays_open") or [])]
+        for target, positions in sorted(decisions.settles_of(d).items()):
+            lines.append("settles what %s left open: %s" % (target, ", ".join("item %d" % (n + 1) for n in positions)))
         lines += ["private note: " + text(item) for item in notes.get(d["id"]) or []]
         doc.ul(lines)
         for said in words.get(d["id"]) or []:
@@ -1794,6 +1821,24 @@ def _unseen_text(provider, unseen):
             % (provider or "provider", ", ".join(unseen)))
 
 
+def _layer_rule_effects(v):
+    """The effects of the last decision that set the layer ruling (layer_overrule), or {}."""
+    found = {}
+    for d in (v.curated.get("owner_decisions") or []) if v.curated else []:
+        effects = d.get("effects") if isinstance(d.get("effects"), dict) else {}
+        if isinstance(effects.get("layer_overrule"), str):
+            found = effects
+    return found
+
+
+def _layer_default(v):
+    return _layer_rule_effects(v).get("layer_default") or "the ruling's default"
+
+
+def _layer_overrule(v):
+    return _layer_rule_effects(v).get("layer_overrule") or "the overruled candidate"
+
+
 def _effect_lines(v, d, eff):
     """What one owner decision did to this map, from the model's count of it."""
     lines, effects = [], d.get("effects") if isinstance(d.get("effects"), dict) else {}
@@ -1808,6 +1853,17 @@ def _effect_lines(v, d, eff):
                                              effects.get("layer_default"), ", ".join(
                                                  "%s %d" % kv for kv in sorted((eff.get("layer_values") or {}).items()))
                                              or "none"))
+    if "layer_card_settled" in eff:
+        lines.append("%d records whose card names a layer other than %s are no longer contested by %s: the card's "
+                     "layer settles them (%s); that claim stays listed" % (
+                         eff["layer_card_settled"], _layer_default(v), _layer_overrule(v), ", ".join(
+                             "%s %d" % kv for kv in sorted((eff.get("layer_card_values") or {}).items())) or "none"))
+    if "sphere_decided" in eff:
+        lines.append("sphere values it sets (see KINGDOM OS): %s" % (
+            ", ".join("%s %d" % kv for kv in sorted(eff["sphere_decided"].items())) or "none"))
+    if "sphere_agent_reviewed" in eff:
+        lines.append("%d sphere values rest on curated rows agents reviewed and this decision accepts; none is marked "
+                     "reviewed by Yu" % eff["sphere_agent_reviewed"])
     by_account = {}
     for item in eff.get("ownership") or []:
         by_account.setdefault((item.get("account") or "no single %s account row" % item.get("provider"),
