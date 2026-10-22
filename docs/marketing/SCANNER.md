@@ -215,13 +215,17 @@ A missed target is information, never a reason for urgency.
 2. **Company.** Spin off under Cambridge TCG Limited, or form a new company (its own D-U-N-S
    number and store accounts)?
 3. **Audience.** Players and collectors first, or small sellers?
-4. **Japanese cards.** Does Cambridge TCG sell them?
+4. **Japanese cards.** Does Cambridge TCG sell them? Observed 2026-10-22: 37 of the 52 eBay
+   listings seen are titled Japanese, JP, Jap or Japan, all One Piece [O, 2026-10-22; RESEARCH
+   §7.6]. Whether the scanner leads with Japanese prints stays Yu's call.
 5. **Budget.** $99 a year and $25; a price API ($19–$149 a month at JustTCG); a solicitor to review
    the name, the disclaimer and the DPIA.
 6. **Letters.** Will you send the requests to Bandai, Cardmarket and JustTCG, and later to EPN?
 7. **Screenshots.** Use demo cards now, or wait for Bandai?
 8. **Pricing model.** Free, or paid? A subscription brings in the UK subscription rules from January
-   2027.
+   2027. VAT: Apple and Google account for UK VAT on app sales and in-app purchases, and Google's
+   service fee may need self-assessment [V, 2026-10-22], meaning the reverse charge [I]. Direct web
+   sales would carry Cambridge TCG's own 20% UK VAT [I] (RESEARCH §7.6).
 9. **Website.** Apple refuses organisations whose site has "minimal content" [V]. Is the
    retired-shop cambridgetcg.com enough, or does the app need its own site?
 10. **Analytics.** None, or aggregate on-device counters with an off switch?

@@ -11,6 +11,7 @@ in [README.md](README.md) and the asset specs are in [ASSETS.md](ASSETS.md).
 |---|---|
 | **[V]** | A fact-checker confirmed it against the primary source on 2026-10-20 |
 | **[V-corr]** | A fact-checker corrected it; the corrected version is given |
+| **[V, 2026-10-22]** | Read on the primary source by one researcher on 2026-10-22; not yet fact-checked by a second session |
 | **[O]** | A researcher observed it today (a page, code or a CLI run) |
 | **[D]** | Documented by the cited source; not re-checked |
 | **[S]** | Secondary source only (trade press, vendor, law firm, search snippet) |
@@ -32,6 +33,12 @@ Estate observations cite the 2026-10-20 research notes by name:
 Section 7 was added the same evening, after Yu named Cambridge TCG's channels and the scanner plan.
 It draws on five more notes (ebay, cardmarket, scanner-market, scanner-rules, app-launch) and two
 more fact-checks (verify-marketplaces, verify-scanner).
+
+§7.6 was added on 2026-10-22, after Yu named the accounts and said the business is VAT-registered.
+It draws on three notes from that day, ebay-account.md, cardmarket-account.md and vat.md, filed in
+[research/2026-10-22/](research/2026-10-22/) beside the draft texts, marketplace-texts.md. Raw
+captures are not filed. No second session has fact-checked these notes yet, so their primary-source
+reads carry the tag [V, 2026-10-22].
 
 The research notes and the fact-checks are committed in
 [research/2026-10-20/](research/2026-10-20/); raw page captures are not. They mention the agents'
@@ -584,18 +591,20 @@ is a natural co-marketing route [I].
 - Retail and the trade-in desk closed 2026-07-06, after 8 retail orders and zero trade-ins.
 - Wholesale retired around 2026-07-05; wholesaletcgdirect.com redirects to cambridgetcg.com.
 - New listings, bids and checkout have answered 410 since 2026-09-23.
-- eBay showed 0 listings under the cambridgetcg Shop URL, which now returns 410 (§7.1); the account
-  Yu sells from is not observed.
+- eBay showed 0 listings under the cambridgetcg Shop URL, which returned 410 on 2026-10-20 (§7.1).
+  Yu named the account on 2026-10-22, and its pages were observed that day: 87 listings, "950 items
+  sold", "Registered as a private seller" [O, 2026-10-22; §7.6].
 - The site presents "open-source TCG data infrastructure", with a "paid orders are retired" banner.
 - On 2026-10-18 Yu said "TCG is generating revenue now" (quoted in ledger `be-business-facts`). On
-  2026-10-20 Yu named the channel: "For now only ebay and cardmarket sales." The accounts themselves
-  are not yet observed (§7.1–7.2).
+  2026-10-20 Yu named the channel: "For now only ebay and cardmarket sales." On 2026-10-22 Yu named
+  the accounts: "eBay: cambridgetcg cardmarket: cambridgetcg 😂 yes VAT registered."
+  The eBay account was observed that day; the Cardmarket one was not (§7.6).
 
-**Channel facts** (§7 holds the fuller, fact-checked picture for eBay and Cardmarket):
+**Channel facts** (§7 holds the fuller picture for eBay and Cardmarket, fact-checked except §7.6):
 
 | Channel | Fact | Tag |
 |---|---|---|
-| eBay UK, business sellers | 10.9% final value fee in Collectables and Toys & Games (CCG), plus £0.30 per order ≤£10 or £0.40 above (10p in some Collectables categories), plus a regulatory operating fee of 0.35% excluding VAT (0.42% including VAT, as the private-seller page shows). Business fees exclude VAT. UK *private* sellers pay no final value fee. https://www.ebay.co.uk/help/selling/fees-credits-invoices/fees-business-sellers?id=4809 | [V-corr]; both figures are eBay's, on different VAT bases (§7.1) |
+| eBay UK, business sellers | 10.9% final value fee in Collectables and Toys & Games (CCG), plus £0.30 per order ≤£10 or £0.40 above (10p in some Collectables categories), plus a regulatory operating fee of 0.35% excluding VAT (0.42% including VAT, as the private-seller page shows). Business fees exclude VAT; a VAT-registered seller can probably reclaim that VAT [I; for the accountant; research, not tax advice; §7.6]. UK *private* sellers pay no final value fee or regulatory operating fee; the private-seller page's 12.8% and 0.42% apply to private sellers residing outside the UK [V, 2026-10-22; help 4822]. https://www.ebay.co.uk/help/selling/fees-credits-invoices/fees-business-sellers?id=4809 | [V-corr]; both figures are eBay's, on different VAT bases (§7.1) |
 | eBay price guide | Free, UK and US, TCG only (Pokémon EN/JP, Magic, Yu-Gi-Oh!, One Piece, Lorcana), up to two years of sold data plus PSA/CGC population data, app scanning. https://pages.ebay.co.uk/price-guide/ | [V]. Rolling out from 1 September 2026 (eBay press release) [V] |
 | eBay Authenticity Guarantee | Single cards of £250 or more, raw or graded, UK to UK; launched 6 May 2026 at £500 | [V] (§7.1) |
 | Cardmarket (EU) | API closed to new applications. 5% commission (rates by seller type unread). VAT collected only on non-UK professionals' sales to the UK of £135 or less. | [V] (§7.2) |
@@ -829,9 +838,15 @@ listing's description 0.
 
 ### 6.7 Facts only Yu holds
 
-- **Cambridge TCG's earning channel**: answered 2026-10-20, eBay and Cardmarket. Still only Yu's:
-  the eBay and Cardmarket usernames and account types, where the money lands, and the VAT status
-  (`be-business-facts`).
+- **Cambridge TCG's earning channel**: answered 2026-10-20, eBay and Cardmarket. **Usernames and VAT
+  status**: answered 2026-10-22.
+  Yu: "eBay: cambridgetcg cardmarket: cambridgetcg 😂 yes VAT registered."
+  Still only Yu's (`be-business-facts`):
+  - whether each account is the company's, and whether it will be registered as a business (eBay
+    shows a private seller, §7.6);
+  - the Cardmarket account's type;
+  - where the money lands;
+  - the VAT number, scheme and effective date.
 - **Whether any social accounts exist** beyond the @CambridgeTCG YouTube channel. Its one video
   appears unlisted.
 - **Who reads the listing's analytics property.**
@@ -848,32 +863,45 @@ piece card scanner and tracker for ios and android". Five research notes (ebay, 
 scanner-market, scanner-rules, app-launch) were re-read against primary sources by two
 fact-checkers (verify-marketplaces, verify-scanner): 50 load-bearing claims and 35 spot checks.
 Corrected claims appear in their corrected form. Everything was fetched on 2026-10-20, without
-logging in.
+logging in (§7.6 adds 2026-10-22 reads).
 
 - eBay answered scripted reads with a "Security measure" page, so eBay quotes come through a
-  summarising fetch tool.
+  summarising fetch tool (2026-10-20). §7.6 adds 2026-10-22 reads, including raw eBay help pages.
 - www.cardmarket.com answered 403. Its help site and data files could be read.
 
 This is research, not legal or tax advice.
 
 ### 7.1 eBay UK
 
-Notes: ebay §1–8; verify-marketplaces rows 1–13 and spot checks.
+Notes: ebay §1–8; verify-marketplaces rows 1–13 and spot checks. For 2026-10-22: ebay-account.md
+and vat.md, in [research/2026-10-22/](research/2026-10-22/) (§7.6).
 
-- **Presence is unknown.** https://www.ebay.co.uk/str/cambridgetcg returns HTTP 410 [V]. The
-  username, account type and feedback score are facts only Yu holds.
+- **Presence** (updated 2026-10-22). https://www.ebay.co.uk/str/cambridgetcg returned HTTP 410 on
+  2026-10-20 [V], so there was no Shop subscription then. Yu named the account on 2026-10-22, and
+  its pages were observed that day: "Registered as a private seller", "100% positive Feedback
+  (340)", "950 items sold" and 87 listings [O, 2026-10-22; §7.6 also says how they were observed].
 - **Fees** (fees page for business sellers, updated 30 Sep 2026) [V-corr, rows 1–2]:
   - a 10.9% final value fee for collectable cards;
   - £0.30 per order up to £10, and £0.40 above;
   - a regulatory operating fee of 0.35% excluding VAT, which is the 0.42% including VAT on the
     private-seller page. §4.2 now gives both, labelled by VAT basis.
 
-  Business fees exclude VAT. Without VAT registration (status unknown), the effective final value
-  fee is about 13.1% [I].
+  Business fees exclude VAT. Cambridge TCG is VAT-registered (Yu, 2026-10-22). A UK seller contracts
+  with eBay (UK) Limited, which has a UK VAT number [V, 2026-10-22; help 4259]. That eBay adds UK
+  VAT at 20% to business fees, and that this VAT is reclaimable input tax, are inferences [I; for
+  the accountant; research, not tax advice; §7.6]. If both hold, the fee cost is the net rate:
+  10.9%, plus the per-order fee, plus 0.35%, which is £2.65 on a £20 order (13.25%) [I]. The earlier
+  "about 13.1%" (10.9% × 1.2) holds for a seller who can't reclaim VAT. Registration's real cost is
+  output VAT on the sale: £3.33 of a £20 standard-rated price, or 1/6 of the margin under the margin
+  scheme [I]. Which scheme applies is for Yu and the accountant. A UK private seller pays no final
+  value fee or regulatory operating fee [V, 2026-10-22; help 4822], so registering as a business
+  adds these fees (§7.6).
 - **Paying for reach.**
-  - Coupons, sale events and multi-buy need a Shop, which costs £27, £77 or £437 a month [V].
+  - Coupons, sale events and multi-buy need a Shop, which costs £27, £77 or £437 a month [V]. Since
+    20 January 2025 they are closed to private sellers [D, help 4090; ebay §4].
   - Promoted Listings are only for "Above standard and Top rated sellers with recent sales
-    activity" [V], so a new or dormant account can't buy reach yet [I].
+    activity" [V]. The account is neither new nor dormant [I] (16 positive feedback in the month
+    to 2026-10-22 [O, 2026-10-22]), but its seller level isn't public [U].
 - **Links and contact** [V-corr, row 9]:
   - Listings may not link off eBay, even as text that can't be clicked.
   - The off-eBay policy also bans using an eBay buyer's contact details to sell elsewhere, at any
@@ -883,11 +911,13 @@ Notes: ebay §1–8; verify-marketplaces rows 1–13 and spot checks.
 - **Feedback** [V-corr, overreach 3]: eBay policy 4231 bans "any ... incentive in exchange for positive
   feedback". The DMCC Act bans fake reviews, and reviews that *conceal* an incentive (Schedule 20
   para 13). The house rule "no incentive, ever" rests on eBay's policy, not the statute.
-- **Business-seller duties** [V, seen through the summary only]: full contact details, a VAT number
-  if registered, a 14-day right to cancel, no restocking fee, and buyers never charged return
-  postage. Read the raw page before relying on the last point, which is stricter than the Consumer
-  Contracts Regulations 2013 (CCR) [I]. Companies show their registered number and office on "its
-  websites" (SI 2015/17 reg. 25) [V].
+- **Business-seller duties** [V, 2026-10-22; help 4710, the raw page]: "Full contact details for
+  the business", "A VAT number, if the business's online activities are subject to VAT", the 14-day
+  right to withdraw, faulty items accepted "within 30 days with a full refund", no restocking fees,
+  no keeping original postage, and no return postage charged to buyers. The last point is stricter
+  than the Consumer Contracts Regulations 2013 (CCR), which let a trader pass on return postage if
+  it says so in advance (reg. 35(5)) [V, 2026-10-22]. Companies show their registered number and
+  office on "its websites" (SI 2015/17 reg. 25) [V].
 - **Authenticity Guarantee** [V]: covers single cards at **£250 or more**, raw or graded, sent UK to
   UK. Sellers can't opt out, and they pay postage to the authenticator. It launched on 6 May 2026
   at £500. §4.2 now shows the £250 threshold.
@@ -903,10 +933,12 @@ Notes: ebay §1–8; verify-marketplaces rows 1–13 and spot checks.
 
 ### 7.2 Cardmarket
 
-Notes: cardmarket §1–7; verify-marketplaces rows 14–25; verify-scanner row 16.
+Notes: cardmarket §1–7; verify-marketplaces rows 14–25; verify-scanner row 16. For 2026-10-22:
+cardmarket-account.md and vat.md, in [research/2026-10-22/](research/2026-10-22/) (§7.6).
 
-- **Presence is unknown** [U]. The site's profile pages blocked reads, and only Yu holds the
-  username.
+- **Presence is unobserved** [U]. Yu named the account on 2026-10-22 (`cambridgetcg`). Its profile
+  page met a Cloudflare bot check that day, and none of the archives or search indexes that answered
+  holds a copy (§7.6).
 - **Account** [V]:
   - A Professional account needs a phone number, a photo ID and "a business registration or trade
     license".
@@ -925,12 +957,18 @@ Notes: cardmarket §1–7; verify-marketplaces rows 14–25; verify-scanner row 
   from Germany and €82.15 from Belgium, so the edge runs from about €2 to €77 by the seller's
   country. Professional sellers may also add cheaper methods of their own.
 - **Tax and returns** [V]:
-  - Cardmarket collects UK VAT only on non-UK professionals' sales of £135 or less, so VAT on
-    UK-to-UK sales is Cambridge TCG's own concern [I].
+  - Cardmarket collects UK VAT only on non-UK professionals' sales of £135 or less [V, 2026-10-22;
+    Tax Requirements], so VAT on UK-to-UK sales is Cambridge TCG's own concern [I; eBay help 4650
+    and HMRC's marketplace guidance point the same way; §7.6].
+  - Cardmarket also collects EU VAT on sales to EU consumers under €150, and Swiss VAT [V,
+    2026-10-22; Tax Requirements]. Its 5% commission is probably a reverse-charge service for a UK
+    VAT-registered seller [I; for the accountant] (§7.6).
   - EU buyers face a €3 duty from 1 July 2026.
   - The withdrawal button does not appear on UK-to-UK orders, but CCR 2013 still gives UK buyers 14
     days [V-corr].
-  - Professionals must show a withdrawal policy on their profile.
+  - Professionals must show a withdrawal policy on their profile. The General Terms §3 go further:
+    a commercial user must include "a correct and complete About Us, General Terms and Conditions, a
+    Privacy Policy, and a Withdrawal Form" [V, 2026-10-22; not among the bold upcoming changes].
 - **The General Terms are readable** (the notes said they were blocked) at
   https://help.cardmarket.com/en/general-terms-and-conditions [V-corr]:
   - §10: "you are prohibited from using hyperlinks in your offers".
@@ -1005,7 +1043,11 @@ Notes: scanner-rules §1–6; verify-scanner rows 1–17 and S1–S17.
   - Apple 5.2.2: "Authorization must be provided upon request" for third-party content.
   - eBay's Buy APIs are "intended for eBay partners only".
   - JustTCG's paid tiers may show prices, but bar a "substitute for or competitor to the Service".
-  - eBay's terms and Cardmarket's §10 bar scraping.
+  - eBay's User Agreement bars "any robot, spider, scraper ... or other automated means to access
+    our Services for any purpose, except with the prior express permission of eBay" [V, 2026-10-22;
+    help 4259]. Cardmarket's §10, re-read on 2026-10-22, bars "disseminating or publicly reproducing
+    contents of the online platform or of other users" beyond the platform's intended use [V,
+    2026-10-22]; no clause using the word "scraping" was seen (corrected 2026-10-22, §7.6).
 - **Children** [V]:
   - The ICO Children's Code covers any service "likely to be accessed" by under-18s.
   - Apple 5.1.2(i) needs explicit permission before data goes to "third-party AI".
@@ -1037,8 +1079,127 @@ Notes: app-launch §0–5; verify-scanner rows 5–11 and S3–S8.
 
 **What follows** [I]:
 1. Cambridge TCG's marketing is now listings, fair prices, real scans, fast dispatch and an honest
-   profile. No paid reach was found on Cardmarket, and eBay's isn't open to a new account yet.
+   profile. No paid reach was found on Cardmarket. eBay's needs a seller level that isn't public for
+   this account [U], and coupons need a business account and a Shop (§7.1, §7.6).
 2. The scanner should lead with identification, condition and export. It adds prices only behind a
    written licence.
 3. The maker line is required, because the stores publish the maker anyway.
 4. Four written answers gate prices and card images: from Bandai, Cardmarket, EPN and a price API.
+
+### 7.6 The accounts and VAT (2026-10-22)
+
+Yu, 2026-10-22, verbatim: "eBay: cambridgetcg cardmarket: cambridgetcg 😂 yes VAT registered."
+The VAT number, scheme and effective date were not given; these docs don't record the number. Three
+notes from that day back this section, filed in [research/2026-10-22/](research/2026-10-22/):
+[ebay-account.md](research/2026-10-22/ebay-account.md),
+[cardmarket-account.md](research/2026-10-22/cardmarket-account.md) and
+[vat.md](research/2026-10-22/vat.md). Their URLs are in the notes. [V, 2026-10-22] marks a read on
+the primary source by one researcher, not yet fact-checked by a second session. Research, not tax or
+legal advice.
+
+**eBay `cambridgetcg`: observed** [O, 2026-10-22; ebay-account.md]. The pages read were
+https://www.ebay.co.uk/usr/cambridgetcg, its feedback page and one listing,
+https://www.ebay.co.uk/itm/820050875670, between 19:38 and 19:44 UTC. eBay localised the session to
+Japan.
+- "100% positive Feedback (340)", "950 items sold", 87 listings, "Member since: 01 Nov, 2023",
+  "Location: United Kingdom". The About text reads "Minty and authentic cards imported from Japan
+  :)". The feedback shows 16 positives in the last month and no neutral or negative in 12 months.
+- All 52 listings seen are One Piece singles, 37 titled Japanese, JP, Jap or Japan, £5–£268 (median
+  £28). Titles follow no template.
+- The listing read says "Registered as a private seller" and "No returns accepted.", and has no
+  business-seller panel. Its title says "Mint"; its item specifics say "Back scuffs/chips".
+
+**How eBay was observed, and why agents won't repeat it.** A script drove headless Chromium, logged
+out, with no clicks. The first load in each fresh browser context got a 403 bot wall. The run then
+used new contexts and warm-up loads until pages loaded, and it stopped at a captcha. eBay's User
+Agreement bars "any robot, spider, scraper, data mining tools, data gathering and extraction tools,
+or other automated means to access our Services for any purpose, except with the prior express
+permission of eBay" [V, 2026-10-22; help 4259]. Agents won't repeat this. Further checks of either
+account should be Yu's own logged-in look: Yu can paste or screenshot what the profile shows. The
+facts above were observed, and they stay labelled [O].
+
+**Cardmarket `cambridgetcg`: not observed** [U; cardmarket-account.md]. The profile answered HTTP 403
+"Just a moment..." (a Cloudflare Turnstile check) at 19:36 UTC, and the check was not passed. None of
+the archives or search indexes that answered holds a copy; several lookups timed out or were refused.
+The simplest truthful route is for Yu to open the page and share what it shows.
+
+**What the eBay finding means** [I; not legal advice]. The account matches Cambridge TCG, but its
+registration doesn't match a VAT-registered company that resells. eBay says a seller "must register
+as a business if, for example, they sell items they have bought to resell", and business sellers
+"can't represent themselves as private individuals" [V, 2026-10-22; help 4710]. DMCC Sch 20 para 25
+bans falsely implying you are not trading. Innocent explanations are possible: the account may be
+Yu's own, or a switch may be under way [U]. Only Yu can say. Cardmarket excludes a commercial-looking
+private account "from selling until a business registration is available" [V, 2026-10-22; Tax
+Requirements].
+
+**What registering as a business costs on eBay** (cost information, for Yu and an adviser). eBay's
+"Fees for private sellers" page says: "It's now free for UK-based private sellers to sell on eBay ...
+You won't pay final value fees or regulatory operating fees when your items sell" [V, 2026-10-22;
+help 4822, https://www.ebay.co.uk/help/selling/fees-credits-invoices/understanding-invoice?id=4822].
+Business sellers pay a 10.9% final value fee, £0.30 (orders of £10 or less) or £0.40 per order, and
+a 0.35% regulatory operating fee, all quoted exclusive of VAT [V, 2026-10-22; help 4809]. So
+registering the account as a business adds fees that the private account doesn't pay today: £2.65 on a £20 order,
+before VAT [I]. This sits beside eBay's policy that resellers "must register as a business"
+(above). Who owns the account is [U].
+
+**Companies House** [V, 2026-10-22;
+https://find-and-update.company-information.service.gov.uk/company/15680297]: "CAMBRIDGE TCG
+LIMITED", "15680297", "Active". The registered office is "60 Tottenham Court Road Suite 4583a,
+Fitzrovia, London, United Kingdom, W1T 2EW". The certificate of incorporation says "the situation of
+its registered office is in England and Wales" [V, 2026-10-22; filing history; saved capture, not
+filed]. The suite reads like a virtual office [I]. HMRC calls such an office, alone, "unlikely" to
+show UK establishment for marketplace VAT [V, 2026-10-22].
+
+**VAT** (vat.md, which gives the URLs):
+- eBay: "It's mandatory that you display your VAT identification number" [V, 2026-10-22; help 4650].
+- eBay's business fees are "exclusive of VAT" [V, 2026-10-22; help 4809], and a UK seller contracts
+  with eBay (UK) Limited, which has a UK VAT number [V, 2026-10-22; help 4259]. That eBay adds 20% UK
+  VAT to those fees, and that this VAT is reclaimable input tax (Notice 700 §10), are [I]: for the
+  accountant; research, not tax advice. If both hold, the fees cost £2.65 on a £20 order [I].
+- Neither marketplace collects VAT on UK-to-UK sales [V, 2026-10-22 for eBay, help 4650; I for
+  Cardmarket, from the cases its Tax Requirements page lists], so it is ours [I; HMRC's
+  marketplace guidance points the same way].
+- Output VAT on a £20 sale is £3.33 standard-rated, or (sale − purchase) × 1/6 under the optional
+  margin scheme [I]. The scheme needs a stockbook entry per item, and it excludes goods bought with
+  VAT [V, 2026-10-22; https://www.gov.uk/vat-margin-schemes] and goods imported "other than works of
+  art, collectors' items or antiques" [V, 2026-10-22;
+  https://www.gov.uk/guidance/check-if-you-can-use-a-vat-margin-scheme-if-you-import-from-or-export-to-countries-outside-the-uk].
+  So it fits singles bought from private people, but not sealed product, singles pulled from it, or
+  our own Japanese imports [I: this assumes modern cards are not collectors' items]. Notice 718
+  was withdrawn in 2021 [V, 2026-10-22].
+- Consumer prices include VAT (Price Marking Order 2004 art. 4; DMCC Act s.230(4); eBay help 4121)
+  [V, 2026-10-22].
+- Cardmarket's 5% commission is probably a reverse-charge service for us (Notice 741A §5) [I]; its
+  invoice is [U]. Cardmarket and eBay collect EU VAT on consumer orders of about €150 or less from
+  sellers outside the EU (Cardmarket: below €150, professional sellers; eBay: up to €150, and any
+  value to France and Monaco) [V, 2026-10-22], and the UK side is a zero-rated export with proof
+  of posting (Notice 703 §7.6) [I on the fit].
+- App stores account for UK VAT on app sales [V, 2026-10-22]. Google's service fee may need
+  self-assessment [V, 2026-10-22], meaning the reverse charge [I]. Direct web sales would carry our
+  own 20% [I].
+
+Corrected in place: §7.1's "about 13.1%" fee and §7.4's "scraping" line.
+
+**The paste-ready texts** for M1, M3, M4 and M6 are a dated draft in
+[research/2026-10-22/marketplace-texts.md](research/2026-10-22/marketplace-texts.md). They stay
+there until Yu approves them. Agents' proposal: once Yu approves them, they move into the Cambridge
+TCG brand kernel at Cambridge-TCG-monorepo `apps/storefront/marketing/`, where the brand kit from
+PR #86 lives, because a kernel holds approved material (README §4). They fit once each account is
+registered as a business.
+
+**Questions for Yu and the accountant**
+1. Is eBay `cambridgetcg` the company's account or Yu's own? If it sells the company's stock, when
+   will it register as a business, with the details, a returns policy and the VAT number? Is
+   Cardmarket `cambridgetcg` Private or Professional?
+2. Registering the eBay account as a business adds fees the private account doesn't pay today
+   (above). How does that sit with eBay's policy that resellers "must register as a business"? This
+   is for Yu and an adviser, with the facts only Yu holds.
+3. What is the VAT number, and from what date does registration run? Does HMRC's record read
+   "Cambridge TCG Limited"?
+4. Which treatment does each kind of stock get: standard rating, the margin scheme or Global
+   Accounting? What purchase records exist for stock bought before registration?
+5. Where does the money land?
+6. What VAT do Cardmarket's commission invoices show, and is the reverse charge entered?
+7. Are EU or Swiss sales made, and how are they treated on the UK return?
+8. Which invoice does each order need under the chosen scheme? Where is the business run from, and
+   which address takes returns?

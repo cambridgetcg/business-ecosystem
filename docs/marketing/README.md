@@ -4,8 +4,10 @@ Written 2026-10-20 by Claude Code agents for Yu. It is an agents' proposal, not 
 An *agents' call* is a call agents made under Yu's 2026-10-20 delegation, kept in the decision
 ledger at `~/.kingdom/decisions`; Yu overturns any of them by saying so. [ASSETS.md](ASSETS.md) says
 what to make and how; [RESEARCH.md](RESEARCH.md) holds the findings, and the dated research notes
-behind them are in [research/2026-10-20/](research/2026-10-20/). [SCANNER.md](SCANNER.md) is the
-brief for the planned One Piece scanner app. Facts are as of 2026-10-20.
+behind them are in [research/2026-10-20/](research/2026-10-20/) and
+[research/2026-10-22/](research/2026-10-22/). [SCANNER.md](SCANNER.md) is the brief for the planned
+One Piece scanner app. Facts are as of 2026-10-20, except Cambridge TCG's marketplace accounts and
+VAT, updated on 2026-10-22 (RESEARCH §7.6).
 
 ## 1. What this is, and why now
 
@@ -34,6 +36,11 @@ small v0.
   am planning to spin off one piece card scanner and tracker for ios and android". Its marketing is
   listings, photos and profiles on eBay UK and Cardmarket (ASSETS §M). Agents propose the scanner as
   a separate brand ([SCANNER.md](SCANNER.md)).
+- **The accounts are named, and the business is VAT-registered.** Yu, 2026-10-22:
+  "eBay: cambridgetcg cardmarket: cambridgetcg 😂 yes VAT registered." The eBay account was
+  observed on 2026-10-22: it is "Registered as a private seller", with no business details.
+  Cardmarket's profile sat behind a bot check and is unobserved. Still unknown: the VAT scheme and
+  number, where the money lands, and whether the eBay account is the company's (RESEARCH §7.6).
 
 Terms:
 - **Claim:** a public factual statement.
@@ -127,8 +134,9 @@ The proposed rings follow that split.
 
 A kernel lives in the repo that owns the brand. RewardsPro's goes at monorepo
 `apps/rewardspro/marketing/` (its canonical source, ledger `canonical-sources`); the approved kit is
-in monorepo PR #83 (open; Yu merges). Another session reports building Cambridge TCG's kit at
-`apps/storefront/marketing/`.
+in monorepo PR #83 (open; Yu merges). Another session built Cambridge TCG's kit at
+`apps/storefront/marketing/`, in monorepo PR #86 (not on main as of 2026-10-22). Agents' proposal:
+the marketplace texts move there once Yu approves them (RESEARCH §7.6).
 Existing kits stay put: YOUSPEAK `brand/` and artbitrage `tools/brand/`.
 
 The kit covers the listing, landing page, docs and outreach only. Inside merchants' shops the widget
@@ -214,7 +222,7 @@ The five roles and the exit codes below come later, if volume needs them.
 
 | Gate | Checks | Tool |
 |---|---|---|
-| G0 Ready | Brand status and product readiness. RewardsPro: `rp-shopify-deploy` passed. Cambridge TCG: the eBay and Cardmarket usernames known and the profiles observed, before any pack names a shop. Scanner: a working build, a written basis for every data and image source, a trade-mark search and a DPIA. | Ledger reader, **to build** |
+| G0 Ready | Brand status and product readiness. RewardsPro: `rp-shopify-deploy` passed. Cambridge TCG: the eBay and Cardmarket usernames known and the profiles observed, before any pack names a shop. On 2026-10-22 Yu gave the usernames (both `cambridgetcg`) and eBay's profile was observed; Cardmarket's was not, so this gate holds until Yu looks at it, logged in (RESEARCH §7.6). Agents' proposal: also require each account to show the business details (ASSETS M1). Scanner: a working build, a written basis for every data and image source, a trade-mark search and a DPIA. | Ledger reader, **to build** |
 | G1 Claims | Every factual sentence maps to a verified, unexpired claim allowed on this channel. Bare numbers, £, % and superlatives go to a person. | **To build** |
 | G2 Pressure | `fomo_scan` on text or HTML. Honest copy scored 8, pressured copy 34–52, so 20 or more goes to a person. Shield rules-only for offers. | Exists. Patterns for its misses (counted social proof, price-rise threats) **to build** |
 | G3 Wording | `rhetorlint --max N --sarif` | Exists (local CLI) |
@@ -251,7 +259,7 @@ responsibility: the CMA's 2026-03-09 guidance holds a business responsible for i
   "MCP" can't be used by standard MCP clients, so make it conformant or stop calling it MCP; keep the
   same entity text in MCP and registry metadata; consider UCP only when something is for sale;
 - say where we sell: cambridgetcg.com's `llms.txt`, JSON-LD and entity card should name eBay UK and
-  Cardmarket once the usernames are known (ASSETS M8).
+  Cardmarket. The usernames have been known since 2026-10-22; ASSETS M8 says when to link them.
 
 Demand, not doors, is the constraint (the estate's July agent-participation finding).
 
@@ -320,11 +328,16 @@ collection, and never copied into notes, memory or journals.
 10. **YU.** Send about 10 personal messages a week, to limited companies only, with no follow-ups.
     Ask every partner for a review in the same neutral words.
 11. **AGENT.** Maintain-tier work for Cambridge TCG and TaxSorted, as PRs to their own lanes.
-    - **Cambridge TCG (marketplace-only).** Its kit, including the eBay Shop and Cardmarket images,
-      is being built at monorepo `apps/storefront/marketing/` by another session, which reports
-      that Yu asked for it on 2026-10-20 (not on main yet).
-      The marketplace texts and templates are ASSETS M1–M8, and wait on the eBay and Cardmarket
-      usernames. Site truth fixes still stand: retired sitemap URLs, the "daily" price-guide claim,
+    - **Cambridge TCG (marketplace-only).** Its kit is in monorepo PR #86 at
+      `apps/storefront/marketing/`, by another session, which reports that Yu asked for it on
+      2026-10-20 (not on main yet). It carries the eBay Shop logo and billboards and the Cardmarket
+      avatar (observed 2026-10-22 on branch `feat/cambridge-tcg-brand-kit`).
+      The marketplace texts and templates are ASSETS M1–M8. Yu gave the usernames on 2026-10-22.
+      Paste-ready texts for M1, M3, M4 and M6 are a dated draft in
+      [research/2026-10-22/marketplace-texts.md](research/2026-10-22/marketplace-texts.md) until Yu
+      approves them; the next step is an agents' proposal (RESEARCH §7.6). They fit once each
+      account is registered as a business; eBay shows a private seller.
+      Site truth fixes still stand: retired sitemap URLs, the "daily" price-guide claim,
       `/rewards` "Daily Spin", and a "Where we sell" line. Before 26 Nov 2026, check the site's
       member price display and its Cardmarket source record against Cardmarket's new terms
       (RESEARCH §7.2).
@@ -383,7 +396,11 @@ Meanwhile, run fomoscan and RhetorLint over the Hub's own templates now.
 - These docs write nothing to `estate/`. Once work runs, the estate lane records the marketing
   capabilities (the estate map's "grow" band, which today has no marketing code in use) through its
   normal import.
-- Cambridge TCG's eBay and Cardmarket accounts exist and are business or professional accounts.
-  Unverified: no public profile was found. Whether Cambridge TCG is VAT-registered is unknown; eBay's
-  business fees exclude VAT, so without registration they cost a fifth more.
+- Cambridge TCG sells as `cambridgetcg` on eBay and on Cardmarket, and is VAT-registered. Yu,
+  2026-10-22: "eBay: cambridgetcg cardmarket: cambridgetcg 😂 yes VAT registered."
+  The eBay account is "Registered as a private seller" (observed 2026-10-22). Whether it is the
+  company's account or Yu's own, and the Cardmarket account's type, are unknown. The VAT on eBay's
+  business fees is probably reclaimable (agents' inference; for the accountant, not tax advice), so
+  the fee cost would be the net rate. The VAT that matters is output VAT on each sale (RESEARCH
+  §7.6).
 - None of this is legal advice. EU B2B email rules were not researched, so outreach stays UK-first.

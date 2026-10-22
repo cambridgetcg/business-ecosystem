@@ -4,9 +4,12 @@ Written 2026-10-20 by Claude Code agents for Yu. It is an agents' proposal, not 
 design is in [README.md](README.md) and the sources are in [RESEARCH.md](RESEARCH.md). The planned
 scanner app's assets are in [SCANNER.md](SCANNER.md) §6.
 
-Specs are as of 2026-10-20. A spec marked **read** was read on the platform's own page today by a
-researcher or a fact-checker (RESEARCH tags [O], [D] or [V]); **fact-checked** means [V]. **Tested**
-means an agent ran it on this Mac today. **Third-party** means only secondary sources say so.
+Specs are as of 2026-10-20, and section M was updated on 2026-10-22. A spec marked **read** was read
+on the platform's own page by a researcher or a fact-checker, on 2026-10-20 unless another date is
+given (RESEARCH tags [O], [D], [V] or [V, 2026-10-22]); **fact-checked** means [V], checked on
+2026-10-20. **Tested** means an agent ran it on this Mac on 2026-10-20. **Observed** means an agent
+saw it itself on the date given (an account's public page, a branch). **Agents' inference** is our
+reasoning, not a source. **Third-party** means only secondary sources say so.
 **Unverified** means no one checked it. Platforms change their rules without notice, so the gate G4 data carries a
 `review_after` date for each spec.
 
@@ -243,8 +246,8 @@ Each entry gives:
 
 **B5. Social cards and stories**
 - **Why:** organic posts, but only once a brand has a channel. RewardsPro doesn't need one now.
-  Cambridge TCG sells only on eBay and Cardmarket; social waits until the usernames are known and Yu
-  decides whether to open accounts (RESEARCH §6.7).
+  Cambridge TCG sells only on eBay and Cardmarket. The usernames came on 2026-10-22; social waits
+  until Yu decides whether to open accounts (RESEARCH §6.7).
 - **First:** none yet.
 - **Make:**
   - VectorCraft data sets: one card per CSV row (tested today).
@@ -316,8 +319,22 @@ Google AI labels apply if generated media is ever used.
 ## M. Marketplace kit (Cambridge TCG: eBay UK and Cardmarket)
 
 Yu, 2026-10-20: "For now only ebay and cardmarket sales." Cambridge TCG has no web shop, so its
-promotion is its listings and profiles. eBay pages were read through a summarising tool, because
-eBay blocked scripted reads (RESEARCH §7.1). Not legal advice.
+promotion is its listings and profiles. eBay pages were read through a summarising tool on
+2026-10-20, because eBay blocked scripted reads (RESEARCH §7.1); §7.6 adds 2026-10-22 reads. Not
+legal advice.
+
+**Update, 2026-10-22** (notes in [research/2026-10-22/](research/2026-10-22/)):
+- Yu: "eBay: cambridgetcg cardmarket: cambridgetcg 😂 yes VAT registered."
+- The eBay account's pages show "Registered as a private seller" and no business details (observed
+  2026-10-22; how, and why agents won't repeat it: RESEARCH §7.6 and
+  [ebay-account.md](research/2026-10-22/ebay-account.md)). The Cardmarket profile was not observed
+  ([cardmarket-account.md](research/2026-10-22/cardmarket-account.md)).
+- Paste-ready texts for M1, M3, M4 and M6 are a dated draft in
+  [research/2026-10-22/marketplace-texts.md](research/2026-10-22/marketplace-texts.md) until Yu
+  approves them; the next step is an agents' proposal (RESEARCH §7.6).
+- Monorepo PR #86 (the Cambridge TCG brand kit, by another session) now carries the eBay logo and
+  billboards and the Cardmarket avatar (observed 2026-10-22 on branch
+  `feat/cambridge-tcg-brand-kit`).
 
 **Rules that limit every marketplace asset:**
 
@@ -340,27 +357,38 @@ eBay blocked scripted reads (RESEARCH §7.1). Not legal advice.
 5. **No feedback bargaining.** eBay bans any "incentive in exchange for positive feedback"
    (fact-checked). Nothing pairs "feedback" or "evaluation" with an offer.
 6. **Real product only** (house rule 1). The listing image is the item sold.
+7. **Prices include VAT** (added 2026-10-22; the business is VAT-registered). Consumer prices are
+   VAT-inclusive: never "+VAT", and never add VAT after the sale (Price Marking Order 2004 art. 4;
+   DMCC Act s.230(4); eBay help 4121; Cardmarket General Terms §7; read 2026-10-22).
 
 **M1. Business identity on both marketplaces**
 - **Why:** law and both platforms expect a business to say it is one. Falsely creating the
   impression that you are not trading is a banned practice (DMCC Sch 20 para 25).
-- **First:** once Yu gives the usernames and account types (G0). Drafting costs nothing.
+- **First:** the usernames came on 2026-10-22 (both `cambridgetcg`). The account types are still
+  open: eBay shows "Registered as a private seller" (observed 2026-10-22), and Cardmarket's is
+  unobserved. The texts are drafted, and they fit once each account is registered as a business
+  (Yu's hand; the fees that adds on eBay are in RESEARCH §7.6).
 - **Make:** text, one ledger claim per fact.
 - **Spec:**
   - **eBay business-seller information** (read):
-    - Cambridge TCG Limited, company 15680297 (from the Shopify listing; confirm at Companies House
-      before use, unverified);
-    - the registered office and the part of the UK where it is registered (SI 2015/17 reg. 25,
-      fact-checked);
-    - a contact email, and the VAT number if registered;
+    - Cambridge TCG Limited, company 15680297 (read at Companies House on 2026-10-22);
+    - the registered office, "60 Tottenham Court Road Suite 4583a, Fitzrovia, London, United
+      Kingdom, W1T 2EW", and the part of the UK where it is registered, England and Wales (the
+      certificate of incorporation, read 2026-10-22; SI 2015/17 reg. 25, fact-checked);
+    - a contact email, and the VAT number. eBay: "It's mandatory that you display your VAT
+      identification number" (help 4650, read 2026-10-22). Yu holds the number; these docs don't
+      record it;
     - names that match Companies House and HMRC.
-  - **Returns** (eBay business-seller policy, seen through a summary only; Yu reads the raw page
-    before the text is final): a 14-day right to cancel, faulty items within 30 days, no restocking
-    fee, original postage refunded, and no return postage charged.
+  - **Returns** (eBay business-seller policy, help 4710; the raw page was read on 2026-10-22): a
+    14-day right to cancel, faulty items within 30 days, no restocking fee, original postage
+    refunded, and no return postage charged. The one listing read says "No returns accepted."
+    (observed 2026-10-22); a business account can't keep that setting (agents' inference).
   - **Cardmarket Professional account** (requirements fact-checked; the username rule read):
     - a phone number, a photo ID and the business registration;
-    - the username is 5–20 letters, digits or dashes; "CambridgeTCG" fits, but whether it is free is
-      unverified.
+    - the username is 5–20 letters, digits or dashes. The account Yu named is `cambridgetcg`
+      (2026-10-22); whether it is Private or Professional is unobserved;
+    - a commercial profile must include "a correct and complete About Us, General Terms and
+      Conditions, a Privacy Policy, and a Withdrawal Form" (General Terms §3, read 2026-10-22).
 - **Gate:** G1, G3. Registering or converting the accounts is Yu's hand.
 
 **M2. Photo and scan standard (replaces B9's Make and Spec for Cambridge TCG)**
@@ -400,6 +428,10 @@ eBay blocked scripted reads (RESEARCH §7.1). Not legal advice.
 - **Why:** eBay's search ranks on relevance and completeness. Cardmarket ranks on price, so accuracy
   is what protects the rating.
 - **Make:** a CSV template plus a G4 checker (80 characters, banned tokens).
+- **Now** (observed 2026-10-22): eBay titles follow no template ("JP", "Jap", "JDM", "! NM!"),
+  the one description read repeats the title, and one "Mint" title sits on a card listed with
+  "Back scuffs/chips". Draft templates and a condition mapping are in
+  [marketplace-texts.md](research/2026-10-22/marketplace-texts.md), M3.
 - **Spec, eBay** (read and fact-checked):
   - A title has 80 characters at most, in this order: name, number, set, features, language,
     franchise, condition or grade. Example: `[Card name] [number] [set] [features] Japanese One
@@ -419,26 +451,37 @@ eBay blocked scripted reads (RESEARCH §7.1). Not legal advice.
 **M4. Cardmarket profile texts**
 - **Why:** professional sellers "must have a right of withdrawal policy visible on their Cardmarket
   profile" (fact-checked). Powersellers are expected to have About Us, Privacy Policy and Terms of
-  Revocation (read).
+  Revocation (read). The General Terms read on 2026-10-22 ask this of every commercial user: About
+  Us, terms, a privacy policy and a withdrawal form (§3).
 - **Make:** text blocks for Yu to paste.
 - **Spec:**
   - **The withdrawal policy:** 14 days from delivery (UK CCR 2013 reg. 30). Cardmarket's own button
     doesn't appear on UK-to-UK orders (fact-checked).
-  - **The legal blocks:** an imprint (company name, number, registered office), terms and a privacy
-    notice.
+  - **The legal blocks:** an imprint (company name, number, registered office, the part of the UK
+    where it is registered, and the VAT number), terms, a privacy notice and a withdrawal form.
   - **One entity sentence** matching C1, for example: "Cambridge TCG Limited is a UK company selling
-    trading cards on eBay UK and Cardmarket." (Unverified until the profiles are seen.)
+    trading cards on eBay UK and Cardmarket." (Unverified: the eBay account observed on 2026-10-22
+    is registered as a private seller, and Cardmarket's profile was not seen.) Agents' proposal: on
+    Cardmarket, leave out "on eBay UK and Cardmarket" until its rule for profile text is read
+    (unverified). Its General Terms bar advertising in comments (§7) and in messages (§10), read
+    2026-10-22.
   - **Contact:** in English; reply within 24 hours (Seller Guide).
-  - **Logo or banner:** no published spec, and the profile pages were blocked (unverified). Prepare
-    M5's 300×300 logo, and check the upload form when Yu is logged in.
+  - **Logo or banner:** no published spec, and the profile page was blocked again on 2026-10-22
+    (unverified). PR #86 carries a Cardmarket avatar (`kit/social/avatar-1024.png`); check the
+    upload form when Yu is logged in.
   - **Links:** none on the profile until Yu has read the rules for it.
 - **Gate:** G1–G3. A solicitor's glance is advisable.
 
 **M5. eBay Shop kit (only with a Shop: Basic £27 a month, Yu's word)**
 - **Why:** a Shop unlocks the Discounts Manager, coupons, automated offers, newsletters and
   Promoted Shops (read; the Discounts Manager rule fact-checked).
-- **Make:** the Cambridge TCG brand kit (monorepo `apps/storefront/marketing/`, in progress) renders
-  these from its mark and colours. Type and shapes only.
+- **Make:** the Cambridge TCG brand kit renders these from its mark and colours. Type and shapes
+  only. Monorepo PR #86 (by another session) now carries the eBay logo (300×300) and light and dark
+  billboards (1280×290) in `apps/storefront/marketing/marketplaces/` (observed 2026-10-22 on branch
+  `feat/cambridge-tcg-brand-kit`). They still need a Shop subscription:
+  https://www.ebay.co.uk/str/cambridgetcg returned 410 on 2026-10-20 (fact-checked). The current eBay avatar is a
+  blue "Cambridge TCG" mark (observed 2026-10-22), so swapping in the kit's look is a visible change
+  for Yu to approve.
 - **Spec** (read and fact-checked, help 4090):
   - **Logo:** 300×300 px, under 12 MB. The format isn't stated, so use PNG in RGB. Promoted Shops
     ads reuse it.
@@ -475,6 +518,10 @@ eBay blocked scripted reads (RESEARCH §7.1). Not legal advice.
   - Coupons don't stack with order discounts or multi-buy.
   - Cardmarket parcels get no promotional insert until Cardmarket's rules on inserts are read
     (unverified).
+  - VAT (read 2026-10-22, Notice 700/7): the coupon itself carries no VAT, VAT is due on the
+    discounted amount, and free gifts stay within £50 per person a year.
+  - eBay closed coupons to private sellers on 20 January 2025 (help 4090, read 2026-10-20), so M7
+    also needs a business account.
 - **Gate:** G2, G3, G4. Needs a Shop subscription (M5). Printing spends money, so it needs Yu's word.
 
 **M8. cambridgetcg.com: where we sell**
@@ -482,7 +529,9 @@ eBay blocked scripted reads (RESEARCH §7.1). Not legal advice.
   people and AI assistants read should match what is true.
 - **Spec:**
   - **A "Where we sell" line:** add it to the site, with plain links to the eBay seller page and the
-    Cardmarket profile once the usernames are known.
+    Cardmarket profile. The usernames are known (2026-10-22). Agents' proposal: link them only once
+    each account shows the business details (M1), so the company's site doesn't point to an
+    account registered as private.
   - **No EPN tracking on those links.** EPN requires its approval for self-made promotional
     content.
   - **Company details:** show them on the site (reg. 25).
@@ -709,7 +758,7 @@ entity card (C1). Demand, not doors, is the constraint.
 | Brand | Tier (proposed) | First assets |
 |---|---|---|
 | RewardsPro | Focus | A1–A7, B1–B3, C1–C5, D1–D3; later B4, B7, C9, D5 |
-| Cambridge TCG | Maintain: marketplace-only (eBay UK and Cardmarket; Yu, 2026-10-20) | The brand kit (A1, A2, B1, and eBay Shop and Cardmarket images) is being built at monorepo `apps/storefront/marketing/` by another session, which reports that Yu asked for it on 2026-10-20 (not on main yet). Once Yu gives the eBay and Cardmarket usernames: M1–M4 (business details, photo standard, title and condition templates, Cardmarket profile texts), then M6 and M8. M5 and M7 only with a Shop subscription (coupons need one, RESEARCH §7.1); M7 also needs a printer quote. Site truth fixes still stand: canonical tag and server-rendered Organization JSON-LD; sitemap without retired `/trade-in`, `/rewards`, `/auctions`, `/market`, or with true titles; fix `/rewards` "Daily Spin" and the price guide's "Free daily price guide" (collection stopped 2026-07-12). Not now: Promoted Listings, social (B5), Merchant Center (no own web shop). |
+| Cambridge TCG | Maintain: marketplace-only (eBay UK and Cardmarket; Yu, 2026-10-20) | The brand kit (A1, A2, B1, and eBay Shop and Cardmarket images) is in monorepo PR #86 at `apps/storefront/marketing/`, by another session, which reports that Yu asked for it on 2026-10-20 (not on main yet); it carries the eBay logo and billboards and the Cardmarket avatar. The usernames came on 2026-10-22 (both `cambridgetcg`), and the business is VAT-registered: M1–M4 (business details with the VAT number, photo standard, title and condition templates, Cardmarket profile texts), then M6 and M8. Texts for M1, M3, M4 and M6 are a dated draft in [research/2026-10-22/marketplace-texts.md](research/2026-10-22/marketplace-texts.md) until Yu approves them (the next step is an agents' proposal, RESEARCH §7.6). They fit once each account is registered as a business; eBay shows a private seller (RESEARCH §7.6). M5 and M7 only with a Shop subscription (the Shop page returned 410 on 2026-10-20; coupons need one, RESEARCH §7.1); M7 also needs a printer quote. Site truth fixes still stand: canonical tag and server-rendered Organization JSON-LD; sitemap without retired `/trade-in`, `/rewards`, `/auctions`, `/market`, or with true titles; fix `/rewards` "Daily Spin" and the price guide's "Free daily price guide" (collection stopped 2026-07-12). Not now: Promoted Listings, social (B5), Merchant Center (no own web shop). |
 | The One Piece scanner (planned) | Pre-launch (proposed) | No public promotion until its G0 holds; each preparatory act needs Yu's word (SCANNER §8). Then SCANNER.md §6: mark and kit, store icons, screenshots from real captures, feature graphic, landing page. |
 | TaxSorted | Maintain | B1, A2 (replace the Vercel default), canonical tag, JSON-LD |
 | R2 and R3 sites | Later, per lane | 10 of 15 live sites have no `og:image`. Four have no favicon. fomoengine.io and axiepro.io serve the stock Next.js favicon. A later sweep with the same skill, through each site's own lane. |
