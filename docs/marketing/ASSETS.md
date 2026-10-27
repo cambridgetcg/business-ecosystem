@@ -804,8 +804,8 @@ entity card (C1). Demand, not doors, is the constraint.
 **E1. Structured data and page plumbing**
 - **Why:** search engines and AI assistants read the page's own description of itself.
 - **First:** RewardsPro landing, TaxSorted (with A6), and Cambridge TCG, whose home page already
-  served Organization and WebSite JSON-LD on 2026-10-27; its canonical tag and sitemap remain (see
-  the table at the end).
+  served Organization and WebSite JSON-LD on 2026-10-27; its canonical tag and sitemap remain, and
+  that JSON-LD does not yet name eBay UK or Cardmarket (M8; see the table at the end).
 - **Make:** text from C1; Organization and SoftwareApplication JSON-LD rendered on the server; a
   canonical tag; a sitemap without retired pages.
 - **Gate:** G1–G4.
