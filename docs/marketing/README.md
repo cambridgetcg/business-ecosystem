@@ -7,7 +7,8 @@ what to make and how; [RESEARCH.md](RESEARCH.md) holds the findings, and the dat
 behind them are in [research/2026-10-20/](research/2026-10-20/) and
 [research/2026-10-22/](research/2026-10-22/). [SCANNER.md](SCANNER.md) is the brief for the planned
 One Piece scanner app. Facts are as of 2026-10-20, except Cambridge TCG's marketplace accounts and
-VAT, updated on 2026-10-22 (RESEARCH §7.6).
+VAT, updated on 2026-10-22 (RESEARCH §7.6), and the brand kits and the new-brand checklist in §4
+and §8 step 11, updated by agents on 2026-10-27.
 
 ## 1. What this is, and why now
 
@@ -134,10 +135,13 @@ The proposed rings follow that split.
 
 A kernel lives in the repo that owns the brand. RewardsPro's goes at monorepo
 `apps/rewardspro/marketing/` (its canonical source, ledger `canonical-sources`); the approved kit is
-in monorepo PR #83 (open; Yu merges). Another session built Cambridge TCG's kit at
-`apps/storefront/marketing/`, in monorepo PR #86 (not on main as of 2026-10-22). Agents' proposal:
-the marketplace texts move there once Yu approves them (RESEARCH §7.6).
-Existing kits stay put: YOUSPEAK `brand/` and artbitrage `tools/brand/`.
+in monorepo PR #83 (open on 2026-10-27; Yu merges). Another session built Cambridge TCG's kit at
+`apps/storefront/marketing/`. Monorepo PR #86 added it and PR #87 serves it on cambridgetcg.com;
+both were merged on 2026-10-26, and the site served the kit's icons, manifest and share card on
+2026-10-27 (observed by an agent). Agents' proposal: the marketplace texts move there once Yu
+approves them (RESEARCH §7.6).
+Two hand-made kits of the same shape stay their owners': artbitrage's `tools/brand/` and YOUSPEAK's
+`brand/`. No generated kit overwrites them.
 
 The kit covers the listing, landing page, docs and outreach only. Inside merchants' shops the widget
 keeps the owner's existing rule: "Theme before brand ... do not introduce a standalone RewardsPro
@@ -152,6 +156,33 @@ visual identity" (`apps/rewardspro/extensions/theme-app-extension-rewardspro/cla
 | `templates/` | VectorCraft and EffectCraft templates, CSV copy rows | Maker |
 | `approvals.jsonl` | Append-only: asset hashes, channel, Yu's verbatim words and who recorded them; rejections with reasons | Never edited. Agent advice is never logged as Yu's approval. |
 | `private/` (git-ignored) | Prospects, funnel ledger, consent records | Never committed |
+
+**A new brand, step by step.** This is the estate's checklist (agents, 2026-10-27). Each step points
+to the document that owns it, so the list stays short:
+
+1. **The identity.** A new mark or look is Yu's choice, through a review pack (§7). A project
+   without a brand waits for that choice.
+2. **The kernel,** in the repo that owns the brand: `brand.json` as
+   `~/.kingdom/tools/artcraft-brand/SKILL.md` documents it, then `kernel.toml` and `claims.toml`.
+   Set `app.color_scheme` to the schemes the site's pages really support (generator 1.7; `dark` for
+   a dark-only page).
+3. **The kit.** Build it with the skill into `kit/`, look at the renders, and hold exit 0 as the
+   bar. Change `brand.json` and rebuild; never edit `kit/` by hand.
+4. **The wiring.** The skill's `references/wiring.md` is the kit's last mile into Next.js, static,
+   Vite and Cloudflare Pages sites. Serve `kit/web/`, put the head snippet on every page, and put
+   `head-home.html` (the Organization and WebSite JSON-LD; generator 1.7, when `url` is set) on
+   the home page only. Where the site already has those blocks, as cambridgetcg.com does, add the
+   kit's logo to them instead.
+5. **The sync test.** Copy wiring.md's sync-test template, so the served files stay byte-equal to
+   `kit/web/` and the head keeps its tags. cambridgetcg.com shows why: turning the snippet into
+   Next.js metadata dropped the theme-color pair (observed 2026-10-26 and 2026-10-27). In the
+   monorepo a stricter test is a gate, so it is Yu's call.
+6. **Shipping.** A PR to the brand's own lane; merging a deploy of public pages is Yu's word (§7).
+   After the deploy, run wiring.md's live checks: content types, `/favicon.ico` an icon and not
+   HTML, and the share tags inside `<head>`.
+
+A hand-made kit (artbitrage, YOUSPEAK) is never rebuilt by the skill, so it skips step 3; wiring.md
+says how to tell one from a generated kit.
 
 `[positioning]` (April Dunford's five fields: alternatives, unique capabilities, value, best-fit
 customers, category) and `[messaging]` (a *messaging house*: one umbrella line, three pillars, proof
@@ -328,10 +359,12 @@ collection, and never copied into notes, memory or journals.
 10. **YU.** Send about 10 personal messages a week, to limited companies only, with no follow-ups.
     Ask every partner for a review in the same neutral words.
 11. **AGENT.** Maintain-tier work for Cambridge TCG and TaxSorted, as PRs to their own lanes.
-    - **Cambridge TCG (marketplace-only).** Its kit is in monorepo PR #86 at
-      `apps/storefront/marketing/`, by another session, which reports that Yu asked for it on
-      2026-10-20 (not on main yet). It carries the eBay Shop logo and billboards and the Cardmarket
-      avatar (observed 2026-10-22 on branch `feat/cambridge-tcg-brand-kit`).
+    - **Cambridge TCG (marketplace-only).** Its kit is at monorepo `apps/storefront/marketing/`, by
+      another session, which reports that Yu asked for it on 2026-10-20. PR #86 (the kit) and
+      PR #87 (serving it on cambridgetcg.com) were merged on 2026-10-26, and the site served the
+      kit's icons, manifest and share card on 2026-10-27 (observed by an agent). It carries the eBay
+      Shop logo and billboards and the Cardmarket avatar. Still open, for the storefront lane: the
+      live head has no theme-color pair (§4, step 5).
       The marketplace texts and templates are ASSETS M1–M8. Yu gave the usernames on 2026-10-22.
       Paste-ready texts for M1, M3, M4 and M6 are a dated draft in
       [research/2026-10-22/marketplace-texts.md](research/2026-10-22/marketplace-texts.md) until Yu
