@@ -169,20 +169,23 @@ to the document that owns it, so the list stays short:
 3. **The kit.** Build it with the skill into `kit/`, look at the renders, and hold exit 0 as the
    bar. Change `brand.json` and rebuild; never edit `kit/` by hand.
 4. **The wiring.** The skill's `references/wiring.md` is the kit's last mile into Next.js, static,
-   Vite and Cloudflare Pages sites. Serve `kit/web/`, put the head snippet on every page, and put
-   `head-home.html` (the Organization and WebSite JSON-LD; generator 1.7, when `url` is set) on
-   the home page only. Where the site already has those blocks, as cambridgetcg.com does, add the
-   kit's logo to them instead.
+   Vite and Cloudflare Pages sites. Serve the `kit/web/` files wiring.md §0 lists at the site root,
+   put the head snippet on every page, and put `head-home.html` (the Organization and WebSite
+   JSON-LD; generator 1.7, when `url` is set) on the home page only. Where the site already has
+   those blocks, as cambridgetcg.com does, add the kit's logo to them instead.
 5. **The sync test.** Copy wiring.md's sync-test template, so the served files stay byte-equal to
    `kit/web/` and the head keeps its tags. cambridgetcg.com shows why: turning the snippet into
    Next.js metadata dropped the theme-color pair (observed 2026-10-26 and 2026-10-27). In the
-   monorepo a stricter test is a gate, so it is Yu's call.
+   monorepo a stricter test is a new hard guard, which its AGENTS.md (principle 8) leaves to Yu:
+   explain the risk and let Yu choose.
 6. **Shipping.** A PR to the brand's own lane; merging a deploy of public pages is Yu's word (§7).
    After the deploy, run wiring.md's live checks: content types, `/favicon.ico` an icon and not
    HTML, and the share tags inside `<head>`.
 
-A hand-made kit (artbitrage, YOUSPEAK) is never rebuilt by the skill, so it skips step 3; wiring.md
-says how to tell one from a generated kit.
+A hand-made kit (artbitrage's `tools/brand/`, YOUSPEAK's `brand/`) is never rebuilt by the skill,
+so it skips step 3, and steps 4 and 5 work from its own folder and follow the project's own head
+rules first (artbitrage keeps one theme-color per page; wiring.md §2). wiring.md §1 says how to
+tell one from a generated kit.
 
 `[positioning]` (April Dunford's five fields: alternatives, unique capabilities, value, best-fit
 customers, category) and `[messaging]` (a *messaging house*: one umbrella line, three pillars, proof

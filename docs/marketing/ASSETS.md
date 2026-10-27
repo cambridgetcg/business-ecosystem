@@ -54,12 +54,16 @@ Each entry gives:
 - **What the 2026-10-26 research changed here** (the checks are in the skill's guardrails and
   recipes):
   - OG batches from data rows have three routes now (B1).
-  - Brand type rendered in any Craft app other than VectorCraft is set in Inter (A5).
+  - Brand type that FigCraft, PhotoCraft, EffectCraft or LightCraft renders is set in Inter
+    (Regular or SemiBold), the one non-Adobe Latin family all six kit apps carry. Those apps lack
+    Source Sans 3 and Source Serif 4, or (FigCraft after 0.11.2) are expected to drop them;
+    DesignCraft bundles both (A5).
   - PhotoCraft 0.16.0's `serve` route refuses image replacement; its CLI route does it (B5).
-  - **Desktop app updates.** The app versions the skill installs have no self-update. The next
-    releases are expected to: the main branch of all six Craft apps now depends on storytold's
-    self-update library, and on VectorCraft's main branch the app checks at every start and offers
-    "UPDATE AND RESTART" (read in the source on 2026-10-26 [R26 ECO F08, R26 G4 G4-06]). At that
+  - **Desktop app updates.** The desktop apps installed on 2026-10-27 (VectorCraft 0.17.0,
+    PhotoCraft 0.16.0, DesignCraft 0.13.0, FigCraft 0.11.2) have no self-update [R26 G4 G4-06].
+    The next releases are expected to: the main branch of all six Craft apps now depends on
+    storytold's self-update library, and on VectorCraft's main branch the app checks at every start
+    and offers "UPDATE AND RESTART" (read in the source on 2026-10-26 [R26 ECO F08, R26 G4 G4-06]). At that
     prompt choose "Later", then re-sync with the skill's `install.sh --gui`, which keeps each app on
     its CLI's version. Agents' inference: the in-app update would replace the `~/Applications` copy
     outside install.sh, and the app would drift from its CLI. PhotoCraft 0.16.0 also asks GitHub for
@@ -180,13 +184,15 @@ Each entry gives:
   - The Craft apps bundle OFL 1.1 fonts, and OFL allows commercial artwork. They don't bundle the
     same ones (read in each app's source, and checked in the VectorCraft, DesignCraft and FigCraft
     CLIs, 2026-10-26 [R26 G1 G1-02, G1-03, G1-04, G1-05, G1-06, G1-07, G1-11]):
-    - Inter is the one Latin family all six bundle (Regular and SemiBold in each).
+    - Inter (Regular and SemiBold) is the one non-Adobe Latin family all six kit apps carry.
     - VectorCraft and DesignCraft also bundle Source Sans 3 and Source Serif 4, and FigCraft 0.11.2
       still does, but its main branch drops both. PhotoCraft, EffectCraft and LightCraft don't.
     - So the generated kit keeps its Source Sans 3 default wordmark (VectorCraft draws it, and the
-      build fails loudly if the face goes). Brand type that another Craft app renders, such as a
-      FigCraft or PhotoCraft card title, is set in Inter and checked for fallbacks: FigCraft draws
-      a missing family in another face with exit 0, and only its missing-font reports name it.
+      build fails loudly if the face goes). Brand type that FigCraft, PhotoCraft, EffectCraft or
+      LightCraft renders, such as a FigCraft or PhotoCraft card title, is set in Inter and checked
+      for fallbacks: FigCraft draws a missing family in another face with exit 0, and only its
+      missing-font reports name it. DesignCraft can also use the Source faces it bundles, as the
+      skill's DesignCraft recipes do with Source Sans 3.
   - craft-fonts has CJK and Arabic faces but no Latin display face.
 - **Spec:** one sans for R1 commerce. R2 and R3 keep their system serif stacks. Outline type in logos.
 - **Gate:** G5 (font resolved, no missing glyphs).
@@ -229,13 +235,17 @@ Each entry gives:
   - **PhotoCraft data sets through the CLI** (`run` with `file.export.dataSetsAsFiles`, recipes
     §2), on 0.12.0 and 0.16.0: 250 cards in about 4 seconds. It overwrites files in its output
     folder without a word, so start each run in a new, empty folder [R26 PC F2, N1].
-  - **FigCraft `data.fill`** (0.11.2 and later): one card per row in several sizes, with headlines
-    fitted to their lines. Its errors come back with exit 0, so run the recipe's guards
-    [R26 FC F1, F2].
+  - **FigCraft `data.fill`** (0.11.2 and later, recipes §10): one card per row in several sizes,
+    with headlines fitted to their lines. Its errors come back with exit 0, so run the recipe's
+    guards [R26 FC F1, F2].
 
-  Card text in FigCraft or PhotoCraft is set in Inter (A5).
+  Card text in FigCraft or PhotoCraft is set in Inter (A5); DesignCraft also bundles Source Sans 3
+  and Source Serif 4.
 - **Spec** (Meta's developer docs on sharing images, and ogp.me, per research note marketing-workflow):
   - 1200×630 recommended; at least 200×200; at most 8 MB;
+  - under 600,000 bytes, at least 300 px wide and at most 4:1 width to height, or WhatsApp may show
+    no preview (Meta's sharing docs allow 8 MB). The kit's verify fails a card at 600,000 bytes from
+    generator 1.7; check batch cards yourself [R26 WS WS-10, R26 G5 G5-01];
   - declare `og:image:width` and `og:image:height`, and set `og:image:alt`;
   - Meta caches by URL, so a changed image needs a new file name;
   - use the same image for X's large card. X's own size rules were **not checked**.
@@ -292,8 +302,9 @@ Each entry gives:
 - **Make:**
   - VectorCraft data sets: one card per CSV row (tested 2026-10-20).
   - PhotoCraft data sets, including image replacement, for price tiles: through the CLI route
-    (B1). On PhotoCraft 0.16.0 the `serve` route refuses image replacement and writes nothing;
-    text and visibility data sets still work there (tested 2026-10-26 [R26 PC F1]).
+    (B1). On PhotoCraft 0.16.0 the `serve` route refuses image replacement and writes no images
+    (it leaves an empty output folder); text and visibility data sets still work there (tested
+    2026-10-26 [R26 PC F1, N3]).
   - FigCraft `data.fill`: one template, several post sizes per row (B1).
   - EffectCraft templates for animated tiles.
 - **Spec:**
@@ -809,7 +820,7 @@ entity card (C1). Demand, not doors, is the constraint.
 | Brand | Tier (proposed) | First assets |
 |---|---|---|
 | RewardsPro | Focus | A1–A7, B1–B3, C1–C5, D1–D3; later B4, B7, C9, D5 |
-| Cambridge TCG | Maintain: marketplace-only (eBay UK and Cardmarket; Yu, 2026-10-20) | The brand kit (A1, A2, B1, and eBay Shop and Cardmarket images) is at monorepo `apps/storefront/marketing/`, by another session, which reports that Yu asked for it on 2026-10-20; it carries the eBay logo and billboards and the Cardmarket avatar. PRs #86 and #87 merged it and wired it into cambridgetcg.com on 2026-10-26, and the site served its icons and share card on 2026-10-27 (observed); the live head still lacks the theme-color pair (README §4, step 5). The usernames came on 2026-10-22 (both `cambridgetcg`), and the business is VAT-registered: M1–M4 (business details with the VAT number, photo standard, title and condition templates, Cardmarket profile texts), then M6 and M8. Texts for M1, M3, M4 and M6 are a dated draft in [research/2026-10-22/marketplace-texts.md](research/2026-10-22/marketplace-texts.md) until Yu approves them (the next step is an agents' proposal, RESEARCH §7.6). They fit once each account is registered as a business; eBay shows a private seller (RESEARCH §7.6). M5 and M7 only with a Shop subscription (the Shop page returned 410 on 2026-10-20; coupons need one, RESEARCH §7.1); M7 also needs a printer quote. Site truth fixes still stand: a canonical tag (still missing on 2026-10-27; the site now serves Organization and WebSite JSON-LD, observed 2026-10-27); sitemap without retired `/trade-in`, `/rewards`, `/auctions`, `/market`, or with true titles; fix `/rewards` "Daily Spin" and the price guide's "Free daily price guide" (collection stopped 2026-07-12). Not now: Promoted Listings, social (B5), Merchant Center (no own web shop). |
+| Cambridge TCG | Maintain: marketplace-only (eBay UK and Cardmarket; Yu, 2026-10-20) | The brand kit (A1, A2, B1, and eBay Shop and Cardmarket images) is at monorepo `apps/storefront/marketing/`, by another session, which reports that Yu asked for it on 2026-10-20; it carries the eBay logo and billboards and the Cardmarket avatar. PRs #86 and #87 merged it and wired it into cambridgetcg.com on 2026-10-26, and the site served its icons and share card on 2026-10-27 (observed). On 2026-10-27 (curl) the home page's server HTML still had no theme-color pair and no color-scheme meta (README §4, steps 2 and 5; a 1.7 kit writes the meta), and its `<head>` already carried Organization and WebSite JSON-LD. The usernames came on 2026-10-22 (both `cambridgetcg`), and the business is VAT-registered: M1–M4 (business details with the VAT number, photo standard, title and condition templates, Cardmarket profile texts), then M6 and M8. Texts for M1, M3, M4 and M6 are a dated draft in [research/2026-10-22/marketplace-texts.md](research/2026-10-22/marketplace-texts.md) until Yu approves them (the next step is an agents' proposal, RESEARCH §7.6). They fit once each account is registered as a business; eBay shows a private seller (RESEARCH §7.6). M5 and M7 only with a Shop subscription (the Shop page returned 410 on 2026-10-20; coupons need one, RESEARCH §7.1); M7 also needs a printer quote. Site truth fixes still stand: a canonical tag (none on the home page, 2026-10-27); sitemap without retired `/trade-in`, `/rewards`, `/auctions`, `/market`, or with true titles; fix `/rewards` "Daily Spin" and the price guide's "Free daily price guide" (collection stopped 2026-07-12). Not now: Promoted Listings, social (B5), Merchant Center (no own web shop). |
 | The One Piece scanner (planned) | Pre-launch (proposed) | No public promotion until its G0 holds; each preparatory act needs Yu's word (SCANNER §8). Then SCANNER.md §6: mark and kit, store icons, screenshots from real captures, feature graphic, landing page. |
 | TaxSorted | Maintain | B1, A2 (replace the Vercel default), canonical tag, JSON-LD |
 | R2 and R3 sites | Later, per lane | 10 of 15 live sites have no `og:image`. Four have no favicon. fomoengine.io and axiepro.io serve the stock Next.js favicon. A later sweep with the same skill, through each site's own lane. |
