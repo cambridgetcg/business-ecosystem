@@ -56,14 +56,15 @@ Each entry gives:
   - OG batches from data rows have three routes now (B1).
   - Brand type rendered in any Craft app other than VectorCraft is set in Inter (A5).
   - PhotoCraft 0.16.0's `serve` route refuses image replacement; its CLI route does it (B5).
-  - **Desktop app updates.** The app versions the skill installs have no self-update. The releases
-    after them will: the main branch of all six Craft apps now depends on storytold's self-update
-    library, and VectorCraft's checks at every start and offers "UPDATE AND RESTART" (read in the
-    source on 2026-10-26 [R26 ECO F08, R26 G4 G4-06]). At that prompt choose "Later", then
-    re-sync with the skill's `install.sh --gui`, which keeps each app on its CLI's version. Agents'
-    inference: the in-app update would replace the `~/Applications` copy outside install.sh, and
-    the app would drift from its CLI. PhotoCraft 0.16.0 also asks GitHub for its latest release at
-    every launch, only to notify (turn it off in Preferences › General) [R26 G4 G4-01].
+  - **Desktop app updates.** The app versions the skill installs have no self-update. The next
+    releases are expected to: the main branch of all six Craft apps now depends on storytold's
+    self-update library, and on VectorCraft's main branch the app checks at every start and offers
+    "UPDATE AND RESTART" (read in the source on 2026-10-26 [R26 ECO F08, R26 G4 G4-06]). At that
+    prompt choose "Later", then re-sync with the skill's `install.sh --gui`, which keeps each app on
+    its CLI's version. Agents' inference: the in-app update would replace the `~/Applications` copy
+    outside install.sh, and the app would drift from its CLI. PhotoCraft 0.16.0 also asks GitHub for
+    its latest release at every launch, only to notify; turn it off in Preferences › General (the
+    first launch checks once before you can) [R26 G4 G4-01].
 - **File names:** `<brand>_<campaign>_<asset>_<variant>_<WxH>_<yyyymmdd>_v<NN>.<ext>`. Every asset
   gets a `<name>.meta.json` sidecar (see D3).
 
@@ -175,11 +176,11 @@ Each entry gives:
   logo is a use its licence must allow, so check before shipping a mark set in a macOS system font
   such as Avenir Next.
   - The Craft apps bundle OFL 1.1 fonts, and OFL allows commercial artwork. They don't bundle the
-    same ones (read in each app's source and checked in the CLIs, 2026-10-26 [R26 G1 G1-02, G1-03,
-    G1-05, G1-11]):
-    - Inter SemiBold is the one Latin face in all six.
-    - VectorCraft and DesignCraft also bundle Source Sans 3 and Source Serif 4. PhotoCraft,
-      EffectCraft and LightCraft don't, and FigCraft's main branch drops both after 0.11.2.
+    same ones (read in each app's source, and checked in the VectorCraft, DesignCraft and FigCraft
+    CLIs, 2026-10-26 [R26 G1 G1-02, G1-03, G1-04, G1-05, G1-06, G1-07, G1-11]):
+    - Inter is the one Latin family all six bundle (Regular and SemiBold in each).
+    - VectorCraft and DesignCraft also bundle Source Sans 3 and Source Serif 4, and FigCraft 0.11.2
+      still does, but its main branch drops both. PhotoCraft, EffectCraft and LightCraft don't.
     - So the generated kit keeps its Source Sans 3 default wordmark (VectorCraft draws it, and the
       build fails loudly if the face goes). Brand type that another Craft app renders, such as a
       FigCraft or PhotoCraft card title, is set in Inter and checked for fallbacks: FigCraft draws
@@ -216,9 +217,9 @@ Each entry gives:
   - TaxSorted: none.
   - Cambridge TCG: its tag declares 1200×630 but the file is 1702×630, and its Twitter image is
     1500×500.
-- **Make:** artcraft-brand. VectorCraft made 1200×630 PNG, JPG and WebP today (tested; WebP is
-  lossless only). The kit makes the default card and, with `pages`, one per page (up to 40). For a
-  batch from data rows there are three routes, each with its checks in the skill's
+- **Make:** artcraft-brand. VectorCraft made 1200×630 PNG, JPG and WebP on 2026-10-20 (tested;
+  WebP is lossless only). The kit makes the default card and, with `pages`, one per page (up to
+  40). For a batch from data rows there are three routes, each with its checks in the skill's
   `references/recipes.md` (tested 2026-10-26):
   - **DesignCraft data merge** (recipes §1): 255 cards, byte-identical on 0.11.0 and 0.13.0
     [R26 DC DC13-F8].
@@ -286,7 +287,7 @@ Each entry gives:
   until Yu decides whether to open accounts (RESEARCH §6.7).
 - **First:** none yet.
 - **Make:**
-  - VectorCraft data sets: one card per CSV row (tested today).
+  - VectorCraft data sets: one card per CSV row (tested 2026-10-20).
   - PhotoCraft data sets, including image replacement, for price tiles: through the CLI route
     (B1). On PhotoCraft 0.16.0 the `serve` route refuses image replacement and writes nothing;
     text and visibility data sets still work there (tested 2026-10-26 [R26 PC F1]).
@@ -320,8 +321,8 @@ Each entry gives:
   - how to leave.
 - **First:** RewardsPro (a `/tcg` page and a PDF).
 - **Make:** VectorCraft PDF export (tested). DesignCraft only if a QR code is needed; it is
-  pre-alpha. Its merged QR was tested on 2026-10-26: recolour it after the merge, and scan it
-  before shipping [R26 DC DC13-F6].
+  pre-alpha. A static `object.qrCode` takes `color` (tested 2026-10-26); scan it before shipping
+  [R26 DC DC13-F6].
 - **Spec:** A4 PDF. VectorCraft writes PDF/A-2b and PDF/X-1a, X-3 and X-4. Check anything for a
   commercial printer with an independent preflight tool.
 - **Gate:** G1–G5.
@@ -329,7 +330,9 @@ Each entry gives:
 **B8. Event print: table banner, price cards, QR to a page**
 - **Why:** card shows and prereleases, only if Yu goes.
 - **First:** Cambridge TCG or RewardsPro, by Yu's choice.
-- **Make:** DesignCraft data merge and `object.qrCode` (documented), or VectorCraft presets.
+- **Make:** DesignCraft data merge and `object.qrCode`, or VectorCraft presets. A merged QR is drawn
+  black: recolour its `<path>` child after the merge, and scan it before shipping (tested
+  2026-10-26, scanning untested [R26 DC DC13-F6]).
   `designcraft-cli validate-pdf` checks DesignCraft's PDF/X-4 output and exits 1 on a failure. It
   is the vendor's partial checker, not certification, so a printer's preflight still decides
   (tested 2026-10-26 [R26 DC DC13-F2]).
@@ -442,11 +445,11 @@ legal advice.
     2026-10-26 on a `sips`-made HEIC only, not on an iPhone's [R26 LC LC-04]).
   - LightCraft makes one `run` per output, cropping, resizing to sRGB and stripping metadata with
     `metadata=none`, which also removes phone GPS.
-  - The skill's own reference records two limits: LightCraft raw input is untested, and before
-    0.14.0 it turned pure white `#FFFFFF` into 254. From 0.14.0, unedited exports and edits with
-    Contrast, Whites and Blacks at 0 keep it, but any curve grade still lowers it (tested
-    2026-10-26 [R26 LC LC-01]). So keep white-ground photos ungraded, shoot on a light neutral
-    matte background, or use PhotoCraft `batch`.
+  - The skill's own reference records two limits: LightCraft raw input is untested, and
+    LightCraft 0.11.0 turns pure white `#FFFFFF` into 254 (fixed in v0.12.0, PR #1972). On 0.14.0,
+    unedited exports and edits with Contrast, Whites and Blacks at 0 keep it, but any curve grade
+    still lowers it (tested 2026-10-26 on 0.11.0 and 0.14.0 [R26 LC LC-01]). So keep white-ground
+    photos ungraded, shoot on a light neutral matte background, or use PhotoCraft `batch`.
   - Never use a Craft watermark or background removal, or eBay's AI "Studio", "Surface" or
     "Outside" backgrounds.
 - **Spec, eBay** (read and fact-checked):
@@ -803,7 +806,7 @@ entity card (C1). Demand, not doors, is the constraint.
 | Brand | Tier (proposed) | First assets |
 |---|---|---|
 | RewardsPro | Focus | A1–A7, B1–B3, C1–C5, D1–D3; later B4, B7, C9, D5 |
-| Cambridge TCG | Maintain: marketplace-only (eBay UK and Cardmarket; Yu, 2026-10-20) | The brand kit (A1, A2, B1, and eBay Shop and Cardmarket images) is at monorepo `apps/storefront/marketing/`, by another session, which reports that Yu asked for it on 2026-10-20; it carries the eBay logo and billboards and the Cardmarket avatar. PRs #86 and #87 merged it and wired it into cambridgetcg.com on 2026-10-26, and the site served its icons and share card on 2026-10-27 (observed); the live head still lacks the theme-color pair (README §4, step 5). The usernames came on 2026-10-22 (both `cambridgetcg`), and the business is VAT-registered: M1–M4 (business details with the VAT number, photo standard, title and condition templates, Cardmarket profile texts), then M6 and M8. Texts for M1, M3, M4 and M6 are a dated draft in [research/2026-10-22/marketplace-texts.md](research/2026-10-22/marketplace-texts.md) until Yu approves them (the next step is an agents' proposal, RESEARCH §7.6). They fit once each account is registered as a business; eBay shows a private seller (RESEARCH §7.6). M5 and M7 only with a Shop subscription (the Shop page returned 410 on 2026-10-20; coupons need one, RESEARCH §7.1); M7 also needs a printer quote. Site truth fixes still stand: canonical tag and server-rendered Organization JSON-LD; sitemap without retired `/trade-in`, `/rewards`, `/auctions`, `/market`, or with true titles; fix `/rewards` "Daily Spin" and the price guide's "Free daily price guide" (collection stopped 2026-07-12). Not now: Promoted Listings, social (B5), Merchant Center (no own web shop). |
+| Cambridge TCG | Maintain: marketplace-only (eBay UK and Cardmarket; Yu, 2026-10-20) | The brand kit (A1, A2, B1, and eBay Shop and Cardmarket images) is at monorepo `apps/storefront/marketing/`, by another session, which reports that Yu asked for it on 2026-10-20; it carries the eBay logo and billboards and the Cardmarket avatar. PRs #86 and #87 merged it and wired it into cambridgetcg.com on 2026-10-26, and the site served its icons and share card on 2026-10-27 (observed); the live head still lacks the theme-color pair (README §4, step 5). The usernames came on 2026-10-22 (both `cambridgetcg`), and the business is VAT-registered: M1–M4 (business details with the VAT number, photo standard, title and condition templates, Cardmarket profile texts), then M6 and M8. Texts for M1, M3, M4 and M6 are a dated draft in [research/2026-10-22/marketplace-texts.md](research/2026-10-22/marketplace-texts.md) until Yu approves them (the next step is an agents' proposal, RESEARCH §7.6). They fit once each account is registered as a business; eBay shows a private seller (RESEARCH §7.6). M5 and M7 only with a Shop subscription (the Shop page returned 410 on 2026-10-20; coupons need one, RESEARCH §7.1); M7 also needs a printer quote. Site truth fixes still stand: a canonical tag (still missing on 2026-10-27; the site now serves Organization and WebSite JSON-LD, observed 2026-10-27); sitemap without retired `/trade-in`, `/rewards`, `/auctions`, `/market`, or with true titles; fix `/rewards` "Daily Spin" and the price guide's "Free daily price guide" (collection stopped 2026-07-12). Not now: Promoted Listings, social (B5), Merchant Center (no own web shop). |
 | The One Piece scanner (planned) | Pre-launch (proposed) | No public promotion until its G0 holds; each preparatory act needs Yu's word (SCANNER §8). Then SCANNER.md §6: mark and kit, store icons, screenshots from real captures, feature graphic, landing page. |
 | TaxSorted | Maintain | B1, A2 (replace the Vercel default), canonical tag, JSON-LD |
 | R2 and R3 sites | Later, per lane | 10 of 15 live sites have no `og:image`. Four have no favicon. fomoengine.io and axiepro.io serve the stock Next.js favicon. A later sweep with the same skill, through each site's own lane. |
