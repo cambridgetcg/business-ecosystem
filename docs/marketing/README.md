@@ -172,7 +172,8 @@ to the document that owns it, so the list stays short:
    Vite and Cloudflare Pages sites. Serve the `kit/web/` files wiring.md §0 lists at the site root,
    put the head snippet on every page, and put `head-home.html` (the Organization and WebSite
    JSON-LD; generator 1.7, when `url` is set) on the home page only. Where the site already has
-   those blocks, as cambridgetcg.com does, add the kit's logo to them instead.
+   those blocks, add the kit's logo to them instead (cambridgetcg.com's Organization logo was
+   already the kit's icon-512.png on 2026-10-27).
 5. **The sync test.** Copy wiring.md's sync-test template, so the served files stay byte-equal to
    `kit/web/` and the head keeps its tags. cambridgetcg.com shows why: turning the snippet into
    Next.js metadata dropped the theme-color pair (observed 2026-10-26 and 2026-10-27). In the

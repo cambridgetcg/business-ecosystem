@@ -54,21 +54,22 @@ Each entry gives:
 - **What the 2026-10-26 research changed here** (the checks are in the skill's guardrails and
   recipes):
   - OG batches from data rows have three routes now (B1).
-  - Brand type that FigCraft, PhotoCraft, EffectCraft or LightCraft renders is set in Inter
-    (Regular or SemiBold), the one non-Adobe Latin family all six kit apps carry. Those apps lack
-    Source Sans 3 and Source Serif 4, or (FigCraft after 0.11.2) are expected to drop them;
-    DesignCraft bundles both (A5).
+  - Brand type that FigCraft, PhotoCraft, EffectCraft or LightCraft renders is set in Inter, the
+    one non-Adobe Latin family all six kit apps carry (Regular and SemiBold in each), or in a face
+    you install or load, and checked in that app's missing-font report. Those apps lack Source
+    Sans 3 and Source Serif 4, or (FigCraft after 0.11.2) are expected to drop them; DesignCraft
+    bundles both (A5).
   - PhotoCraft 0.16.0's `serve` route refuses image replacement; its CLI route does it (B5).
   - **Desktop app updates.** The desktop apps installed on 2026-10-27 (VectorCraft 0.17.0,
     PhotoCraft 0.16.0, DesignCraft 0.13.0, FigCraft 0.11.2) have no self-update [R26 G4 G4-06].
     The next releases are expected to: the main branch of all six Craft apps now depends on
     storytold's self-update library, and on VectorCraft's main branch the app checks at every start
-    and offers "UPDATE AND RESTART" (read in the source on 2026-10-26 [R26 ECO F08, R26 G4 G4-06]). At that
-    prompt choose "Later", then re-sync with the skill's `install.sh --gui`, which keeps each app on
-    its CLI's version. Agents' inference: the in-app update would replace the `~/Applications` copy
-    outside install.sh, and the app would drift from its CLI. PhotoCraft 0.16.0 also asks GitHub for
-    its latest release at every launch, only to notify; turn it off in Preferences › General (the
-    first launch checks once before you can) [R26 G4 G4-01].
+    and offers "UPDATE AND RESTART" (read in the source on 2026-10-26 [R26 ECO F08, R26 G4 G4-06]).
+    At that prompt choose "Later", then re-sync with the skill's `install.sh --gui`, which keeps
+    each app on its CLI's version. Agents' inference: the in-app update would replace the
+    `~/Applications` copy outside install.sh, and the app would drift from its CLI.
+    PhotoCraft 0.16.0 also asks GitHub for its latest release at every launch, only to notify; turn
+    it off in Preferences › General (the first launch checks once before you can) [R26 G4 G4-01].
 - **File names:** `<brand>_<campaign>_<asset>_<variant>_<WxH>_<yyyymmdd>_v<NN>.<ext>`. Every asset
   gets a `<name>.meta.json` sidecar (see D3).
 
@@ -189,8 +190,9 @@ Each entry gives:
       still does, but its main branch drops both. PhotoCraft, EffectCraft and LightCraft don't.
     - So the generated kit keeps its Source Sans 3 default wordmark (VectorCraft draws it, and the
       build fails loudly if the face goes). Brand type that FigCraft, PhotoCraft, EffectCraft or
-      LightCraft renders, such as a FigCraft or PhotoCraft card title, is set in Inter and checked
-      for fallbacks: FigCraft draws a missing family in another face with exit 0, and only its
+      LightCraft renders, such as a FigCraft or PhotoCraft card title, is set in Inter, or in a
+      face you install or load (recipes §2 uses the installed Iowan Old Style), and checked for
+      fallbacks: FigCraft draws a missing family in another face with exit 0, and only its
       missing-font reports name it. DesignCraft can also use the Source faces it bundles, as the
       skill's DesignCraft recipes do with Source Sans 3.
   - craft-fonts has CJK and Arabic faces but no Latin display face.
@@ -239,8 +241,8 @@ Each entry gives:
     with headlines fitted to their lines. Its errors come back with exit 0, so run the recipe's
     guards [R26 FC F1, F2].
 
-  Card text in FigCraft or PhotoCraft is set in Inter (A5); DesignCraft also bundles Source Sans 3
-  and Source Serif 4.
+  Card text in FigCraft or PhotoCraft is set in Inter or in a face you install or load, confirmed
+  by that app's missing-font report (A5); DesignCraft also bundles Source Sans 3 and Source Serif 4.
 - **Spec** (Meta's developer docs on sharing images, and ogp.me, per research note marketing-workflow):
   - 1200×630 recommended; at least 200×200; at most 8 MB;
   - under 600,000 bytes, at least 300 px wide and at most 4:1 width to height, or WhatsApp may show
@@ -801,7 +803,9 @@ entity card (C1). Demand, not doors, is the constraint.
 
 **E1. Structured data and page plumbing**
 - **Why:** search engines and AI assistants read the page's own description of itself.
-- **First:** RewardsPro landing, Cambridge TCG, TaxSorted (with A6).
+- **First:** RewardsPro landing, TaxSorted (with A6), and Cambridge TCG, whose home page already
+  served Organization and WebSite JSON-LD on 2026-10-27; its canonical tag and sitemap remain (see
+  the table at the end).
 - **Make:** text from C1; Organization and SoftwareApplication JSON-LD rendered on the server; a
   canonical tag; a sitemap without retired pages.
 - **Gate:** G1–G4.
