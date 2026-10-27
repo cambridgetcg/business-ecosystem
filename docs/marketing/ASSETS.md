@@ -5,8 +5,8 @@ design is in [README.md](README.md) and the sources are in [RESEARCH.md](RESEARC
 scanner app's assets are in [SCANNER.md](SCANNER.md) §6.
 
 Specs are as of 2026-10-20, and section M was updated on 2026-10-22. Agents updated the ArtCraft
-notes on 2026-10-27: How assets get made, A1, A5, A6, B1, B5, B7, B8, M2 and the Cambridge TCG
-kit's status. A spec marked **read** was read on the platform's own page by a researcher or a
+notes on 2026-10-27: How assets get made, A1, A2, A5, A6, B1, B5, B7, B8, M2 and the Cambridge
+TCG kit's status. A spec marked **read** was read on the platform's own page by a researcher or a
 fact-checker, on 2026-10-20 unless another date is given (RESEARCH tags [O], [D], [V] or
 [V, 2026-10-22]); **fact-checked** means [V], checked on 2026-10-20. **Tested** means an agent ran
 it on this Mac on 2026-10-20, unless another date is given. For 2026-10-26 that is the
@@ -132,9 +132,11 @@ Each entry gives:
 - **Gate:** G5 (colours within tokens, single artboard). Yu approves the look in a review pack.
 
 **A2. Web favicon set**
-- **Why:** the browser tab, bookmarks and home screen. RewardsPro serves only a data-URI icon and
-  `/favicon.ico` returns 404. TaxSorted shows the Vercel default. Cambridge TCG's ICO is 285 KB.
-- **First:** RewardsPro, TaxSorted, Cambridge TCG.
+- **Why:** the browser tab, bookmarks and home screen. On 2026-10-20 RewardsPro served only a
+  data-URI icon and `/favicon.ico` returned 404, and TaxSorted showed the Vercel default. Cambridge
+  TCG's ICO was 285 KB; since PR #87 (2026-10-26) the site serves the kit's 16/32/48 ICO, 1,831
+  bytes (observed 2026-10-27).
+- **First:** RewardsPro, TaxSorted.
 - **Make:** artcraft-brand (it packs a multi-size ICO itself; VectorCraft has no ICO writer).
 - **Spec** (Evil Martians' six-file set, page dated 2026-01-21, third-party):
   - `favicon.ico` as the skill writes it (16, 32 and 48 px frames);
@@ -191,7 +193,8 @@ Each entry gives:
 
 **A6. Web manifest and head snippet**
 - **Why:** wires the icons, share card and colour into each site.
-- **First:** RewardsPro landing, TaxSorted, Cambridge TCG.
+- **First:** RewardsPro landing, TaxSorted, Cambridge TCG (wired by PR #87; the theme-color pair
+  is still missing, README §4, step 5).
 - **Make:** artcraft-brand.
 - **Spec:** the icon links above, `theme-color`, and the share-card tags (B1). From generator 1.7,
   also a `color-scheme` meta and, when the brand has a `url`, the Organization and WebSite JSON-LD
@@ -213,10 +216,10 @@ Each entry gives:
 **B1. Share card (Open Graph, the image shown when a link is shared)**
 - **Why:** every shared link gets a picture.
 - **First:**
-  - RewardsPro: rewardspro.io has no `og:image`.
-  - TaxSorted: none.
-  - Cambridge TCG: its tag declares 1200×630 but the file is 1702×630, and its Twitter image is
-    1500×500.
+  - RewardsPro: rewardspro.io had no `og:image` on 2026-10-20.
+  - TaxSorted: none on 2026-10-20.
+  - Cambridge TCG: done by PR #87; `og:image` and `twitter:image` are the kit's 1200×630
+    `og.jpg`, 63,619 bytes (observed 2026-10-27).
 - **Make:** artcraft-brand. VectorCraft made 1200×630 PNG, JPG and WebP on 2026-10-20 (tested;
   WebP is lossless only). The kit makes the default card and, with `pages`, one per page (up to
   40). For a batch from data rows there are three routes, each with its checks in the skill's
