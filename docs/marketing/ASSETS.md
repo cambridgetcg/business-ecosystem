@@ -56,9 +56,11 @@ Each entry gives:
   - OG batches from data rows have three routes now (B1).
   - Brand type that FigCraft, PhotoCraft, EffectCraft or LightCraft renders is set in Inter, the
     one non-Adobe Latin family all six kit apps carry (Regular and SemiBold in each), or in a face
-    you install or load, and checked in that app's missing-font report. Those apps lack Source
-    Sans 3 and Source Serif 4, or (FigCraft after 0.11.2) are expected to drop them; DesignCraft
-    bundles both (A5).
+    you install or load. Check the face before you rely on it: FigCraft names a fallback only in
+    its missing-font report, and PhotoCraft and EffectCraft fall back with no warning, so look the
+    family and style up first (`type.fonts`, `text.fonts`) [R26 PC F10; EC EC17-05]. Those apps
+    lack Source Sans 3 and Source Serif 4, or (FigCraft after 0.11.2) are expected to drop them;
+    DesignCraft bundles both (A5).
   - PhotoCraft 0.16.0's `serve` route refuses image replacement; its CLI route does it (B5).
   - **Desktop app updates.** The desktop apps installed on 2026-10-27 (VectorCraft 0.17.0,
     PhotoCraft 0.16.0, DesignCraft 0.13.0, FigCraft 0.11.2) have no self-update [R26 G4 G4-06].
@@ -241,8 +243,9 @@ Each entry gives:
     with headlines fitted to their lines. Its errors come back with exit 0, so run the recipe's
     guards [R26 FC F1, F2].
 
-  Card text in FigCraft or PhotoCraft is set in Inter or in a face you install or load, confirmed
-  by that app's missing-font report (A5); DesignCraft also bundles Source Sans 3 and Source Serif 4.
+  Card text in FigCraft or PhotoCraft is set in Inter or in a face you install or load, checked as
+  A5 says: FigCraft's missing-font report after the run, PhotoCraft's `type.fonts` before it,
+  because PhotoCraft falls back silently. DesignCraft also bundles Source Sans 3 and Source Serif 4.
 - **Spec** (Meta's developer docs on sharing images, and ogp.me, per research note marketing-workflow):
   - 1200×630 recommended; at least 200×200; at most 8 MB;
   - under 600,000 bytes, at least 300 px wide and at most 4:1 width to height, or WhatsApp may show
